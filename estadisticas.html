@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estadísticas - Versión de prueba</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #E8F0F5;
+  --color-accent: #2F528F;
+  --color-light: #FFFFFF;
+  --color-gray: #F6F8FB;
+  --color-text-dark: #1A1A1A;
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-dark);
+  padding: 1rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+h1, h2 { font-family: 'Poppins', sans-serif; color: var(--color-accent); }
+
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-end;
+}
+.filter-item { display: flex; flex-direction: column; }
+.filter-item label { margin-bottom: 0.25rem; font-weight: 600; }
+.filter-select { padding: 0.5rem 0.75rem; border-radius: 8px; border:1px solid #ccc; }
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--color-light);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  font-size: 1rem;
+  color: #555;
+}
+
+/* Nota al final */
+.note {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-style: italic;
+  color: #888;
+}
+</style>
+</head>
+<body>
+<!-- FILTROS -->
+<div class="filters-container">
+  <div class="filter-item">
+    <label for="filter-general">Filtrar por:</label>
+    <select id="filter-general" class="filter-select">
+      <option value="general">Ventas Generales</option>
+      <option value="maritimo">Marítimo</option>
+      <option value="aereo">Aéreo</option>
+    </select>
+  </div>
+</div>
+
+<!-- TARJETAS -->
+<div class="cards-container">
+  <div class="card">
+    <h3 class="card-title">Paquetes enviados</h3>
+    <p class="card-text">Versión de prueba, datos no disponibles</p>
+  </div>
+  <div class="card">
+    <h3 class="card-title">Paquetes en bodega</h3>
+    <p class="card-text">Versión de prueba, datos no disponibles</p>
+  </div>
+  <div class="card">
+    <h3 class="card-title">Paquetes camino a Nicaragua</h3>
+    <p class="card-text">Versión de prueba, datos no disponibles</p>
+  </div>
+  <div class="card">
+    <h3 class="card-title">Ganancias en dólares</h3>
+    <p class="card-text">Versión de prueba, datos no disponibles</p>
+  </div>
+</div>
+</body>
+</html>
