@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel del Operador</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #E8F0F5;
+  --color-accent: #2F528F;
+  --color-light: #FFFFFF;
+  --color-gray: #F6F8FB;
+  --color-text-dark: #1A1A1A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-dark);
+  padding: 1rem;
+  max-width: 500px;
+  margin: auto;
+}
+
+/* --------- NAV/SECCIONES ORIGINALES --------- */
+header { text-align: center; margin-bottom: 2rem; }
+h1 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; color: var(--color-accent); }
+nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+nav button { flex: 1; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+nav button.inactive { background: #a0b6e0; }
+
+section { background: var(--color-light); padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
+section.active { display: block; }
+
+label { display: block; margin: 1rem 0 0.5rem; font-weight: 600; }
+input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; }
+input::placeholder { color: #9aa3ad; }
+textarea { resize: vertical; }
+
+button.action-btn { margin-top: 1rem; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-size: 1rem; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+
+.recordatorio-item {
+  background: var(--color-gray);
+  padding: 0.75rem;
+  border-radius: 16px;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+}
+
+.recordatorio-info {
+  flex: 1;
+  border-radius: 12px;
+  padding: 0.4rem;
+}
+.btnEliminar { 
+  background: #f56565; 
+  color: white; 
+  border: none; 
+  padding: 0.35rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  cursor: pointer; 
+  transition: background 0.2s ease;
+}
+.btnEliminar:hover { background: #ff6b6b; }
+
+/* Pop-ups (tus existentes) */
+.popUp, .confirmPop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--color-light); padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999; }
+.popUp button, .confirmPop button { margin-top: 0.5rem; width: 100%; }
+
+/* Animación parpadeo */
+@keyframes parpadeo {
+  0% { background-color: var(--color-light); color: var(--color-text-dark); transform: scale(1); }
+  25% { background-color: #e0f0ff; color: var(--color-accent); transform: scale(1.02); }
+  50% { background-color: var(--color-accent); color: #fff; transform: scale(1.05); }
+  75% { background-color: #e0f0ff; color: var(--color-accent); transform: scale(1.02); }
+  100% { background-color: var(--color-light); color: var(--color-text-dark); transform: scale(1); }
+}
+
+/* Tooltips */
+.form-group { position: relative; }
+.tooltip { display: none; position: absolute; left: 0; top: -2rem; background: var(--color-light); color: var(--color-text-dark); padding: 0.35rem 0.55rem; border-radius: 6px; font-size: 0.8rem; white-space: normal; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 1px solid #ccc; }
+.form-group:focus-within .tooltip { display: block; }
+
+/* Teléfono */
+.phone-row { display: flex; gap: 0.5rem; align-items: center; }
+.phone-row select { width: 35%; min-width: 110px; }
+.phone-row input { flex: 1; }
+
+/* Mensajes */
+.mensaje { margin-top: 1rem; font-size: 0.95rem; padding: 0.75rem; border-radius: 8px; text-align: center; background: #FFF4CC; color: #665c00; border: 1px solid #FFE08A; }
+
+/* Footer */
+footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
+
+/* Optimización pop-up móviles (tus existentes) */
+@media (max-width: 600px) {
+  .popUp {
+    width: 90%;
+    max-width: 400px;
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  .popUp form input,
+  .popUp form textarea,
+  .popUp form select,
+  .popUp button { font-size: 1rem; }
+  .popUp form label { font-size: 0.95rem; }
+  .popUp form textarea { min-height: 80px; }
+}
+
+/* --------- NUEVOS: OVERLAYS DE CONTRASEÑA --------- */
+.authOverlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000;
+}
+.authBox {
+  background: var(--color-light);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  padding: 1.25rem;
+  width: 92%;
+  max-width: 340px;
+  text-align: center;
+}
+.authBox h2 { color: var(--color-accent); font-size: 1.2rem; margin-bottom: 0.75rem; }
+.authBox input {
+  width: 100%; padding: 0.65rem; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0.75rem;
+}
+.authBox .btn {
+  width: 100%; padding: 0.65rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+  background: var(--color-accent); color: #fff;
+}
+.authBox .btn.secondary { background: #888; }
+.authError { color: #e53935; font-size: 0.9rem; display: none; margin-top: 0.25rem; }
+
+/* contenedor estadísticas */
+#estadisticas-container { margin-top: 0.75rem; }
+#estadisticasFrame {
+  width: 100%;
+  min-height: 70vh;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+}
+  /* --- Contenedor de estadísticas --- */
+.stats-container {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Contenido interno */
+.stats-container .stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Ajustes para pantallas grandes */
+@media (min-width: 768px) {
+  .stats-container .stats-content {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* Fondo del lightbox con blur */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Oculto por defecto */
+.hidden {
+  display: none;
+}
+
+/* Caja del lightbox */
+.lightbox-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;       /* ancho máximo */
+  width: 90%;              /* ancho relativo a la pantalla */
+  max-height: 70vh;        /* altura máxima: 70% de la ventana */
+  overflow-y: auto;        /* scroll vertical si el contenido es largo */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-align: center;
+  position: relative;
+}
+
+/* Asegura que los párrafos respeten saltos de línea y no se corten */
+.lightbox-content p {
+  white-space: pre-wrap;   /* respeta saltos de línea */
+  word-wrap: break-word;   /* corta palabras largas si es necesario */
+}
+
+/* Botón cerrar (similar al sitio) */
+.close-lightbox {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Botón eliminar */
+.btn-eliminar {
+  margin-top: 20px;
+  padding: 10px 15px;
+  border: none;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-eliminar:hover {
+  background: #c0392b;
+}
+
+</style>
+</head>
+<body>
+
+<div id="app"><!-- wrapper para blur si hiciera falta -->
+
+<header>
+<h1>Panel del Operador</h1>
+<nav>
+<button id="btnInicio">Inicio</button>
+<button id="btnAgregar" class="inactive">Agregar Paquete</button>
+<button id="btnActualizar" class="inactive">Actualizar Seguimiento</button>
+<button id="btnEstadisticas" class="inactive">Estadísticas</button>
+</nav>
+</header>
+
+<!-- Inicio: Recordatorios -->
+<section id="inicio" class="active">
+<h2>Inicio</h2>
+<div id="listaRecordatorios">
+  <p>No hay recordatorios por el momento.</p>
+</div>
+<button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
+
+<!-- Pop-up Formulario -->
+<div class="popUp" id="popFormRecord">
+<h3>Agregar Recordatorio</h3>
+<form id="formRecord">
+  <label for="tituloRecord">Título del recordatorio</label>
+  <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
+  <label for="descRecord">Descripción</label>
+  <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
+  <label for="fechaRecord">Fecha límite</label>
+  <input type="date" id="fechaRecord" required>
+  <button type="submit" class="action-btn">Agregar</button>
+  <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
+</form>
+</div>
+
+<!-- Pop-up Confirmación Agregado -->
+<div class="confirmPop" id="popConfirm">
+<p>Recordatorio agregado</p>
+<button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
+</div>
+
+<!-- Pop-up Confirmación Eliminar -->
+<div class="confirmPop" id="popEliminarConfirm">
+<p>¿Desea eliminar este recordatorio?</p>
+<button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
+<button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
+</div>
+</section>
+
+<!-- Agregar Paquete -->
+<section id="agregar">
+<h2>Registrar Paquete</h2>
+<form id="formAgregar">
+  <div class="form-group">
+    <label for="nombre">Nombre del cliente</label>
+    <div class="tooltip">Ingresa un nombre y un apellido</div>
+    <input type="text" id="nombre" name="nombre" placeholder="Ej: Lester Gamez" required>
+  </div>
+
+  <!-- Nuevo campo opcional de código de seguimiento -->
+  <div class="form-group">
+    <label for="codigo">Código de seguimiento (opcional, max 10 dígitos)</label>
+    <input type="text" id="codigo" name="codigo" maxlength="10" pattern="\d{0,10}" placeholder="Solo números">
+  </div>
+
+  <div class="form-group">
+    <label for="telefonoDigits">Teléfono</label>
+    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
+    <div class="phone-row">
+      <select id="telCode" name="telCode" required>
+        <option value="(505)">(505)</option>
+        <option value="(1)">(1)</option>
+      </select>
+      <input type="tel" id="telefonoDigits" name="telefonoDigits" placeholder="Ej: 12345678"
+             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)" required>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="tipo">Tipo de envío</label>
+    <select id="tipo" name="tipo" required>
+      <option value="aereo">Aéreo</option>
+      <option value="maritimo">Marítimo</option>
+    </select>
+  </div>
+
+  <button type="submit" class="action-btn">Registrar Paquete</button>
+</form>
+<div id="mensajeAgregar" class="mensaje" style="display:none;">
+Esta plataforma es de prueba, dog. Acción no disponible por el momento.
+</div>
+</section>
+
+<!-- Actualizar Seguimiento -->
+<section id="actualizar">
+<h2>Actualizar Estado</h2>
+<form id="formActualizar">
+  <div class="form-group">
+    <label for="nombreSeg">Nombre del cliente</label>
+    <div class="tooltip">Ingresa un nombre y un apellido</div>
+    <input type="text" id="nombreSeg" name="nombreSeg" placeholder="Ej: Lester Gamez">
+  </div>
+
+  <!-- Nuevo campo opcional de código de seguimiento -->
+ <div class="form-group">
+    <label for="codigoSeg">Código de seguimiento (obligatorio, max 10 dígitos)</label>
+    <input type="text" id="codigoSeg" name="codigoSeg" maxlength="10" pattern="\d{1,10}" placeholder="Solo números" required>
+  </div>
+
+  <div class="form-group">
+    <label for="telefonoSegDigits">Teléfono</label>
+    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
+    <div class="phone-row">
+      <select id="telCodeSeg" name="telCodeSeg">
+        <option value="(505)">(505)</option>
+        <option value="(1)">(1)</option>
+      </select>
+      <input type="tel" id="telefonoSegDigits" name="telefonoSegDigits" placeholder="Ej: 12345678"
+             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="estado">Estado del paquete</label>
+    <select id="estado" name="estado">
+      <option value="">-- Seleccione --</option>
+      <option value="recibido">Recibido</option>
+      <option value="en_transito">En tránsito</option>
+      <option value="en_aduana">En Aduana</option>
+      <option value="listo_recoger">Listo Para Recoger</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="pesoSeg">Peso en libras</label>
+    <input type="number" id="pesoSeg" name="pesoSeg" step="0.1" min="0" placeholder="Ej: 1.0">
+  </div>
+  <div class="form-group">
+  <label for="tarifaSeg">Tarifa en USD</label>
+  <input type="number" id="tarifaSeg" name="tarifaSeg" step="0.1" min="0" placeholder="Ej: 1.1">
+</div>
+
+
+  <div class="form-group">
+    <label for="fechaEstado">Ingrese fecha</label>
+    <input type="date" id="fechaEstado" name="fechaEstado">
+  </div>
+
+  <button type="submit" class="action-btn">Actualizar Estado</button>
+</form>
+<div id="mensajeActualizar" class="mensaje" style="display:none;">
+Esta plataforma es de prueba, dog. Acción no disponible por el momento.
+</div>
+</section>
+
+
+<!-- ESTADÍSTICAS (Nueva sección) -->
+<section id="estadisticas">
+  <div id="estadisticas-container">
+    <iframe id="estadisticasFrame" src="" title="Estadísticas"></iframe>
+  </div>
+</section>
+
+<footer>
+&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
+</footer>
+
+</div><!-- /#app -->
+
+<!-- OVERLAY: LOCK INICIAL -->
+<div id="lockOverlay" class="authOverlay">
+  <div class="authBox">
+    <h2>Acceso al Panel</h2>
+    <input type="password" id="lockPass" placeholder="Contraseña">
+    <button class="btn" id="lockSubmit">Entrar</button>
+    <div class="authError" id="lockError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- OVERLAY: ESTADÍSTICAS -->
+<div id="statsOverlay" class="authOverlay" style="display:none;">
+  <div class="authBox">
+    <h2>Acceso a Estadísticas</h2>
+    <input type="password" id="statsPass" placeholder="Contraseña">
+    <button class="btn" id="statsSubmit">Acceder</button>
+    <button class="btn secondary" id="statsCancel" style="margin-top:0.5rem;">Cancelar</button>
+    <div class="authError" id="statsError">Contraseña incorrecta</div>
+  </div>
+</div>
+  <!-- Lightbox Recordatorio -->
+<div id="lightbox-recordatorio" class="lightbox hidden">
+  <div class="lightbox-content">
+    <button class="close-lightbox">&times;</button>
+    <h2>Recordatorio</h2>
+    <p>Versión de prueba, datos no disponibles</p>
+    <button class="btn-eliminar">Eliminar recordatorio</button>
+  </div>
+</div>
+
+
+<script>
+// ================== NAVEGACIÓN (ajustada para incluir Estadísticas) ==================
+const btnInicio = document.getElementById('btnInicio');
+const btnAgregar = document.getElementById('btnAgregar');
+const btnActualizar = document.getElementById('btnActualizar');
+const btnEstadisticas = document.getElementById('btnEstadisticas');
+
+const secciones = {
+  inicio: document.getElementById('inicio'),
+  agregar: document.getElementById('agregar'),
+  actualizar: document.getElementById('actualizar'),
+  estadisticas: document.getElementById('estadisticas')
+};
+
+function mostrarSeccion(nombre){
+  for(let sec in secciones) secciones[sec].classList.remove('active');
+  secciones[nombre].classList.add('active');
+
+  btnInicio.classList.add('inactive');
+  btnAgregar.classList.add('inactive');
+  btnActualizar.classList.add('inactive');
+  btnEstadisticas.classList.add('inactive');
+
+  if(nombre==='inicio') btnInicio.classList.remove('inactive');
+  if(nombre==='agregar') btnAgregar.classList.remove('inactive');
+  if(nombre==='actualizar') btnActualizar.classList.remove('inactive');
+  if(nombre==='estadisticas') btnEstadisticas.classList.remove('inactive');
+}
+btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
+btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
+btnEstadisticas.addEventListener('click',()=>{
+  // Abrimos el modal de estadísticas (no cambiamos de sección aún)
+  document.getElementById('statsOverlay').style.display = 'flex';
+});
+
+// ================== FECHA ACTUAL PRESELECCIONADA ==================
+document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
+
+// ================== FORMULARIOS DEMO (tus originales) ==================
+document.getElementById("formAgregar").addEventListener("submit", function(e){
+  e.preventDefault(); this.reset(); document.getElementById("mensajeAgregar").style.display="block";
+  setTimeout(()=>document.getElementById("mensajeAgregar").style.display="none",3000);
+});
+document.getElementById("formActualizar").addEventListener("submit", function(e){
+  e.preventDefault(); this.reset(); document.getElementById("mensajeActualizar").style.display="block";
+  setTimeout(()=>document.getElementById("mensajeActualizar").style.display="none",3000);
+  document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
+});
+
+// ================== RECORDATORIOS (tus originales) ==================
+const listDiv = document.getElementById('listaRecordatorios');
+const formR = document.getElementById('formRecord');
+const popForm = document.getElementById('popFormRecord');
+const popConfirm = document.getElementById('popConfirm');
+const popEliminarConfirm = document.getElementById('popEliminarConfirm');
+const btnAgregarRecord = document.getElementById('btnAgregarRecord');
+const cerrarPopForm = document.getElementById('cerrarPopForm');
+const cerrarPopConfirm = document.getElementById('cerrarPopConfirm');
+const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
+const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
+const fechaInput = document.getElementById('fechaRecord');
+let indexEliminar=null;
+
+fechaInput.value = new Date().toISOString().split('T')[0];
+
+function cargarRecord(){
+  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+  const hoy = new Date().toISOString().split('T')[0];
+  listDiv.innerHTML='';
+  const activos = arr.filter(r=>r.fecha>=hoy);
+  if(!activos.length){ listDiv.innerHTML='<p>No hay recordatorios por el momento.</p>'; return;}
+  activos.forEach((r,index)=>{
+   const div = document.createElement('div');
+div.classList.add('recordatorio-item');
+div.dataset.index = index;  // <-- aquí asignas el índice al div
+div.innerHTML = `
+  <div class="recordatorio-info"><strong>${r.titulo}</strong><br>${r.desc}<br><small>${r.fecha}</small></div>
+  <button class="btnEliminar" data-index="${index}">X</button>`;
+
+    listDiv.appendChild(div);
+    if(r.fecha===hoy){ div.querySelector('.recordatorio-info').style.animation="parpadeo 1.2s infinite"; }
+  });
+}
+cargarRecord();
+
+btnAgregarRecord.addEventListener('click', ()=>{ popForm.style.display='block'; });
+cerrarPopForm.addEventListener('click', ()=>{ popForm.style.display='none'; });
+
+formR.addEventListener('submit', e=>{
+  e.preventDefault();
+  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+  arr.push({titulo:document.getElementById('tituloRecord').value, desc:document.getElementById('descRecord').value, fecha:fechaInput.value});
+  localStorage.setItem('recordatorios', JSON.stringify(arr));
+  formR.reset(); fechaInput.value=new Date().toISOString().split('T')[0];
+  popForm.style.display='none'; popConfirm.style.display='block';
+  cargarRecord();
+});
+cerrarPopConfirm.addEventListener('click', ()=>{ popConfirm.style.display='none'; });
+
+btnCancelarEliminar.addEventListener('click', ()=>{ popEliminarConfirm.style.display='none'; indexEliminar=null; });
+btnConfirmEliminar.addEventListener('click', ()=>{
+  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+  arr.splice(indexEliminar,1);
+  localStorage.setItem('recordatorios', JSON.stringify(arr));
+  cargarRecord();
+  popEliminarConfirm.style.display='none';
+  indexEliminar=null;
+});
+
+// ================== NUEVO: CONTRASEÑAS/OVERLAYS ==================
+const PASS_LOCK  = "12345678"; // puedes cambiarlas luego
+const PASS_STATS = "12345678";
+
+const appWrapper   = document.getElementById('app');
+const lockOverlay  = document.getElementById('lockOverlay');
+const statsOverlay = document.getElementById('statsOverlay');
+
+const lockPass   = document.getElementById('lockPass');
+const lockSubmit = document.getElementById('lockSubmit');
+const lockError  = document.getElementById('lockError');
+
+const statsPass    = document.getElementById('statsPass');
+const statsSubmit  = document.getElementById('statsSubmit');
+const statsCancel  = document.getElementById('statsCancel');
+const statsError   = document.getElementById('statsError');
+
+const statsFrame   = document.getElementById('estadisticasFrame');
+
+// Mostrar blur al inicio (por si el navegador no soporta backdrop-filter)
+appWrapper.style.filter = 'blur(6px)';
+
+// LOCK INICIAL
+function tryUnlock(){
+  if (lockPass.value === PASS_LOCK){
+    lockError.style.display = 'none';
+    lockOverlay.style.display = 'none';
+    appWrapper.style.filter = 'none';
+    lockPass.value = '';
+  } else {
+    lockError.style.display = 'block';
+  }
+}
+lockSubmit.addEventListener('click', tryUnlock);
+lockPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
+
+// ESTADÍSTICAS
+function openStats(){
+  statsOverlay.style.display = 'flex';
+  statsError.style.display = 'none';
+  statsPass.value = '';
+  statsPass.focus();
+}
+function closeStats(){
+  statsOverlay.style.display = 'none';
+}
+function loadStatsIfAuthorized(){
+  if (statsPass.value === PASS_STATS){
+    statsError.style.display = 'none';
+    closeStats();
+    // Cargar dentro de la misma página (integrado con iframe)
+    if (statsFrame.src !== 'https://irvinforbusinesses.github.io/plantillacatalogo/estadisticas.html'){
+      statsFrame.src = 'https://irvinforbusinesses.github.io/plantillacatalogo/estadisticas.html';
+    }
+    mostrarSeccion('estadisticas');
+    statsPass.value = '';
+  } else {
+    statsError.style.display = 'block';
+  }
+}
+statsSubmit.addEventListener('click', loadStatsIfAuthorized);
+statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
+statsCancel.addEventListener('click', closeStats);
+ // ===== LIGHTBOX RECORDATORIOS =====
+const lightbox = document.getElementById('lightbox-recordatorio');
+const closeBtn = document.querySelector('.close-lightbox');
+const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
+let indexSeleccionado = null;
+
+// Un solo listener con delegación para ambos casos:
+listDiv.addEventListener('click', (e) => {
+  // 1) Si hicieron click en el botón X (eliminar clásico → pop existente)
+  const eliminarBtn = e.target.closest('.btnEliminar');
+  if (eliminarBtn) {
+    indexEliminar = eliminarBtn.dataset.index;
+    popEliminarConfirm.style.display='block';
+    return; // no seguimos para que no abra el lightbox
+  }
+
+  // 2) Si hicieron click en cualquier parte del item, abrimos el lightbox
+  const item = e.target.closest('.recordatorio-item');
+  if (item) {
+    indexSeleccionado = Number(item.dataset.index);
+    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+    const r = arr[indexSeleccionado];
+
+    // Rellenamos el contenido del lightbox
+    const titleEl = lightbox.querySelector('h2');
+    const pEl = lightbox.querySelector('p');
+
+    if (r) {
+      titleEl.textContent = r.titulo || 'Recordatorio';
+      pEl.innerHTML = `${r.desc || ''}<br><small>${r.fecha || ''}</small>`;
+    } else {
+      titleEl.textContent = 'Recordatorio';
+      pEl.textContent = 'Versión de prueba, datos no disponibles';
+    }
+
+    lightbox.classList.remove('hidden');
+  }
+});
+
+// Cerrar lightbox
+closeBtn.addEventListener('click', () => {
+  lightbox.classList.add('hidden');
+});
+
+// Cerrar al clickear fuera de la caja
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) lightbox.classList.add('hidden');
+});
+
+// Eliminar desde el lightbox (borra el recordatorio seleccionado)
+// Eliminar desde el lightbox (abrir pop-up de confirmación)
+lbDelete.addEventListener('click', () => {
+  if (indexSeleccionado != null) {
+    // Mostrar pop-up de confirmación
+    popEliminarConfirm.style.display = 'block';
+  }
+  // Cerrar el lightbox mientras se confirma
+  lightbox.classList.add('hidden');
+});
+
+
+</script>
+</body>
+</html>
