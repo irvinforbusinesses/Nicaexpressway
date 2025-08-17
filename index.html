@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento y Cotización</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+--color-bg: #E8F0F5;
+--color-accent: #2F528F;
+--color-light: #FFFFFF;
+--color-gray: #F6F8FB;
+--color-text-dark: #1A1A1A;
+}
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+body {
+font-family: 'Inter', sans-serif;
+background: var(--color-bg);
+color: var(--color-text-dark);
+padding: 1rem;
+max-width: 500px;
+margin: auto;
+padding-bottom: 60px; /* espacio para el footer */
+}
+header {
+text-align: center;
+margin-bottom: 2rem;
+}
+h1 {
+font-family: 'Poppins', sans-serif;
+font-size: 1.8rem;
+color: var(--color-accent);
+}
+nav {
+display: flex;
+justify-content: center;
+gap: 0.5rem;
+margin-top: 1rem;
+}
+nav button {
+flex: 1;
+background: var(--color-accent);
+color: white;
+border: none;
+padding: 0.75rem;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+}
+nav button.inactive {
+background: #a0b6e0;
+}
+section {
+background: var(--color-light);
+padding: 1.5rem;
+border-radius: 12px;
+margin-top: 1rem;
+display: none;
+}
+section.active {
+display: block;
+}
+
+/* Sección de bienvenida */
+#inicio {
+text-align: center;
+padding: 2rem 1rem;
+}
+#inicio h2 {
+font-family: 'Poppins', sans-serif;
+font-size: 2rem;
+margin-bottom: 1rem;
+color: var(--color-accent);
+}
+#inicio p {
+font-size: 1.1rem;
+line-height: 1.6;
+white-space: pre-line;
+}
+
+/* Inputs mobile-friendly */
+label {
+display: block;
+margin: 1rem 0 0.5rem;
+font-weight: 600;
+}
+select, input {
+width: 100%;
+padding: 0.75rem;
+border-radius: 8px;
+border: 1px solid #ccc;
+font-size: 1rem;
+}
+button.calc-btn {
+margin-top: 1rem;
+background: var(--color-accent);
+color: white;
+border: none;
+padding: 0.75rem;
+font-size: 1rem;
+border-radius: 8px;
+width: 100%;
+font-weight: bold;
+cursor: pointer;
+}
+.resultado {
+margin-top: 1rem;
+font-size: 1.1rem;
+font-weight: 600;
+}
+
+/* Footer */
+footer {
+position: fixed;
+bottom: 0;
+left: 0;
+width: 100%;
+color: #888;
+text-align: center;
+padding: 0.5rem;
+font-size: 0.8rem;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nica Expressway </h1>
+<nav>
+<button id="btnInicio">Inicio</button>
+<button id="btnCotizar" class="inactive">Cotizar</button>
+<button id="btnSeguimiento" class="inactive">Seguimiento</button>
+</nav>
+</header>
+
+<section id="inicio" class="active">
+<h2>Bienvenido</h2>
+<p>✈️📦 Envíos de USA a Nicaragua  
+🚛 Rápidos, seguros y confiables  
+📍 Miami — 🇳🇮 Nicaragua</p>
+</section>
+
+<section id="cotizar">
+<h2>Calculadora de Envío</h2>
+<label for="tipoEnvio">Tipo de envío:</label>
+<select id="tipoEnvio">
+<option value="aereo">Aéreo</option>
+<option value="maritimo">Marítimo</option>
+</select>
+
+<label for="peso">Peso aproximado (libras):</label>
+<input type="number" id="peso" placeholder="Ej: 5">
+
+<button class="calc-btn" onclick="calcular()">Calcular</button>
+
+<div class="resultado" id="resultado"></div>
+</section>
+
+<section id="seguimiento">
+<h2>Seguimiento de Pedido</h2>
+<label for="codigo">Código de seguimiento:</label>
+<input type="text" id="codigo" placeholder="Ej: ABC123">
+<button class="calc-btn">Buscar</button>
+<div class="resultado">Aquí se mostrará el estado del envío.</div>
+</section>
+
+<footer>
+<p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
+</footer>
+
+<script>
+const btnInicio = document.getElementById('btnInicio');
+const btnCotizar = document.getElementById('btnCotizar');
+const btnSeguimiento = document.getElementById('btnSeguimiento');
+const secciones = {
+inicio: document.getElementById('inicio'),
+cotizar: document.getElementById('cotizar'),
+seguimiento: document.getElementById('seguimiento')
+};
+
+function mostrarSeccion(nombre) {
+for (let sec in secciones) {
+secciones[sec].classList.remove('active');
+}
+secciones[nombre].classList.add('active');
+btnInicio.classList.add('inactive');
+btnCotizar.classList.add('inactive');
+btnSeguimiento.classList.add('inactive');
+if (nombre === 'inicio') btnInicio.classList.remove('inactive');
+if (nombre === 'cotizar') btnCotizar.classList.remove('inactive');
+if (nombre === 'seguimiento') btnSeguimiento.classList.remove('inactive');
+}
+
+btnInicio.addEventListener('click', () => mostrarSeccion('inicio'));
+btnCotizar.addEventListener('click', () => mostrarSeccion('cotizar'));
+btnSeguimiento.addEventListener('click', () => mostrarSeccion('seguimiento'));
+
+function calcular() {
+const tipo = document.getElementById('tipoEnvio').value;
+const peso = parseFloat(document.getElementById('peso').value);
+const resultadoDiv = document.getElementById('resultado');
+
+if (isNaN(peso) || peso <= 0) {
+resultadoDiv.textContent = "Por favor, ingresa un peso válido.";
+return;
+}
+
+let precio = 0;
+let dias = 0;
+
+if (tipo === "aereo") {
+precio = peso * 7.50;
+dias = 7;
+} else {
+precio = peso * 3.00;
+dias = 15;
+}
+
+resultadoDiv.innerHTML = `
+   Precio estimado: $${precio.toFixed(2)} USD<br>
+   Llegada estimada: ${dias} días
+ `;
+}
+</script>
+
+</body>
+</html>
