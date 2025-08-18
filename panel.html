@@ -509,245 +509,262 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 
 <script>
 /*
-  Integración fetch:
-  - API_BASE: ajusta si tu backend tiene otra ruta base.
-  - Rutas asumidas (puedes modificarlas si tu backend usa otras):
-      GET  /recordatorios
-      POST /recordatorios
-      DELETE /recordatorios/:id
-      POST /paquetes
-      GET  /paquetes?codigo=XXXX
-      PUT  /paquetes/:id
-  Si tus rutas son distintas, cambia API_BASE o las URLs concretas abajo.
+  Integración fetch ajustada al back end que mostraste.
+  - Asegúrate de que API_BASE apunte a tu deployment.
+  - POST /paquetes espera: nombre_cliente, codigo_seguimiento, telefono, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado
+  - PUT  /paquetes/:identifier espera: peso_libras, tarifa_usd, fecha_estado (y opcionalmente estado)
+  - POST /recordatorios espera: titulo, descripcion, fecha_limite
 */
+
 const API_BASE = 'https://nicaexpressway.onrender.com'; // <- ajusta si es necesario
 
-// ================== NAVEGACIÓN (ajustada para incluir Estadísticas) ==================
-const btnInicio = document.getElementById('btnInicio');
-const btnAgregar = document.getElementById('btnAgregar');
-const btnActualizar = document.getElementById('btnActualizar');
-const btnEstadisticas = document.getElementById('btnEstadisticas');
+// ================== Helpers DOM ==================
+function $(id){ return document.getElementById(id); }
+function getValOrNull(id){
+  const el = $(id);
+  if(!el) return null;
+  const v = (el.value ?? '').toString().trim();
+  return v === '' ? null : v;
+}
+function getNumberOrNull(id){
+  const v = getValOrNull(id);
+  if (v === null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// ================== NAVEGACIÓN (igual que antes) ==================
+const btnInicio = $('btnInicio');
+const btnAgregar = $('btnAgregar');
+const btnActualizar = $('btnActualizar');
+const btnEstadisticas = $('btnEstadisticas');
 
 const secciones = {
-  inicio: document.getElementById('inicio'),
-  agregar: document.getElementById('agregar'),
-  actualizar: document.getElementById('actualizar'),
-  estadisticas: document.getElementById('estadisticas')
+  inicio: $('inicio'),
+  agregar: $('agregar'),
+  actualizar: $('actualizar'),
+  estadisticas: $('estadisticas')
 };
 
 function mostrarSeccion(nombre){
-  for(let sec in secciones) secciones[sec].classList.remove('active');
-  secciones[nombre].classList.add('active');
+  for(let sec in secciones) if(secciones[sec]) secciones[sec].classList.remove('active');
+  if(secciones[nombre]) secciones[nombre].classList.add('active');
 
-  btnInicio.classList.add('inactive');
-  btnAgregar.classList.add('inactive');
-  btnActualizar.classList.add('inactive');
-  btnEstadisticas.classList.add('inactive');
-
-  if(nombre==='inicio') btnInicio.classList.remove('inactive');
-  if(nombre==='agregar') btnAgregar.classList.remove('inactive');
-  if(nombre==='actualizar') btnActualizar.classList.remove('inactive');
-  if(nombre==='estadisticas') btnEstadisticas.classList.remove('inactive');
+  [btnInicio, btnAgregar, btnActualizar, btnEstadisticas].forEach(b => { if(b) b.classList.add('inactive'); });
+  if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
+  if(nombre==='agregar' && btnAgregar) btnAgregar.classList.remove('inactive');
+  if(nombre==='actualizar' && btnActualizar) btnActualizar.classList.remove('inactive');
+  if(nombre==='estadisticas' && btnEstadisticas) btnEstadisticas.classList.remove('inactive');
 }
-btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
-btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
-btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
-btnEstadisticas.addEventListener('click',()=>{
-  // Abrimos el modal de estadísticas (no cambiamos de sección aún)
-  document.getElementById('statsOverlay').style.display = 'flex';
+if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+if(btnAgregar) btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
+if(btnActualizar) btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
+if(btnEstadisticas) btnEstadisticas.addEventListener('click',()=>{
+  const so = $('statsOverlay');
+  if(so) so.style.display = 'flex';
 });
 
 // ================== FECHA ACTUAL PRESELECCIONADA ==================
-document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
+const fechaEstadoDefault = new Date().toISOString().split('T')[0];
+if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+if ($('fechaRecord')) $('fechaRecord').value = fechaEstadoDefault;
+if ($('fecha')) { /* reservado si tu formulario usa id 'fecha' */ }
 
-// ================== SPINNER / POP RESULT ================
-const overlaySpinner = document.getElementById('overlaySpinner');
-const popResult = document.getElementById('popResult');
-const popResultTitle = document.getElementById('popResultTitle');
-const popResultMsg = document.getElementById('popResultMsg');
-const popResultClose = document.getElementById('popResultClose');
+// ================== SPINNER / POP RESULT ==================
+const overlaySpinner = $('overlaySpinner');
+const popResult = $('popResult');
+const popResultTitle = $('popResultTitle');
+const popResultMsg = $('popResultMsg');
+const popResultClose = $('popResultClose');
 
-function showSpinner(){ overlaySpinner.style.display = 'flex'; appWrapper.style.filter = 'blur(3px)'; }
-function hideSpinner(){ overlaySpinner.style.display = 'none'; appWrapper.style.filter = ''; }
+function showSpinner(){ if(overlaySpinner){ overlaySpinner.style.display = 'flex'; } if(window.appWrapper) appWrapper.style.filter = 'blur(3px)'; }
+function hideSpinner(){ if(overlaySpinner){ overlaySpinner.style.display = 'none'; } if(window.appWrapper) appWrapper.style.filter = ''; }
 
 function showResult(title, msg){
-  popResultTitle.textContent = title;
-  popResultMsg.textContent = msg;
-  popResult.style.display = 'block';
+  if(popResultTitle) popResultTitle.textContent = title;
+  if(popResultMsg) popResultMsg.textContent = msg;
+  if(popResult) popResult.style.display = 'block';
 }
-popResultClose.addEventListener('click', ()=>{ popResult.style.display = 'none'; });
+if(popResultClose) popResultClose.addEventListener('click', ()=>{ if(popResult) popResult.style.display = 'none'; });
 
-// ================== FORMULARIOS (ahora con fetch) ==================
-const formAgregar = document.getElementById('formAgregar');
-const formActualizar = document.getElementById('formActualizar');
+// ================== FORMULARIOS ==================
+const formAgregar = $('formAgregar');
+const formActualizar = $('formActualizar');
 
-// helpers
+// map tipo string -> id según tu tabla tipos_envio (1=aereo,2=maritimo)
 function mapTipoToId(tipoStr){
-  return tipoStr === 'aereo' ? 1 : 2;
+  // acepta 'aereo'|'maritimo' o '1'|'2'
+  if (tipoStr === '1' || tipoStr === 1) return 1;
+  if (tipoStr === '2' || tipoStr === 2) return 2;
+  return tipoStr === 'aereo' ? 1 : (tipoStr === 'maritimo' ? 2 : null);
 }
 
 // ---------- AGREGAR PAQUETE (POST) ----------
-formAgregar.addEventListener('submit', async function(e){
-  e.preventDefault();
+if (formAgregar) {
+  formAgregar.addEventListener('submit', async function(e){
+    e.preventDefault();
 
-  // Construir payload con solo los campos que existan (backend soporta nulos)
-  const nombre = document.getElementById('nombre').value.trim();
-  const codigo = document.getElementById('codigo').value.trim() || null;
-  const telCode = document.getElementById('telCode').value;
-  const telefonoDigits = document.getElementById('telefonoDigits').value.trim();
-  const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
-  const tipo = document.getElementById('tipo').value;
-  const tipo_envio_id = mapTipoToId(tipo);
+    // Leer campos (si tu HTML tiene estos ids)
+    const nombre = getValOrNull('nombre');
+    const codigo = getValOrNull('codigo');
+    const telCode = getValOrNull('telCode') || ''; // ejemplo: +505
+    const telefonoDigits = getValOrNull('telefonoDigits') || getValOrNull('telefono'); // si tienes 'telefono' simple
+    const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
+    const tipoSel = getValOrNull('tipo'); // ejemplo: 'aereo' or 'maritimo' or '1'/'2'
+    const tipo_envio_id = mapTipoToId(tipoSel);
 
-  const payload = {
-    nombre_cliente: nombre || null,
-    codigo_seguimiento: codigo,
-    telefono: telefono,
-    tipo_envio_id: tipo_envio_id
-    // peso, tarifa, fecha no vienen aquí al crear (puedes añadir si quieres)
-  };
+    // Opcionales: peso, tarifa, fecha_estado (si tus inputs existen)
+    const peso_libras = getNumberOrNull('peso') ?? getNumberOrNull('peso_libras');
+    const tarifa_usd = getNumberOrNull('tarifa') ?? getNumberOrNull('tarifa_usd');
+    const fecha_estado = getValOrNull('fechaEstadoAgregar') ?? getValOrNull('fecha_estado') ?? null;
 
-  // Mostrar spinner
-  showSpinner();
+    const payload = {
+      nombre_cliente: nombre || null,
+      codigo_seguimiento: codigo || null,
+      telefono: telefono || null,
+      tipo_envio_id: tipo_envio_id ?? null,
+      // sólo agregar los opcionales si no son null (para mantener request limpio)
+    };
 
-  try {
-    const res = await fetch(`${API_BASE}/paquetes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    if (peso_libras !== null) payload.peso_libras = peso_libras;
+    if (tarifa_usd !== null) payload.tarifa_usd = tarifa_usd;
+    if (fecha_estado !== null) payload.fecha_estado = fecha_estado;
 
-    if (!res.ok) throw new Error(`Error ${res.status}`);
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/paquetes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    // éxito
-    hideSpinner();
-    showResult('Operación realizada', 'Paquete registrado correctamente.');
-    formAgregar.reset();
-  } catch(err){
-    hideSpinner();
-    showResult('Error', 'No se pudo registrar el paquete. Revisa consola o intenta más tarde.');
-    console.error('Agregar paquete error:', err);
-  }
-});
+      if (!res.ok) {
+        let errText = `Error ${res.status}`;
+        try { const errJson = await res.json(); if(errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
 
-// ---------- ACTUALIZAR SEGUIMIENTO (buscar por código y actualizar peso/tarifa/fecha) ----------
-formActualizar.addEventListener('submit', async function(e){
-  e.preventDefault();
-
-  // Le pedimos al usuario que ingrese el código (según lo especificaste)
-  const codigo = document.getElementById('codigoSeg').value.trim();
-  if (!codigo) { showResult('Error', 'Debe ingresar el código de seguimiento.'); return; }
-
-  // Campos opcionales a actualizar
-  const pesoRaw = document.getElementById('pesoSeg').value;
-  const tarifaRaw = document.getElementById('tarifaSeg').value;
-  const fecha_estado = document.getElementById('fechaEstado').value || null;
-
-  // Preparar objeto updates con solo lo que venga
-  const updates = {};
-  if (pesoRaw !== '') {
-    const p = Number(pesoRaw);
-    if (!Number.isNaN(p)) updates.peso_libras = p;
-  }
-  if (tarifaRaw !== '') {
-    const t = Number(tarifaRaw);
-    if (!Number.isNaN(t)) updates.tarifa_usd = t;
-  }
-  if (fecha_estado) updates.fecha_estado = fecha_estado;
-
-  if (Object.keys(updates).length === 0){
-    showResult('Aviso', 'No hay campos para actualizar.');
-    return;
-  }
-
-  // Añadimos el código al payload para que el backend pueda buscar por él
-  const payload = {
-    codigo_seguimiento: codigo,
-    ...updates
-  };
-
-  showSpinner();
-
-  try {
-    // Llamamos directamente al PATCH. El backend que tenemos soporta PATCH /paquetes/:codigo? o PATCH /paquetes
-    // Usamos la ruta sin parámetro para mantenerlo simple (el backend usará el campo codigo_seguimiento del body).
-    const res = await fetch(`${API_BASE}/paquetes`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    // Si devuelve error, intentamos leer el body para mostrar detalle
-    if (!res.ok) {
-      let errText = `Actualizar fallo ${res.status}`;
-      try {
-        const errJson = await res.json();
-        if (errJson?.error) errText = errJson.error;
-      } catch (_) { /* ignore parse error */ }
-      throw new Error(errText);
-    }
-
-    // Leer respuesta: puede venir como { data: [...] } o directamente un array
-    const result = await res.json();
-    const data = Array.isArray(result) ? result : (result?.data ?? result);
-
-    // Validar resultado
-    if (!data || (Array.isArray(data) && data.length === 0)) {
+      // éxito
       hideSpinner();
-      showResult('No encontrado', 'No se encontró paquete con ese código (o no se realizaron cambios).');
+      showResult('Operación realizada', 'Paquete registrado correctamente.');
+      formAgregar.reset();
+      // volver a preseleccionar la fecha actual si había campo
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.error('Agregar paquete error:', err);
+      showResult('Error', 'No se pudo registrar el paquete. Revisa la consola o intenta más tarde.');
+    }
+  });
+}
+
+// ---------- ACTUALIZAR SEGUIMIENTO (PUT /paquetes/:identifier) ----------
+if (formActualizar) {
+  formActualizar.addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    // identifier (puede ser código de seguimiento o id numérico)
+    const identifier = getValOrNull('codigoSeg');
+    if (!identifier) { showResult('Error', 'Debe ingresar el código o ID del paquete.'); return; }
+
+    // Campos opcionales a actualizar
+    const pesoRaw = getValOrNull('pesoSeg');        // input id: pesoSeg
+    const tarifaRaw = getValOrNull('tarifaSeg');    // input id: tarifaSeg
+    const fecha_estado = getValOrNull('fechaEstado') || null; // input id: fechaEstado
+    const estado = getValOrNull('estadoSeg') || null; // si quieres mandar estado para historial (opcional)
+
+    // Construir updateObj según espera tu backend (peso_libras, tarifa_usd, fecha_estado, estado)
+    const updateObj = {};
+    if (pesoRaw !== null) {
+      const p = Number(pesoRaw);
+      if (!Number.isNaN(p)) updateObj.peso_libras = p;
+    }
+    if (tarifaRaw !== null) {
+      const t = Number(tarifaRaw);
+      if (!Number.isNaN(t)) updateObj.tarifa_usd = t;
+    }
+    if (fecha_estado !== null) updateObj.fecha_estado = fecha_estado;
+    if (estado !== null) updateObj.estado = estado; // backend añadirá a historial si viene estado + fecha_estado
+
+    if (Object.keys(updateObj).length === 0){
+      showResult('Aviso', 'No hay campos para actualizar.');
       return;
     }
 
-    hideSpinner();
-    showResult('Operación realizada', 'Estado del paquete actualizado.');
-    formActualizar.reset();
-    document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
-  } catch(err){
-    hideSpinner();
-    console.error('Actualizar seguimiento error:', err);
-    showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
-  }
-});
+    showSpinner();
+    try {
+      // Usamos PUT con identifier en la URL (backend soporta id numérico o codigo_seguimiento)
+      const res = await fetch(`${API_BASE}/paquetes/${encodeURIComponent(identifier)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateObj)
+      });
 
-// ================== RECORDATORIOS (ahora conectados al backend con fallback a localStorage) ==================
-const listDiv = document.getElementById('listaRecordatorios');
-const formR = document.getElementById('formRecord');
-const popForm = document.getElementById('popFormRecord');
-const popConfirm = document.getElementById('popConfirm');
-const popEliminarConfirm = document.getElementById('popEliminarConfirm');
-const btnAgregarRecord = document.getElementById('btnAgregarRecord');
-const cerrarPopForm = document.getElementById('cerrarPopForm');
-const cerrarPopConfirm = document.getElementById('cerrarPopConfirm');
-const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
-const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
-const fechaInput = document.getElementById('fechaRecord');
-let indexEliminar = null; // será id del recordatorio en DB o índice en localStorage
+      if (!res.ok) {
+        let errText = `Actualizar fallo ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson?.error) errText = errJson.error;
+        } catch (_) {}
+        throw new Error(errText);
+      }
 
-fechaInput.value = new Date().toISOString().split('T')[0];
+      const result = await res.json();
+      // backend devuelve array con filas actualizadas
+      const data = Array.isArray(result) ? result : (result?.data ?? result);
 
-/**
- * cargarRecord: trae recordatorios desde API; si falla, usa localStorage.
- * Formato esperado del API: [{ id, titulo, descripcion, fecha_limite }, ...]
- */
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        hideSpinner();
+        showResult('No encontrado', 'No se encontró paquete con ese identificador o no se realizaron cambios.');
+        return;
+      }
+
+      hideSpinner();
+      showResult('Operación realizada', 'Estado del paquete actualizado.');
+      formActualizar.reset();
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.error('Actualizar seguimiento error:', err);
+      showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
+    }
+  });
+}
+
+// ================== RECORDATORIOS ==================
+const listDiv = $('listaRecordatorios');
+const formR = $('formRecord');
+const popForm = $('popFormRecord');
+const popConfirm = $('popConfirm');
+const popEliminarConfirm = $('popEliminarConfirm');
+const btnAgregarRecord = $('btnAgregarRecord');
+const cerrarPopForm = $('cerrarPopForm');
+const cerrarPopConfirm = $('cerrarPopConfirm');
+const btnConfirmEliminar = $('btnConfirmEliminar');
+const btnCancelarEliminar = $('btnCancelarEliminar');
+const fechaInput = $('fechaRecord');
+let indexEliminar = null;
+
+if (fechaInput) fechaInput.value = fechaEstadoDefault;
+
 async function cargarRecord(){
+  if (!listDiv) return;
   listDiv.innerHTML = '<p>Cargando recordatorios...</p>';
   try {
     const res = await fetch(`${API_BASE}/recordatorios`);
     if (!res.ok) throw new Error(`fetch ${res.status}`);
     const arr = await res.json();
-
     renderRecordList(arr);
   } catch(err){
-    // fallback localStorage (modo prueba)
     console.warn('Fallo al cargar recordatorios desde API, usando localStorage', err);
     const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-    // adaptamos estructura localStorage -> misma vista (titulo, desc, fecha)
     const mapped = arr.map((r, idx) => ({ id: `local-${idx}`, titulo: r.titulo, descripcion: r.desc || r.descripcion, fecha_limite: r.fecha || r.fecha }));
     renderRecordList(mapped);
   }
 }
 
 function renderRecordList(arr){
+  if (!listDiv) return;
   const hoy = new Date().toISOString().split('T')[0];
   listDiv.innerHTML = '';
   const activos = (arr||[]).filter(r => !r.fecha_limite || r.fecha_limite >= hoy);
@@ -755,7 +772,6 @@ function renderRecordList(arr){
   activos.forEach((r, index) => {
     const div = document.createElement('div');
     div.classList.add('recordatorio-item');
-    // guardamos id real para poder eliminar por ID
     div.dataset.id = r.id ?? `local-${index}`;
     div.innerHTML = `
       <div class="recordatorio-info"><strong>${r.titulo || ''}</strong><br>${r.descripcion || r.desc || ''}<br><small>${r.fecha_limite || r.fecha || ''}</small></div>
@@ -766,221 +782,210 @@ function renderRecordList(arr){
 }
 
 // abrir/ cerrar form
-btnAgregarRecord.addEventListener('click', ()=>{ popForm.style.display='block'; });
-cerrarPopForm.addEventListener('click', ()=>{ popForm.style.display='none'; });
+if (btnAgregarRecord) btnAgregarRecord.addEventListener('click', ()=>{ if(popForm) popForm.style.display='block'; });
+if (cerrarPopForm) cerrarPopForm.addEventListener('click', ()=>{ if(popForm) popForm.style.display='none'; });
 
 // submit agregar record (POST)
-formR.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const titulo = document.getElementById('tituloRecord').value.trim();
-  const desc = document.getElementById('descRecord').value.trim();
-  const fecha = fechaInput.value;
+if (formR) {
+  formR.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titulo = getValOrNull('tituloRecord');
+    const desc = getValOrNull('descRecord');
+    const fecha = getValOrNull('fechaRecord');
 
-  const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
+    const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
 
-  showSpinner();
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(`POST record ${res.status}`);
-    hideSpinner();
-    popForm.style.display = 'none';
-    showResult('Registro', 'Recordatorio agregado.');
-    // recargar desde API
-    await cargarRecord();
-    formR.reset(); fechaInput.value = new Date().toISOString().split('T')[0];
-  } catch(err){
-    // fallback: guardar en localStorage (modo prueba)
-    hideSpinner();
-    console.warn('Agregar record falló, guardando en localStorage', err);
-    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-    arr.push({ titulo, desc, fecha });
-    localStorage.setItem('recordatorios', JSON.stringify(arr));
-    popForm.style.display = 'none';
-    popConfirm.style.display = 'block';
-    cargarRecord();
-  }
-});
-cerrarPopConfirm.addEventListener('click', ()=>{ popConfirm.style.display='none'; });
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/recordatorios`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`POST record ${res.status}`);
+      hideSpinner();
+      if(popForm) popForm.style.display = 'none';
+      showResult('Registro', 'Recordatorio agregado.');
+      await cargarRecord();
+      formR.reset(); if(fechaInput) fechaInput.value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.warn('Agregar record falló, guardando en localStorage', err);
+      const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+      arr.push({ titulo, desc, fecha });
+      localStorage.setItem('recordatorios', JSON.stringify(arr));
+      if(popForm) popForm.style.display = 'none';
+      if(popConfirm) popConfirm.style.display = 'block';
+      cargarRecord();
+    }
+  });
+}
+if (cerrarPopConfirm) cerrarPopConfirm.addEventListener('click', ()=>{ if(popConfirm) popConfirm.style.display = 'none'; });
 
 // Delegación: botones X (eliminar) y click item (lightbox)
-const lightbox = document.getElementById('lightbox-recordatorio');
+const lightbox = $('lightbox-recordatorio');
 const closeBtn = document.querySelector('.close-lightbox');
 const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
 let indexSeleccionado = null;
 
-listDiv.addEventListener('click', (e) => {
-  // Si click en X (eliminar clásico)
-  const eliminarBtn = e.target.closest('.btnEliminar');
-  if (eliminarBtn) {
-    // mostramos el popEliminarConfirm, guardamos id
-    indexEliminar = eliminarBtn.dataset.id;
-    popEliminarConfirm.style.display = 'block';
-    return;
-  }
+if(listDiv) {
+  listDiv.addEventListener('click', (e) => {
+    const eliminarBtn = e.target.closest('.btnEliminar');
+    if (eliminarBtn) {
+      indexEliminar = eliminarBtn.dataset.id;
+      if(popEliminarConfirm) popEliminarConfirm.style.display = 'block';
+      return;
+    }
 
-  // Si click en el item -> abrir lightbox
-  const item = e.target.closest('.recordatorio-item');
-  if (item) {
-    indexSeleccionado = item.dataset.id;
-    // Para mostrar el contenido: intentamos buscar en API (por si existe) sino localStorage
-    (async () => {
-      try {
-        // si id empieza con 'local-' no pedimos al backend
-        if (String(indexSeleccionado).startsWith('local-')) {
-          const arrLocal = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-          const idx = Number(indexSeleccionado.replace('local-',''));
-          const r = arrLocal[idx] || {};
-          fillLightbox(r.titulo, r.desc, r.fecha);
-        } else {
-          const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexSeleccionado)}`);
-          if (!res.ok) throw new Error('no fetch lb');
-          const r = await res.json();
-          fillLightbox(r.titulo || r.titulo, r.descripcion || r.desc, r.fecha_limite || r.fecha);
+    const item = e.target.closest('.recordatorio-item');
+    if (item) {
+      indexSeleccionado = item.dataset.id;
+      (async () => {
+        try {
+          if (String(indexSeleccionado).startsWith('local-')) {
+            const arrLocal = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+            const idx = Number(indexSeleccionado.replace('local-',''));
+            const r = arrLocal[idx] || {};
+            fillLightbox(r.titulo, r.desc, r.fecha);
+          } else {
+            const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexSeleccionado)}`);
+            if (!res.ok) throw new Error('no fetch lb');
+            const r = await res.json();
+            fillLightbox(r.titulo || r.titulo, r.descripcion || r.desc, r.fecha_limite || r.fecha);
+          }
+        } catch(err){
+          const title = item.querySelector('.recordatorio-info strong')?.textContent || 'Recordatorio';
+          const small = item.querySelector('.recordatorio-info small')?.textContent || '';
+          const descText = item.querySelector('.recordatorio-info')?.childNodes[2]?.textContent || '';
+          fillLightbox(title, descText, small);
         }
-      } catch(err){
-        // fallback: si falla, rellenar con el contenido que ya mostramos en la lista DOM
-        const info = item.querySelector('.recordatorio-info').innerHTML;
-        // intentamos parsear simple
-        const title = item.querySelector('.recordatorio-info strong')?.textContent || 'Recordatorio';
-        const small = item.querySelector('.recordatorio-info small')?.textContent || '';
-        const descText = item.querySelector('.recordatorio-info')?.childNodes[2]?.textContent || '';
-        fillLightbox(title, descText, small);
-      }
-      lightbox.classList.remove('hidden');
-    })();
-  }
-});
-
-function fillLightbox(titulo, desc, fecha){
-  const titleEl = lightbox.querySelector('h2');
-  const pEl = lightbox.querySelector('p');
-  titleEl.textContent = titulo || 'Recordatorio';
-  pEl.innerHTML = `${desc || ''}${(desc && fecha)?'<br>':''}<small>${fecha || ''}</small>`;
+        if(lightbox) lightbox.classList.remove('hidden');
+      })();
+    }
+  });
 }
 
-// Cerrar lightbox
-closeBtn.addEventListener('click', () => { lightbox.classList.add('hidden'); });
-lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.add('hidden'); });
+function fillLightbox(titulo, desc, fecha){
+  if(!lightbox) return;
+  const titleEl = lightbox.querySelector('h2');
+  const pEl = lightbox.querySelector('p');
+  if(titleEl) titleEl.textContent = titulo || 'Recordatorio';
+  if(pEl) pEl.innerHTML = `${desc || ''}${(desc && fecha)?'<br>':''}<small>${fecha || ''}</small>`;
+}
 
-// Botón "Eliminar" en lightbox -> abrir popEliminarConfirm (ya definido)
-lbDelete.addEventListener('click', () => {
+if(closeBtn) closeBtn.addEventListener('click', () => { if(lightbox) lightbox.classList.add('hidden'); });
+if(lightbox) lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.add('hidden'); });
+
+if(lbDelete) lbDelete.addEventListener('click', () => {
   if (indexSeleccionado != null) {
-    popEliminarConfirm.style.display = 'block';
-    lightbox.classList.add('hidden');
+    if(popEliminarConfirm) popEliminarConfirm.style.display = 'block';
+    if(lightbox) lightbox.classList.add('hidden');
     indexEliminar = indexSeleccionado;
   }
 });
 
 // confirmar eliminación (popEliminarConfirm)
-btnConfirmEliminar.addEventListener('click', async () => {
-  if (!indexEliminar) { popEliminarConfirm.style.display='none'; return; }
+if (btnConfirmEliminar) {
+  btnConfirmEliminar.addEventListener('click', async () => {
+    if (!indexEliminar) { if(popEliminarConfirm) popEliminarConfirm.style.display='none'; return; }
 
-  showSpinner();
-  try {
-    // Si id local- => eliminar localStorage, sino pedir al backend
-    if (String(indexEliminar).startsWith('local-')) {
-      const idx = Number(indexEliminar.replace('local-',''));
-      const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-      arr.splice(idx,1);
-      localStorage.setItem('recordatorios', JSON.stringify(arr));
+    showSpinner();
+    try {
+      if (String(indexEliminar).startsWith('local-')) {
+        const idx = Number(indexEliminar.replace('local-',''));
+        const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+        arr.splice(idx,1);
+        localStorage.setItem('recordatorios', JSON.stringify(arr));
+        hideSpinner();
+        if(popEliminarConfirm) popEliminarConfirm.style.display='none';
+        cargarRecord();
+        showResult('Eliminado', 'Recordatorio eliminado (local).');
+        indexEliminar = null;
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`Delete failed ${res.status}`);
       hideSpinner();
-      popEliminarConfirm.style.display='none';
-      cargarRecord();
-      showResult('Eliminado', 'Recordatorio eliminado (local).');
+      if(popEliminarConfirm) popEliminarConfirm.style.display='none';
+      showResult('Eliminado', 'Recordatorio eliminado.');
       indexEliminar = null;
-      return;
+      await cargarRecord();
+    } catch(err){
+      hideSpinner();
+      if(popEliminarConfirm) popEliminarConfirm.style.display='none';
+      console.error('Eliminar record error', err);
+      showResult('Error', 'No se pudo eliminar. Intenta más tarde.');
     }
+  });
+}
+if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', ()=>{ if(popEliminarConfirm) popEliminarConfirm.style.display='none'; indexEliminar=null; });
 
-    const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`Delete failed ${res.status}`);
-    hideSpinner();
-    popEliminarConfirm.style.display='none';
-    showResult('Eliminado', 'Recordatorio eliminado.');
-    indexEliminar = null;
-    // recargar
-    await cargarRecord();
-  } catch(err){
-    hideSpinner();
-    popEliminarConfirm.style.display='none';
-    console.error('Eliminar record error', err);
-    showResult('Error', 'No se pudo eliminar. Intenta más tarde.');
-  }
-});
-
-btnCancelarEliminar.addEventListener('click', ()=>{ popEliminarConfirm.style.display='none'; indexEliminar=null; });
-
-// ================== NUEVO: CONTRASEÑAS/OVERLAYS ==================
-const PASS_LOCK  = "12345678"; // puedes cambiarlas luego
+// ================== LOCKS / STATS (igual que antes, con checks) ==================
+const PASS_LOCK  = "12345678";
 const PASS_STATS = "12345678";
 
-const appWrapper   = document.getElementById('app');
-const lockOverlay  = document.getElementById('lockOverlay');
-const statsOverlay = document.getElementById('statsOverlay');
+const appWrapper   = $('app');
+const lockOverlay  = $('lockOverlay');
+const statsOverlay = $('statsOverlay');
 
-const lockPass   = document.getElementById('lockPass');
-const lockSubmit = document.getElementById('lockSubmit');
-const lockError  = document.getElementById('lockError');
+const lockPass   = $('lockPass');
+const lockSubmit = $('lockSubmit');
+const lockError  = $('lockError');
 
-const statsPass    = document.getElementById('statsPass');
-const statsSubmit  = document.getElementById('statsSubmit');
-const statsCancel  = document.getElementById('statsCancel');
-const statsError   = document.getElementById('statsError');
+const statsPass    = $('statsPass');
+const statsSubmit  = $('statsSubmit');
+const statsCancel  = $('statsCancel');
+const statsError   = $('statsError');
 
-const statsFrame   = document.getElementById('estadisticasFrame');
+const statsFrame   = $('estadisticasFrame');
 
-// Mostrar blur al inicio (por si el navegador no soporta backdrop-filter)
-appWrapper.style.filter = 'blur(6px)';
+if(appWrapper) appWrapper.style.filter = 'blur(6px)';
 
-// LOCK INICIAL
 function tryUnlock(){
+  if(!lockPass) return;
   if (lockPass.value === PASS_LOCK){
-    lockError.style.display = 'none';
-    lockOverlay.style.display = 'none';
-    appWrapper.style.filter = 'none';
+    if(lockError) lockError.style.display = 'none';
+    if(lockOverlay) lockOverlay.style.display = 'none';
+    if(appWrapper) appWrapper.style.filter = 'none';
     lockPass.value = '';
-    // cargamos recordatorios al desbloquear
     cargarRecord();
   } else {
-    lockError.style.display = 'block';
+    if(lockError) lockError.style.display = 'block';
   }
 }
-lockSubmit.addEventListener('click', tryUnlock);
-lockPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
+if(lockSubmit) lockSubmit.addEventListener('click', tryUnlock);
+if(lockPass) lockPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
 
-// ESTADÍSTICAS
 function openStats(){
+  if(!statsOverlay) return;
   statsOverlay.style.display = 'flex';
-  statsError.style.display = 'none';
-  statsPass.value = '';
-  statsPass.focus();
+  if(statsError) statsError.style.display = 'none';
+  if(statsPass) { statsPass.value = ''; statsPass.focus(); }
 }
 function closeStats(){
-  statsOverlay.style.display = 'none';
+  if(statsOverlay) statsOverlay.style.display = 'none';
 }
 function loadStatsIfAuthorized(){
+  if(!statsPass) return;
   if (statsPass.value === PASS_STATS){
-    statsError.style.display = 'none';
+    if(statsError) statsError.style.display = 'none';
     closeStats();
-    // Cargar dentro de la misma página (integrado con iframe)
-    if (statsFrame.src !== 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html'){
+    if (statsFrame && statsFrame.src !== 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html'){
       statsFrame.src = 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html';
     }
     mostrarSeccion('estadisticas');
     statsPass.value = '';
   } else {
-    statsError.style.display = 'block';
+    if(statsError) statsError.style.display = 'block';
   }
 }
-statsSubmit.addEventListener('click', loadStatsIfAuthorized);
-statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
-statsCancel.addEventListener('click', closeStats);
+if(statsSubmit) statsSubmit.addEventListener('click', loadStatsIfAuthorized);
+if(statsPass) statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
+if(statsCancel) statsCancel.addEventListener('click', closeStats);
 
 // ================== Inicial ==================
-/* No cargamos recordatorios hasta que el panel esté desbloqueado */
+/* No cargamos recordatorios hasta que el panel esté desbloqueado; el unlock llamará a cargarRecord() */
 </script>
 </body>
 </html>
