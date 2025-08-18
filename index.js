@@ -1,3 +1,4 @@
+// server.js (fragmento de reemplazo / mejora)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -7,96 +8,154 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexión a Supabase
+// VALIDAR ENV
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('FALTAN ENV: NEXT_PUBLIC_SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY');
+  // no forzar exit en producción de render, solo logear para ver en logs
+}
+
+// Conexión a Supabase (service role key)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Solo en backend
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// =========================
-// Rutas de Recordatorios
-// =========================
+// ---------- RECORDATORIOS ----------
 
-// Agregar recordatorio (adaptado a los nombres que envía el front)
+// Insert (acepta keys en español o inglés)
 app.post('/recordatorios', async (req, res) => {
-  const { title, description, date } = req.body; // nombres del front
-  const { data, error } = await supabase
-    .from('recordatorios')
-    .insert([{ titulo: title, descripcion: description, fecha_limite: date }]);
-  
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
+  try {
+    const titulo = req.body.titulo ?? req.body.title;
+    const descripcion = req.body.descripcion ?? req.body.description;
+    const fecha_limite = req.body.fecha_limite ?? req.body.date ?? null;
+
+    const { data, error } = await supabase
+      .from('recordatorios')
+      .insert([{ titulo, descripcion, fecha_limite }]);
+
+    if (error) {
+      console.error('Supabase insert recordatorios error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
 });
 
-// Eliminar recordatorio
+// Delete
 app.delete('/recordatorios/:id', async (req, res) => {
-  const { id } = req.params;
-  const { data, error } = await supabase
-    .from('recordatorios')
-    .delete()
-    .eq('id', id);
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('recordatorios')
+      .delete()
+      .eq('id', id);
 
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
+    if (error) {
+      console.error('Supabase delete recordatorios error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
 });
 
-// Obtener todos los recordatorios
+// GET all OR buscar por fecha/otros. Además, soportamos GET /recordatorios
 app.get('/recordatorios', async (req, res) => {
-  const { data, error } = await supabase.from('recordatorios').select('*');
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
+  try {
+    const { data, error } = await supabase.from('recordatorios').select('*').order('fecha_limite', { ascending: true });
+    if (error) {
+      console.error('Supabase get recordatorios error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
 });
 
-// =========================
-// Rutas de Paquetes
-// =========================
+// ---------- PAQUETES ----------
 
-// Agregar paquete (adaptado a los nombres que envía el front)
+// Insert paquete (acepta campos con varios nombres)
 app.post('/paquetes', async (req, res) => {
-  const { cliente, codigo, telefono, tipo, peso, tarifa, fecha } = req.body; // nombres del front
-  const { data, error } = await supabase
-    .from('paquetes')
-    .insert([{
-      nombre_cliente: cliente,
-      codigo_seguimiento: codigo,
-      telefono,
-      tipo_envio_id: tipo,
-      peso_libras: peso,
-      tarifa_usd: tarifa,
-      fecha_estado: fecha
-    }]);
+  try {
+    const nombre_cliente = req.body.nombre_cliente ?? req.body.cliente ?? req.body.nombre ?? null;
+    const codigo_seguimiento = req.body.codigo_seguimiento ?? req.body.codigo ?? null;
+    const telefono = req.body.telefono ?? req.body.phone ?? null;
+    const tipo_envio_id = req.body.tipo_envio_id ?? (req.body.tipo === 'aereo' ? 1 : req.body.tipo === 'maritimo' ? 2 : req.body.tipo) ?? null;
+    const peso_libras = req.body.peso_libras ?? req.body.peso ?? null;
+    const tarifa_usd = req.body.tarifa_usd ?? req.body.tarifa ?? null;
+    const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
 
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
+    const { data, error } = await supabase
+      .from('paquetes')
+      .insert([{
+        nombre_cliente,
+        codigo_seguimiento,
+        telefono,
+        tipo_envio_id,
+        peso_libras,
+        tarifa_usd,
+        fecha_estado
+      }]);
+
+    if (error) {
+      console.error('Supabase insert paquetes error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
 });
 
-// Actualizar paquete (solo peso, tarifa y fecha, usando codigo del front)
-app.patch('/paquetes/:codigo', async (req, res) => {
-  const { codigo } = req.params;
-  const { peso, tarifa, fecha } = req.body; // nombres del front
-
-  const { data, error } = await supabase
-    .from('paquetes')
-    .update({
-      peso_libras: peso,
-      tarifa_usd: tarifa,
-      fecha_estado: fecha
-    })
-    .eq('codigo_seguimiento', codigo);
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
-});
-
-// Obtener todos los paquetes
+// GET paquetes (si ?codigo= entonces buscar por codigo_seguimiento)
 app.get('/paquetes', async (req, res) => {
-  const { data, error } = await supabase.from('paquetes').select('*');
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ data });
+  try {
+    const { codigo } = req.query;
+    let query = supabase.from('paquetes').select('*');
+    if (codigo) query = query.eq('codigo_seguimiento', codigo);
+    const { data, error } = await query;
+    if (error) {
+      console.error('Supabase get paquetes error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
 });
 
-// =========================
-// Server
-// =========================
-const PORT = process.env.PORT || 10000; // render usa 1000
+// PATCH: actualizar solo peso, tarifa, fecha_estado basado en codigo
+app.patch('/paquetes/:codigo', async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    const peso_libras = req.body.peso_libras ?? req.body.peso ?? null;
+    const tarifa_usd = req.body.tarifa_usd ?? req.body.tarifa ?? null;
+    const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
+
+    const { data, error } = await supabase
+      .from('paquetes')
+      .update({ peso_libras, tarifa_usd, fecha_estado })
+      .eq('codigo_seguimiento', codigo);
+
+    if (error) {
+      console.error('Supabase patch paquetes error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend corriendo en puerto ${PORT}`));
