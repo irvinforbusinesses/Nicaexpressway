@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Panel del Operador</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
 <style>
@@ -241,6 +241,53 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   background: #c0392b;
 }
 
+/* --- Spinner overlay y pop result (nuevo) --- */
+.overlay-spinner {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.28);
+  z-index: 11000;
+  backdrop-filter: blur(3px);
+}
+.spinner-box {
+  background: var(--color-light);
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  min-width: 220px;
+}
+.spinner {
+  width: 40px; height: 40px;
+  margin: 0 auto 10px auto;
+  border-radius: 50%;
+  border: 4px solid rgba(47,82,143,0.15);
+  border-top-color: var(--color-accent);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.pop-result {
+  display: none;
+  position: fixed;
+  z-index: 12000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  background: var(--color-light);
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+}
+.pop-result .title { font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
+.pop-result .msg { margin-bottom: 10px; }
+.pop-result .btn-close { background: var(--color-accent); color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; width: 100%; }
 </style>
 </head>
 <body>
@@ -286,7 +333,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
 </div>
 
-<!-- Pop-up Confirmación Eliminar -->
+<!-- Pop-up Confirmación Eliminar (reutilizable) -->
 <div class="confirmPop" id="popEliminarConfirm">
 <p>¿Desea eliminar este recordatorio?</p>
 <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
@@ -434,7 +481,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
     <div class="authError" id="statsError">Contraseña incorrecta</div>
   </div>
 </div>
-  <!-- Lightbox Recordatorio -->
+
+<!-- Lightbox Recordatorio -->
 <div id="lightbox-recordatorio" class="lightbox hidden">
   <div class="lightbox-content">
     <button class="close-lightbox">&times;</button>
@@ -444,8 +492,36 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 </div>
 
+<!-- Spinner overlay -->
+<div id="overlaySpinner" class="overlay-spinner">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div>Realizando operación, espera...</div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div id="popResult" class="pop-result" role="dialog" aria-modal="true">
+  <div class="title" id="popResultTitle">Operación</div>
+  <div class="msg" id="popResultMsg">Mensaje</div>
+  <button id="popResultClose" class="btn-close">Cerrar</button>
+</div>
 
 <script>
+/*
+  Integración fetch:
+  - API_BASE: ajusta si tu backend tiene otra ruta base.
+  - Rutas asumidas (puedes modificarlas si tu backend usa otras):
+      GET  /recordatorios
+      POST /recordatorios
+      DELETE /recordatorios/:id
+      POST /paquetes
+      GET  /paquetes?codigo=XXXX
+      PUT  /paquetes/:id
+  Si tus rutas son distintas, cambia API_BASE o las URLs concretas abajo.
+*/
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- ajusta si es necesario
+
 // ================== NAVEGACIÓN (ajustada para incluir Estadísticas) ==================
 const btnInicio = document.getElementById('btnInicio');
 const btnAgregar = document.getElementById('btnAgregar');
@@ -484,18 +560,141 @@ btnEstadisticas.addEventListener('click',()=>{
 // ================== FECHA ACTUAL PRESELECCIONADA ==================
 document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
 
-// ================== FORMULARIOS DEMO (tus originales) ==================
-document.getElementById("formAgregar").addEventListener("submit", function(e){
-  e.preventDefault(); this.reset(); document.getElementById("mensajeAgregar").style.display="block";
-  setTimeout(()=>document.getElementById("mensajeAgregar").style.display="none",3000);
-});
-document.getElementById("formActualizar").addEventListener("submit", function(e){
-  e.preventDefault(); this.reset(); document.getElementById("mensajeActualizar").style.display="block";
-  setTimeout(()=>document.getElementById("mensajeActualizar").style.display="none",3000);
-  document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
+// ================== SPINNER / POP RESULT ================
+const overlaySpinner = document.getElementById('overlaySpinner');
+const popResult = document.getElementById('popResult');
+const popResultTitle = document.getElementById('popResultTitle');
+const popResultMsg = document.getElementById('popResultMsg');
+const popResultClose = document.getElementById('popResultClose');
+
+function showSpinner(){ overlaySpinner.style.display = 'flex'; appWrapper.style.filter = 'blur(3px)'; }
+function hideSpinner(){ overlaySpinner.style.display = 'none'; appWrapper.style.filter = ''; }
+
+function showResult(title, msg){
+  popResultTitle.textContent = title;
+  popResultMsg.textContent = msg;
+  popResult.style.display = 'block';
+}
+popResultClose.addEventListener('click', ()=>{ popResult.style.display = 'none'; });
+
+// ================== FORMULARIOS (ahora con fetch) ==================
+const formAgregar = document.getElementById('formAgregar');
+const formActualizar = document.getElementById('formActualizar');
+
+// helpers
+function mapTipoToId(tipoStr){
+  return tipoStr === 'aereo' ? 1 : 2;
+}
+
+// ---------- AGREGAR PAQUETE (POST) ----------
+formAgregar.addEventListener('submit', async function(e){
+  e.preventDefault();
+
+  // Construir payload con solo los campos que existan (backend soporta nulos)
+  const nombre = document.getElementById('nombre').value.trim();
+  const codigo = document.getElementById('codigo').value.trim() || null;
+  const telCode = document.getElementById('telCode').value;
+  const telefonoDigits = document.getElementById('telefonoDigits').value.trim();
+  const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
+  const tipo = document.getElementById('tipo').value;
+  const tipo_envio_id = mapTipoToId(tipo);
+
+  const payload = {
+    nombre_cliente: nombre || null,
+    codigo_seguimiento: codigo,
+    telefono: telefono,
+    tipo_envio_id: tipo_envio_id
+    // peso, tarifa, fecha no vienen aquí al crear (puedes añadir si quieres)
+  };
+
+  // Mostrar spinner
+  showSpinner();
+
+  try {
+    const res = await fetch(`${API_BASE}/paquetes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+
+    // éxito
+    hideSpinner();
+    showResult('Operación realizada', 'Paquete registrado correctamente.');
+    formAgregar.reset();
+  } catch(err){
+    hideSpinner();
+    showResult('Error', 'No se pudo registrar el paquete. Revisa consola o intenta más tarde.');
+    console.error('Agregar paquete error:', err);
+  }
 });
 
-// ================== RECORDATORIOS (tus originales) ==================
+// ---------- ACTUALIZAR SEGUIMIENTO (buscar por código y actualizar peso/tarifa/fecha) ----------
+formActualizar.addEventListener('submit', async function(e){
+  e.preventDefault();
+
+  const codigo = document.getElementById('codigoSeg').value.trim();
+  if (!codigo) { showResult('Error', 'Debe ingresar el código de seguimiento.'); return; }
+
+  // Campos opcionales a actualizar
+  const peso = document.getElementById('pesoSeg').value;
+  const tarifa = document.getElementById('tarifaSeg').value;
+  const fecha_estado = document.getElementById('fechaEstado').value || null;
+
+  // Solo enviar lo que venga (backend acepta nulos)
+  const updates = {};
+  if (peso !== '') updates.peso_libras = Number(peso);
+  if (tarifa !== '') updates.tarifa_usd = Number(tarifa);
+  if (fecha_estado) updates.fecha_estado = fecha_estado;
+
+  if (Object.keys(updates).length === 0){
+    showResult('Aviso', 'No hay campos para actualizar.');
+    return;
+  }
+
+  showSpinner();
+
+  try {
+    // 1) buscar paquete por código
+    const searchRes = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+    if (!searchRes.ok) throw new Error(`Buscar fallo ${searchRes.status}`);
+    const found = await searchRes.json();
+
+    // Si tu backend devuelve un objeto en vez de array, adapta aquí.
+    // Esperamos un array; tomamos el primero.
+    const paquete = Array.isArray(found) ? found[0] : found;
+
+    if (!paquete || (!paquete.id && !paquete.codigo_seguimiento)){
+      hideSpinner();
+      showResult('No encontrado', 'No se encontró paquete con ese código.');
+      return;
+    }
+
+    const paqueteId = paquete.id || paquete.paquete_id || null;
+    // Si tu backend no usa id numérico, prueba actualizar por codigo directamente:
+    const updateUrl = paqueteId ? `${API_BASE}/paquetes/${paqueteId}` : `${API_BASE}/paquetes/${encodeURIComponent(codigo)}`;
+
+    const updateRes = await fetch(updateUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+
+    if (!updateRes.ok) throw new Error(`Actualizar fallo ${updateRes.status}`);
+
+    hideSpinner();
+    showResult('Operación realizada', 'Estado del paquete actualizado.');
+    formActualizar.reset();
+    document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
+  } catch(err){
+    hideSpinner();
+    showResult('Error', 'No fue posible actualizar el paquete. Revisa consola o intenta más tarde.');
+    console.error('Actualizar seguimiento error:', err);
+  }
+});
+
+// ================== RECORDATORIOS (ahora conectados al backend con fallback a localStorage) ==================
 const listDiv = document.getElementById('listaRecordatorios');
 const formR = document.getElementById('formRecord');
 const popForm = document.getElementById('popFormRecord');
@@ -507,53 +706,197 @@ const cerrarPopConfirm = document.getElementById('cerrarPopConfirm');
 const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
 const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
 const fechaInput = document.getElementById('fechaRecord');
-let indexEliminar=null;
+let indexEliminar = null; // será id del recordatorio en DB o índice en localStorage
 
 fechaInput.value = new Date().toISOString().split('T')[0];
 
-function cargarRecord(){
-  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-  const hoy = new Date().toISOString().split('T')[0];
-  listDiv.innerHTML='';
-  const activos = arr.filter(r=>r.fecha>=hoy);
-  if(!activos.length){ listDiv.innerHTML='<p>No hay recordatorios por el momento.</p>'; return;}
-  activos.forEach((r,index)=>{
-   const div = document.createElement('div');
-div.classList.add('recordatorio-item');
-div.dataset.index = index;  // <-- aquí asignas el índice al div
-div.innerHTML = `
-  <div class="recordatorio-info"><strong>${r.titulo}</strong><br>${r.desc}<br><small>${r.fecha}</small></div>
-  <button class="btnEliminar" data-index="${index}">X</button>`;
+/**
+ * cargarRecord: trae recordatorios desde API; si falla, usa localStorage.
+ * Formato esperado del API: [{ id, titulo, descripcion, fecha_limite }, ...]
+ */
+async function cargarRecord(){
+  listDiv.innerHTML = '<p>Cargando recordatorios...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios`);
+    if (!res.ok) throw new Error(`fetch ${res.status}`);
+    const arr = await res.json();
 
+    renderRecordList(arr);
+  } catch(err){
+    // fallback localStorage (modo prueba)
+    console.warn('Fallo al cargar recordatorios desde API, usando localStorage', err);
+    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+    // adaptamos estructura localStorage -> misma vista (titulo, desc, fecha)
+    const mapped = arr.map((r, idx) => ({ id: `local-${idx}`, titulo: r.titulo, descripcion: r.desc || r.descripcion, fecha_limite: r.fecha || r.fecha }));
+    renderRecordList(mapped);
+  }
+}
+
+function renderRecordList(arr){
+  const hoy = new Date().toISOString().split('T')[0];
+  listDiv.innerHTML = '';
+  const activos = (arr||[]).filter(r => !r.fecha_limite || r.fecha_limite >= hoy);
+  if (!activos.length){ listDiv.innerHTML = '<p>No hay recordatorios por el momento.</p>'; return; }
+  activos.forEach((r, index) => {
+    const div = document.createElement('div');
+    div.classList.add('recordatorio-item');
+    // guardamos id real para poder eliminar por ID
+    div.dataset.id = r.id ?? `local-${index}`;
+    div.innerHTML = `
+      <div class="recordatorio-info"><strong>${r.titulo || ''}</strong><br>${r.descripcion || r.desc || ''}<br><small>${r.fecha_limite || r.fecha || ''}</small></div>
+      <button class="btnEliminar" data-id="${r.id ?? `local-${index}`}">X</button>`;
     listDiv.appendChild(div);
-    if(r.fecha===hoy){ div.querySelector('.recordatorio-info').style.animation="parpadeo 1.2s infinite"; }
+    if ((r.fecha_limite || r.fecha) === hoy){ div.querySelector('.recordatorio-info').style.animation = "parpadeo 1.2s infinite"; }
   });
 }
-cargarRecord();
 
+// abrir/ cerrar form
 btnAgregarRecord.addEventListener('click', ()=>{ popForm.style.display='block'; });
 cerrarPopForm.addEventListener('click', ()=>{ popForm.style.display='none'; });
 
-formR.addEventListener('submit', e=>{
+// submit agregar record (POST)
+formR.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-  arr.push({titulo:document.getElementById('tituloRecord').value, desc:document.getElementById('descRecord').value, fecha:fechaInput.value});
-  localStorage.setItem('recordatorios', JSON.stringify(arr));
-  formR.reset(); fechaInput.value=new Date().toISOString().split('T')[0];
-  popForm.style.display='none'; popConfirm.style.display='block';
-  cargarRecord();
+  const titulo = document.getElementById('tituloRecord').value.trim();
+  const desc = document.getElementById('descRecord').value.trim();
+  const fecha = fechaInput.value;
+
+  const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
+
+  showSpinner();
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`POST record ${res.status}`);
+    hideSpinner();
+    popForm.style.display = 'none';
+    showResult('Registro', 'Recordatorio agregado.');
+    // recargar desde API
+    await cargarRecord();
+    formR.reset(); fechaInput.value = new Date().toISOString().split('T')[0];
+  } catch(err){
+    // fallback: guardar en localStorage (modo prueba)
+    hideSpinner();
+    console.warn('Agregar record falló, guardando en localStorage', err);
+    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+    arr.push({ titulo, desc, fecha });
+    localStorage.setItem('recordatorios', JSON.stringify(arr));
+    popForm.style.display = 'none';
+    popConfirm.style.display = 'block';
+    cargarRecord();
+  }
 });
 cerrarPopConfirm.addEventListener('click', ()=>{ popConfirm.style.display='none'; });
 
-btnCancelarEliminar.addEventListener('click', ()=>{ popEliminarConfirm.style.display='none'; indexEliminar=null; });
-btnConfirmEliminar.addEventListener('click', ()=>{
-  const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-  arr.splice(indexEliminar,1);
-  localStorage.setItem('recordatorios', JSON.stringify(arr));
-  cargarRecord();
-  popEliminarConfirm.style.display='none';
-  indexEliminar=null;
+// Delegación: botones X (eliminar) y click item (lightbox)
+const lightbox = document.getElementById('lightbox-recordatorio');
+const closeBtn = document.querySelector('.close-lightbox');
+const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
+let indexSeleccionado = null;
+
+listDiv.addEventListener('click', (e) => {
+  // Si click en X (eliminar clásico)
+  const eliminarBtn = e.target.closest('.btnEliminar');
+  if (eliminarBtn) {
+    // mostramos el popEliminarConfirm, guardamos id
+    indexEliminar = eliminarBtn.dataset.id;
+    popEliminarConfirm.style.display = 'block';
+    return;
+  }
+
+  // Si click en el item -> abrir lightbox
+  const item = e.target.closest('.recordatorio-item');
+  if (item) {
+    indexSeleccionado = item.dataset.id;
+    // Para mostrar el contenido: intentamos buscar en API (por si existe) sino localStorage
+    (async () => {
+      try {
+        // si id empieza con 'local-' no pedimos al backend
+        if (String(indexSeleccionado).startsWith('local-')) {
+          const arrLocal = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+          const idx = Number(indexSeleccionado.replace('local-',''));
+          const r = arrLocal[idx] || {};
+          fillLightbox(r.titulo, r.desc, r.fecha);
+        } else {
+          const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexSeleccionado)}`);
+          if (!res.ok) throw new Error('no fetch lb');
+          const r = await res.json();
+          fillLightbox(r.titulo || r.titulo, r.descripcion || r.desc, r.fecha_limite || r.fecha);
+        }
+      } catch(err){
+        // fallback: si falla, rellenar con el contenido que ya mostramos en la lista DOM
+        const info = item.querySelector('.recordatorio-info').innerHTML;
+        // intentamos parsear simple
+        const title = item.querySelector('.recordatorio-info strong')?.textContent || 'Recordatorio';
+        const small = item.querySelector('.recordatorio-info small')?.textContent || '';
+        const descText = item.querySelector('.recordatorio-info')?.childNodes[2]?.textContent || '';
+        fillLightbox(title, descText, small);
+      }
+      lightbox.classList.remove('hidden');
+    })();
+  }
 });
+
+function fillLightbox(titulo, desc, fecha){
+  const titleEl = lightbox.querySelector('h2');
+  const pEl = lightbox.querySelector('p');
+  titleEl.textContent = titulo || 'Recordatorio';
+  pEl.innerHTML = `${desc || ''}${(desc && fecha)?'<br>':''}<small>${fecha || ''}</small>`;
+}
+
+// Cerrar lightbox
+closeBtn.addEventListener('click', () => { lightbox.classList.add('hidden'); });
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.add('hidden'); });
+
+// Botón "Eliminar" en lightbox -> abrir popEliminarConfirm (ya definido)
+lbDelete.addEventListener('click', () => {
+  if (indexSeleccionado != null) {
+    popEliminarConfirm.style.display = 'block';
+    lightbox.classList.add('hidden');
+    indexEliminar = indexSeleccionado;
+  }
+});
+
+// confirmar eliminación (popEliminarConfirm)
+btnConfirmEliminar.addEventListener('click', async () => {
+  if (!indexEliminar) { popEliminarConfirm.style.display='none'; return; }
+
+  showSpinner();
+  try {
+    // Si id local- => eliminar localStorage, sino pedir al backend
+    if (String(indexEliminar).startsWith('local-')) {
+      const idx = Number(indexEliminar.replace('local-',''));
+      const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+      arr.splice(idx,1);
+      localStorage.setItem('recordatorios', JSON.stringify(arr));
+      hideSpinner();
+      popEliminarConfirm.style.display='none';
+      cargarRecord();
+      showResult('Eliminado', 'Recordatorio eliminado (local).');
+      indexEliminar = null;
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`Delete failed ${res.status}`);
+    hideSpinner();
+    popEliminarConfirm.style.display='none';
+    showResult('Eliminado', 'Recordatorio eliminado.');
+    indexEliminar = null;
+    // recargar
+    await cargarRecord();
+  } catch(err){
+    hideSpinner();
+    popEliminarConfirm.style.display='none';
+    console.error('Eliminar record error', err);
+    showResult('Error', 'No se pudo eliminar. Intenta más tarde.');
+  }
+});
+
+btnCancelarEliminar.addEventListener('click', ()=>{ popEliminarConfirm.style.display='none'; indexEliminar=null; });
 
 // ================== NUEVO: CONTRASEÑAS/OVERLAYS ==================
 const PASS_LOCK  = "12345678"; // puedes cambiarlas luego
@@ -584,6 +927,8 @@ function tryUnlock(){
     lockOverlay.style.display = 'none';
     appWrapper.style.filter = 'none';
     lockPass.value = '';
+    // cargamos recordatorios al desbloquear
+    cargarRecord();
   } else {
     lockError.style.display = 'block';
   }
@@ -618,67 +963,9 @@ function loadStatsIfAuthorized(){
 statsSubmit.addEventListener('click', loadStatsIfAuthorized);
 statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
 statsCancel.addEventListener('click', closeStats);
- // ===== LIGHTBOX RECORDATORIOS =====
-const lightbox = document.getElementById('lightbox-recordatorio');
-const closeBtn = document.querySelector('.close-lightbox');
-const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
-let indexSeleccionado = null;
 
-// Un solo listener con delegación para ambos casos:
-listDiv.addEventListener('click', (e) => {
-  // 1) Si hicieron click en el botón X (eliminar clásico → pop existente)
-  const eliminarBtn = e.target.closest('.btnEliminar');
-  if (eliminarBtn) {
-    indexEliminar = eliminarBtn.dataset.index;
-    popEliminarConfirm.style.display='block';
-    return; // no seguimos para que no abra el lightbox
-  }
-
-  // 2) Si hicieron click en cualquier parte del item, abrimos el lightbox
-  const item = e.target.closest('.recordatorio-item');
-  if (item) {
-    indexSeleccionado = Number(item.dataset.index);
-    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-    const r = arr[indexSeleccionado];
-
-    // Rellenamos el contenido del lightbox
-    const titleEl = lightbox.querySelector('h2');
-    const pEl = lightbox.querySelector('p');
-
-    if (r) {
-      titleEl.textContent = r.titulo || 'Recordatorio';
-      pEl.innerHTML = `${r.desc || ''}<br><small>${r.fecha || ''}</small>`;
-    } else {
-      titleEl.textContent = 'Recordatorio';
-      pEl.textContent = 'Versión de prueba, datos no disponibles';
-    }
-
-    lightbox.classList.remove('hidden');
-  }
-});
-
-// Cerrar lightbox
-closeBtn.addEventListener('click', () => {
-  lightbox.classList.add('hidden');
-});
-
-// Cerrar al clickear fuera de la caja
-lightbox.addEventListener('click', (e) => {
-  if (e.target === lightbox) lightbox.classList.add('hidden');
-});
-
-// Eliminar desde el lightbox (borra el recordatorio seleccionado)
-// Eliminar desde el lightbox (abrir pop-up de confirmación)
-lbDelete.addEventListener('click', () => {
-  if (indexSeleccionado != null) {
-    // Mostrar pop-up de confirmación
-    popEliminarConfirm.style.display = 'block';
-  }
-  // Cerrar el lightbox mientras se confirma
-  lightbox.classList.add('hidden');
-});
-
-
+// ================== Inicial ==================
+/* No cargamos recordatorios hasta que el panel esté desbloqueado */
 </script>
 </body>
 </html>
