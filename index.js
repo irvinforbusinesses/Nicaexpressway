@@ -17,13 +17,14 @@ const supabase = createClient(
 // Rutas de Recordatorios
 // =========================
 
-// Agregar recordatorio
+// Agregar recordatorio (adaptado a los nombres que envía el front)
 app.post('/recordatorios', async (req, res) => {
-  const { titulo, descripcion, fecha_limite } = req.body;
+  const { title, description, date } = req.body; // nombres del front
   const { data, error } = await supabase
     .from('recordatorios')
-    .insert([{ titulo, descripcion, fecha_limite }]);
-  if (error) return res.status(400).json({ error });
+    .insert([{ titulo: title, descripcion: description, fecha_limite: date }]);
+  
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
@@ -34,14 +35,15 @@ app.delete('/recordatorios/:id', async (req, res) => {
     .from('recordatorios')
     .delete()
     .eq('id', id);
-  if (error) return res.status(400).json({ error });
+
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
 // Obtener todos los recordatorios
 app.get('/recordatorios', async (req, res) => {
   const { data, error } = await supabase.from('recordatorios').select('*');
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
@@ -49,39 +51,52 @@ app.get('/recordatorios', async (req, res) => {
 // Rutas de Paquetes
 // =========================
 
-// Agregar paquete (todos los campos opcionales)
+// Agregar paquete (adaptado a los nombres que envía el front)
 app.post('/paquetes', async (req, res) => {
-  const { nombre_cliente, codigo_seguimiento, telefono, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado } = req.body;
+  const { cliente, codigo, telefono, tipo, peso, tarifa, fecha } = req.body; // nombres del front
   const { data, error } = await supabase
     .from('paquetes')
-    .insert([{ nombre_cliente, codigo_seguimiento, telefono, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado }]);
-  if (error) return res.status(400).json({ error });
+    .insert([{
+      nombre_cliente: cliente,
+      codigo_seguimiento: codigo,
+      telefono,
+      tipo_envio_id: tipo,
+      peso_libras: peso,
+      tarifa_usd: tarifa,
+      fecha_estado: fecha
+    }]);
+
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
-// Actualizar seguimiento (solo peso, tarifa y fecha_estado) usando codigo_seguimiento
+// Actualizar paquete (solo peso, tarifa y fecha, usando codigo del front)
 app.patch('/paquetes/:codigo', async (req, res) => {
   const { codigo } = req.params;
-  const { peso_libras, tarifa_usd, fecha_estado } = req.body;
+  const { peso, tarifa, fecha } = req.body; // nombres del front
 
   const { data, error } = await supabase
     .from('paquetes')
-    .update({ peso_libras, tarifa_usd, fecha_estado })
+    .update({
+      peso_libras: peso,
+      tarifa_usd: tarifa,
+      fecha_estado: fecha
+    })
     .eq('codigo_seguimiento', codigo);
 
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
 // Obtener todos los paquetes
 app.get('/paquetes', async (req, res) => {
   const { data, error } = await supabase.from('paquetes').select('*');
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ error: error.message });
   res.json({ data });
 });
 
 // =========================
 // Server
 // =========================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // render usa 1000
 app.listen(PORT, () => console.log(`Backend corriendo en puerto ${PORT}`));
