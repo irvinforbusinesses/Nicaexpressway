@@ -388,7 +388,7 @@ app.put('/paquetes/:identifier', async (req, res) => {
 app.patch('/paquetes/:identifier', async (req, res) => {
   // reutilizar el handler de PUT para evitar duplicar lógica
   return app._router.handle(req, res, require('url').parse(req.url));
-};
+}
 
 // ---------- SERVER ----------
 const PORT = process.env.PORT || 10000;
