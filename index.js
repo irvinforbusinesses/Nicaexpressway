@@ -386,9 +386,11 @@ app.put('/paquetes/:identifier', async (req, res) => {
 
 // También aceptamos PATCH /paquetes/:identifier (idéntico a PUT para compatibilidad)
 app.patch('/paquetes/:identifier', async (req, res) => {
-  // reutilizar el handler de PUT para evitar duplicar lógica
-  return app._router.handle(req, res, require('url').parse(req.url));
-}
+  // Simplemente llamamos al mismo código que PUT
+  return app._router.stack
+    .find(layer => layer.route && layer.route.path === '/paquetes/:identifier' && layer.route.methods.put)
+    .handle(req, res);
+});
 
 // ---------- SERVER ----------
 const PORT = process.env.PORT || 10000;
