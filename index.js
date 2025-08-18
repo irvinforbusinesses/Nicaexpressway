@@ -178,17 +178,5 @@ app.patch('/paquetes/:codigo?', async (req, res) => {
   }
 });
 
-
-    if (error) {
-      console.error('Supabase patch paquetes error:', error);
-      return res.status(400).json({ error: error.message || error });
-    }
-    return res.json({ data });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'server error' });
-  }
-});
-
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend corriendo en puerto ${PORT}`));
