@@ -321,22 +321,21 @@ app.get('/paquetes/:id', async (req, res) => {
   }
 });
 
-// PUT /paquetes/:identifier -> actualiza peso, tarifa, fecha (reemplaza)
-// :identifier puede ser un id numérico o un codigo_seguimiento (string)
-app.put('/paquetes/:identifier', async (req, res) => {
+// PUT /paquetes/:codigo_seguimiento -> actualiza peso, tarifa, fecha, estado
+// siempre busca exclusivamente por codigo_seguimiento (nunca por id)
+app.put('/paquetes/:codigo_seguimiento', async (req, res) => {
   try {
-    const { identifier } = req.params;
-    const isNumericId = /^[0-9]+$/.test(String(identifier));
+    const { codigo_seguimiento } = req.params;
 
     // Campos a reemplazar (si vienen)
     const peso_libras = (req.body.peso_libras !== undefined) ? req.body.peso_libras : (req.body.peso !== undefined ? req.body.peso : undefined);
     const tarifa_usd = (req.body.tarifa_usd !== undefined) ? req.body.tarifa_usd : (req.body.tarifa !== undefined ? req.body.tarifa : undefined);
     const fecha_estado = (req.body.fecha_estado !== undefined) ? req.body.fecha_estado : (req.body.fecha !== undefined ? req.body.fecha : undefined);
 
-    const estado = req.body.estado ?? null; // estado textual que viene del front ("recibido", "en_transito", ...)
+    const estado = req.body.estado ?? null; // estado textual (ej: "recibido", "en_transito", ...)
     const fecha_para_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
 
-    // Construir objeto de update sólo con claves presentes (para no sobreescribir con undefined)
+    // Construir objeto de update sólo con claves presentes
     const updateObj = {};
     if (peso_libras !== undefined) updateObj.peso_libras = peso_libras;
     if (tarifa_usd !== undefined) updateObj.tarifa_usd = tarifa_usd;
@@ -346,16 +345,12 @@ app.put('/paquetes/:identifier', async (req, res) => {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
     }
 
-    let query = supabase.from('paquetes').update(updateObj).select();
-
-    if (isNumericId) {
-      query = query.eq('id', Number(identifier));
-    } else {
-      // tratar identifier como código de seguimiento
-      query = query.eq('codigo_seguimiento', identifier);
-    }
-
-    const { data, error } = await query;
+    // Actualizar paquete por codigo_seguimiento
+    const { data, error } = await supabase
+      .from('paquetes')
+      .update(updateObj)
+      .eq('codigo_seguimiento', codigo_seguimiento)
+      .select();
 
     if (error) {
       console.error('Supabase put paquetes error:', error);
@@ -363,23 +358,21 @@ app.put('/paquetes/:identifier', async (req, res) => {
     }
 
     if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'No se encontró paquete con los criterios dados' });
+      return res.status(404).json({ error: 'No se encontró paquete con ese código de seguimiento' });
     }
 
-    // Si vino 'estado', lo guardamos en historial (primera columna libre)
+    // Si vino 'estado', lo guardamos en historial
     try {
-      const codigoParaHist = isNumericId ? (data[0].codigo_seguimiento) : identifier;
-      if (estado && codigoParaHist) {
-        await pushEstadoToHistorial(codigoParaHist, estado, fecha_para_estado);
+      if (estado) {
+        await pushEstadoToHistorial(codigo_seguimiento, estado, fecha_para_estado);
       }
     } catch (histErr) {
-      // log y seguimos (no abortamos la actualización principal)
-      console.error('Error al actualizar historial tras PUT /paquetes/:identifier', histErr);
+      console.error('Error al actualizar historial tras PUT /paquetes/:codigo_seguimiento', histErr);
     }
 
     return res.json(data);
   } catch (err) {
-    console.error('PUT /paquetes/:identifier error:', err);
+    console.error('PUT /paquetes/:codigo_seguimiento error:', err);
     return res.status(500).json({ error: 'server error' });
   }
 });
