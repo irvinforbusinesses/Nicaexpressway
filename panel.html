@@ -634,18 +634,25 @@ formAgregar.addEventListener('submit', async function(e){
 formActualizar.addEventListener('submit', async function(e){
   e.preventDefault();
 
+  // Le pedimos al usuario que ingrese el código (según lo especificaste)
   const codigo = document.getElementById('codigoSeg').value.trim();
   if (!codigo) { showResult('Error', 'Debe ingresar el código de seguimiento.'); return; }
 
   // Campos opcionales a actualizar
-  const peso = document.getElementById('pesoSeg').value;
-  const tarifa = document.getElementById('tarifaSeg').value;
+  const pesoRaw = document.getElementById('pesoSeg').value;
+  const tarifaRaw = document.getElementById('tarifaSeg').value;
   const fecha_estado = document.getElementById('fechaEstado').value || null;
 
-  // Solo enviar lo que venga (backend acepta nulos)
+  // Preparar objeto updates con solo lo que venga
   const updates = {};
-  if (peso !== '') updates.peso_libras = Number(peso);
-  if (tarifa !== '') updates.tarifa_usd = Number(tarifa);
+  if (pesoRaw !== '') {
+    const p = Number(pesoRaw);
+    if (!Number.isNaN(p)) updates.peso_libras = p;
+  }
+  if (tarifaRaw !== '') {
+    const t = Number(tarifaRaw);
+    if (!Number.isNaN(t)) updates.tarifa_usd = t;
+  }
   if (fecha_estado) updates.fecha_estado = fecha_estado;
 
   if (Object.keys(updates).length === 0){
@@ -653,35 +660,43 @@ formActualizar.addEventListener('submit', async function(e){
     return;
   }
 
+  // Añadimos el código al payload para que el backend pueda buscar por él
+  const payload = {
+    codigo_seguimiento: codigo,
+    ...updates
+  };
+
   showSpinner();
 
   try {
-    // 1) buscar paquete por código
-    const searchRes = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
-    if (!searchRes.ok) throw new Error(`Buscar fallo ${searchRes.status}`);
-    const found = await searchRes.json();
-
-    // Si tu backend devuelve un objeto en vez de array, adapta aquí.
-    // Esperamos un array; tomamos el primero.
-    const paquete = Array.isArray(found) ? found[0] : found;
-
-    if (!paquete || (!paquete.id && !paquete.codigo_seguimiento)){
-      hideSpinner();
-      showResult('No encontrado', 'No se encontró paquete con ese código.');
-      return;
-    }
-
-    const paqueteId = paquete.id || paquete.paquete_id || null;
-    // Si tu backend no usa id numérico, prueba actualizar por codigo directamente:
-    const updateUrl = paqueteId ? `${API_BASE}/paquetes/${paqueteId}` : `${API_BASE}/paquetes/${encodeURIComponent(codigo)}`;
-
-    const updateRes = await fetch(updateUrl, {
-      method: 'PUT',
+    // Llamamos directamente al PATCH. El backend que tenemos soporta PATCH /paquetes/:codigo? o PATCH /paquetes
+    // Usamos la ruta sin parámetro para mantenerlo simple (el backend usará el campo codigo_seguimiento del body).
+    const res = await fetch(`${API_BASE}/paquetes`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(payload)
     });
 
-    if (!updateRes.ok) throw new Error(`Actualizar fallo ${updateRes.status}`);
+    // Si devuelve error, intentamos leer el body para mostrar detalle
+    if (!res.ok) {
+      let errText = `Actualizar fallo ${res.status}`;
+      try {
+        const errJson = await res.json();
+        if (errJson?.error) errText = errJson.error;
+      } catch (_) { /* ignore parse error */ }
+      throw new Error(errText);
+    }
+
+    // Leer respuesta: puede venir como { data: [...] } o directamente un array
+    const result = await res.json();
+    const data = Array.isArray(result) ? result : (result?.data ?? result);
+
+    // Validar resultado
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      hideSpinner();
+      showResult('No encontrado', 'No se encontró paquete con ese código (o no se realizaron cambios).');
+      return;
+    }
 
     hideSpinner();
     showResult('Operación realizada', 'Estado del paquete actualizado.');
@@ -689,8 +704,8 @@ formActualizar.addEventListener('submit', async function(e){
     document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
   } catch(err){
     hideSpinner();
-    showResult('Error', 'No fue posible actualizar el paquete. Revisa consola o intenta más tarde.');
     console.error('Actualizar seguimiento error:', err);
+    showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
   }
 });
 
