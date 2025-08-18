@@ -1,971 +1,232 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Panel del Operador</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento y Cotización</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --color-bg: #E8F0F5;
-  --color-accent: #2F528F;
-  --color-light: #FFFFFF;
-  --color-gray: #F6F8FB;
-  --color-text-dark: #1A1A1A;
+--color-bg: #E8F0F5;
+--color-accent: #2F528F;
+--color-light: #FFFFFF;
+--color-gray: #F6F8FB;
+--color-text-dark: #1A1A1A;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text-dark);
-  padding: 1rem;
-  max-width: 500px;
-  margin: auto;
+font-family: 'Inter', sans-serif;
+background: var(--color-bg);
+color: var(--color-text-dark);
+padding: 1rem;
+max-width: 500px;
+margin: auto;
+padding-bottom: 60px; /* espacio para el footer */
+}
+header {
+text-align: center;
+margin-bottom: 2rem;
+}
+h1 {
+font-family: 'Poppins', sans-serif;
+font-size: 1.8rem;
+color: var(--color-accent);
+}
+nav {
+display: flex;
+justify-content: center;
+gap: 0.5rem;
+margin-top: 1rem;
+}
+nav button {
+flex: 1;
+background: var(--color-accent);
+color: white;
+border: none;
+padding: 0.75rem;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+}
+nav button.inactive {
+background: #a0b6e0;
+}
+section {
+background: var(--color-light);
+padding: 1.5rem;
+border-radius: 12px;
+margin-top: 1rem;
+display: none;
+}
+section.active {
+display: block;
 }
 
-/* --------- NAV/SECCIONES ORIGINALES --------- */
-header { text-align: center; margin-bottom: 2rem; }
-h1 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; color: var(--color-accent); }
-nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
-nav button { flex: 1; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
-nav button.inactive { background: #a0b6e0; }
-
-section { background: var(--color-light); padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
-section.active { display: block; }
-
-label { display: block; margin: 1rem 0 0.5rem; font-weight: 600; }
-input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; }
-input::placeholder { color: #9aa3ad; }
-textarea { resize: vertical; }
-
-button.action-btn { margin-top: 1rem; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-size: 1rem; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
-
-.recordatorio-item {
-  background: var(--color-gray);
-  padding: 0.75rem;
-  border-radius: 16px;
-  margin-bottom: 0.75rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  overflow: hidden;
+/* Sección de bienvenida */
+#inicio {
+text-align: center;
+padding: 2rem 1rem;
+}
+#inicio h2 {
+font-family: 'Poppins', sans-serif;
+font-size: 2rem;
+margin-bottom: 1rem;
+color: var(--color-accent);
+}
+#inicio p {
+font-size: 1.1rem;
+line-height: 1.6;
+white-space: pre-line;
 }
 
-.recordatorio-info {
-  flex: 1;
-  border-radius: 12px;
-  padding: 0.4rem;
+/* Inputs mobile-friendly */
+label {
+display: block;
+margin: 1rem 0 0.5rem;
+font-weight: 600;
 }
-.btnEliminar { 
-  background: #f56565; 
-  color: white; 
-  border: none; 
-  padding: 0.35rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  cursor: pointer; 
-  transition: background 0.2s ease;
+select, input {
+width: 100%;
+padding: 0.75rem;
+border-radius: 8px;
+border: 1px solid #ccc;
+font-size: 1rem;
 }
-.btnEliminar:hover { background: #ff6b6b; }
-
-/* Pop-ups (tus existentes) */
-.popUp, .confirmPop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--color-light); padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999; }
-.popUp button, .confirmPop button { margin-top: 0.5rem; width: 100%; }
-
-/* Animación parpadeo */
-@keyframes parpadeo {
-  0% { background-color: var(--color-light); color: var(--color-text-dark); transform: scale(1); }
-  25% { background-color: #e0f0ff; color: var(--color-accent); transform: scale(1.02); }
-  50% { background-color: var(--color-accent); color: #fff; transform: scale(1.05); }
-  75% { background-color: #e0f0ff; color: var(--color-accent); transform: scale(1.02); }
-  100% { background-color: var(--color-light); color: var(--color-text-dark); transform: scale(1); }
+button.calc-btn {
+margin-top: 1rem;
+background: var(--color-accent);
+color: white;
+border: none;
+padding: 0.75rem;
+font-size: 1rem;
+border-radius: 8px;
+width: 100%;
+font-weight: bold;
+cursor: pointer;
 }
-
-/* Tooltips */
-.form-group { position: relative; }
-.tooltip { display: none; position: absolute; left: 0; top: -2rem; background: var(--color-light); color: var(--color-text-dark); padding: 0.35rem 0.55rem; border-radius: 6px; font-size: 0.8rem; white-space: normal; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 1px solid #ccc; }
-.form-group:focus-within .tooltip { display: block; }
-
-/* Teléfono */
-.phone-row { display: flex; gap: 0.5rem; align-items: center; }
-.phone-row select { width: 35%; min-width: 110px; }
-.phone-row input { flex: 1; }
-
-/* Mensajes */
-.mensaje { margin-top: 1rem; font-size: 0.95rem; padding: 0.75rem; border-radius: 8px; text-align: center; background: #FFF4CC; color: #665c00; border: 1px solid #FFE08A; }
+.resultado {
+margin-top: 1rem;
+font-size: 1.1rem;
+font-weight: 600;
+}
 
 /* Footer */
-footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
-
-/* Optimización pop-up móviles (tus existentes) */
-@media (max-width: 600px) {
-  .popUp {
-    width: 90%;
-    max-width: 400px;
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-  .popUp form input,
-  .popUp form textarea,
-  .popUp form select,
-  .popUp button { font-size: 1rem; }
-  .popUp form label { font-size: 0.95rem; }
-  .popUp form textarea { min-height: 80px; }
+footer {
+position: fixed;
+bottom: 0;
+left: 0;
+width: 100%;
+color: #888;
+text-align: center;
+padding: 0.5rem;
+font-size: 0.8rem;
 }
-
-/* --------- NUEVOS: OVERLAYS DE CONTRASEÑA --------- */
-.authOverlay {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 10000;
-}
-.authBox {
-  background: var(--color-light);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  padding: 1.25rem;
-  width: 92%;
-  max-width: 340px;
-  text-align: center;
-}
-.authBox h2 { color: var(--color-accent); font-size: 1.2rem; margin-bottom: 0.75rem; }
-.authBox input {
-  width: 100%; padding: 0.65rem; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0.75rem;
-}
-.authBox .btn {
-  width: 100%; padding: 0.65rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
-  background: var(--color-accent); color: #fff;
-}
-.authBox .btn.secondary { background: #888; }
-.authError { color: #e53935; font-size: 0.9rem; display: none; margin-top: 0.25rem; }
-
-/* contenedor estadísticas */
-#estadisticas-container { margin-top: 0.75rem; }
-#estadisticasFrame {
-  width: 100%;
-  min-height: 70vh;
-  border: 0;
-  border-radius: 12px;
-  background: #fff;
-}
-  /* --- Contenedor de estadísticas --- */
-.stats-container {
-  width: 100%;
-  max-width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 10px;
-  box-sizing: border-box;
-  margin: 0 auto;
-}
-
-/* Contenido interno */
-.stats-container .stats-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Ajustes para pantallas grandes */
-@media (min-width: 768px) {
-  .stats-container .stats-content {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-
-/* Fondo del lightbox con blur */
-.lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(5px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* Oculto por defecto */
-.hidden {
-  display: none;
-}
-
-/* Caja del lightbox */
-.lightbox-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  max-width: 400px;       /* ancho máximo */
-  width: 90%;              /* ancho relativo a la pantalla */
-  max-height: 70vh;        /* altura máxima: 70% de la ventana */
-  overflow-y: auto;        /* scroll vertical si el contenido es largo */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  text-align: center;
-  position: relative;
-}
-
-/* Asegura que los párrafos respeten saltos de línea y no se corten */
-.lightbox-content p {
-  white-space: pre-wrap;   /* respeta saltos de línea */
-  word-wrap: break-word;   /* corta palabras largas si es necesario */
-}
-
-/* Botón cerrar (similar al sitio) */
-.close-lightbox {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-/* Botón eliminar */
-.btn-eliminar {
-  margin-top: 20px;
-  padding: 10px 15px;
-  border: none;
-  background: #e74c3c;
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.btn-eliminar:hover {
-  background: #c0392b;
-}
-
-/* --- Spinner overlay y pop result (nuevo) --- */
-.overlay-spinner {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.28);
-  z-index: 11000;
-  backdrop-filter: blur(3px);
-}
-.spinner-box {
-  background: var(--color-light);
-  padding: 16px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  min-width: 220px;
-}
-.spinner {
-  width: 40px; height: 40px;
-  margin: 0 auto 10px auto;
-  border-radius: 50%;
-  border: 4px solid rgba(47,82,143,0.15);
-  border-top-color: var(--color-accent);
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.pop-result {
-  display: none;
-  position: fixed;
-  z-index: 12000;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  background: var(--color-light);
-  padding: 14px;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-  width: 90%;
-  max-width: 360px;
-  text-align: center;
-}
-.pop-result .title { font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
-.pop-result .msg { margin-bottom: 10px; }
-.pop-result .btn-close { background: var(--color-accent); color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; width: 100%; }
 </style>
 </head>
 <body>
 
-<div id="app"><!-- wrapper para blur si hiciera falta -->
-
 <header>
-<h1>Panel del Operador</h1>
+  <h1>Nica Expressway </h1>
 <nav>
 <button id="btnInicio">Inicio</button>
-<button id="btnAgregar" class="inactive">Agregar Paquete</button>
-<button id="btnActualizar" class="inactive">Actualizar Seguimiento</button>
-<button id="btnEstadisticas" class="inactive">Estadísticas</button>
+<button id="btnCotizar" class="inactive">Cotizar</button>
+<button id="btnSeguimiento" class="inactive">Seguimiento</button>
 </nav>
 </header>
 
-<!-- Inicio: Recordatorios -->
 <section id="inicio" class="active">
-<h2>Inicio</h2>
-<div id="listaRecordatorios">
-  <p>No hay recordatorios por el momento.</p>
-</div>
-<button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
-
-<!-- Pop-up Formulario -->
-<div class="popUp" id="popFormRecord">
-<h3>Agregar Recordatorio</h3>
-<form id="formRecord">
-  <label for="tituloRecord">Título del recordatorio</label>
-  <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
-  <label for="descRecord">Descripción</label>
-  <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
-  <label for="fechaRecord">Fecha límite</label>
-  <input type="date" id="fechaRecord" required>
-  <button type="submit" class="action-btn">Agregar</button>
-  <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
-</form>
-</div>
-
-<!-- Pop-up Confirmación Agregado -->
-<div class="confirmPop" id="popConfirm">
-<p>Recordatorio agregado</p>
-<button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
-</div>
-
-<!-- Pop-up Confirmación Eliminar (reutilizable) -->
-<div class="confirmPop" id="popEliminarConfirm">
-<p>¿Desea eliminar este recordatorio?</p>
-<button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
-<button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
-</div>
+<h2>Bienvenido</h2>
+<p>✈️📦 Envíos de USA a Nicaragua  
+🚛 Rápidos, seguros y confiables  
+📍 Miami — 🇳🇮 Nicaragua</p>
 </section>
 
-<!-- Agregar Paquete -->
-<section id="agregar">
-<h2>Registrar Paquete</h2>
-<form id="formAgregar">
-  <div class="form-group">
-    <label for="nombre">Nombre del cliente</label>
-    <div class="tooltip">Ingresa un nombre y un apellido</div>
-    <input type="text" id="nombre" name="nombre" placeholder="Ej: Lester Gamez" required>
-  </div>
+<section id="cotizar">
+<h2>Calculadora de Envío</h2>
+<label for="tipoEnvio">Tipo de envío:</label>
+<select id="tipoEnvio">
+<option value="aereo">Aéreo</option>
+<option value="maritimo">Marítimo</option>
+</select>
 
-  <!-- Nuevo campo opcional de código de seguimiento -->
-  <div class="form-group">
-    <label for="codigo">Código de seguimiento (opcional, max 10 dígitos)</label>
-    <input type="text" id="codigo" name="codigo" maxlength="10" pattern="\d{0,10}" placeholder="Solo números">
-  </div>
+<label for="peso">Peso aproximado (libras):</label>
+<input type="number" id="peso" placeholder="Ej: 5">
 
-  <div class="form-group">
-    <label for="telefonoDigits">Teléfono</label>
-    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
-    <div class="phone-row">
-      <select id="telCode" name="telCode" required>
-        <option value="(505)">(505)</option>
-        <option value="(1)">(1)</option>
-      </select>
-      <input type="tel" id="telefonoDigits" name="telefonoDigits" placeholder="Ej: 12345678"
-             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)" required>
-    </div>
-  </div>
+<button class="calc-btn" onclick="calcular()">Calcular</button>
 
-  <div class="form-group">
-    <label for="tipo">Tipo de envío</label>
-    <select id="tipo" name="tipo" required>
-      <option value="aereo">Aéreo</option>
-      <option value="maritimo">Marítimo</option>
-    </select>
-  </div>
-
-  <button type="submit" class="action-btn">Registrar Paquete</button>
-</form>
-<div id="mensajeAgregar" class="mensaje" style="display:none;">
-Esta plataforma es de prueba, dog. Acción no disponible por el momento.
-</div>
+<div class="resultado" id="resultado"></div>
 </section>
 
-<!-- Actualizar Seguimiento -->
-<section id="actualizar">
-<h2>Actualizar Estado</h2>
-<form id="formActualizar">
-  <div class="form-group">
-    <label for="nombreSeg">Nombre del cliente</label>
-    <div class="tooltip">Ingresa un nombre y un apellido</div>
-    <input type="text" id="nombreSeg" name="nombreSeg" placeholder="Ej: Lester Gamez">
-  </div>
-
-  <!-- Nuevo campo opcional de código de seguimiento -->
- <div class="form-group">
-    <label for="codigoSeg">Código de seguimiento (obligatorio, max 10 dígitos)</label>
-    <input type="text" id="codigoSeg" name="codigoSeg" maxlength="10" pattern="\d{1,10}" placeholder="Solo números" required>
-  </div>
-
-  <div class="form-group">
-    <label for="telefonoSegDigits">Teléfono</label>
-    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
-    <div class="phone-row">
-      <select id="telCodeSeg" name="telCodeSeg">
-        <option value="(505)">(505)</option>
-        <option value="(1)">(1)</option>
-      </select>
-      <input type="tel" id="telefonoSegDigits" name="telefonoSegDigits" placeholder="Ej: 12345678"
-             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)">
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="estado">Estado del paquete</label>
-    <select id="estado" name="estado">
-      <option value="">-- Seleccione --</option>
-      <option value="recibido">Recibido</option>
-      <option value="en_transito">En tránsito</option>
-      <option value="en_aduana">En Aduana</option>
-      <option value="listo_recoger">Listo Para Recoger</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label for="pesoSeg">Peso en libras</label>
-    <input type="number" id="pesoSeg" name="pesoSeg" step="0.1" min="0" placeholder="Ej: 1.0">
-  </div>
-  <div class="form-group">
-  <label for="tarifaSeg">Tarifa en USD</label>
-  <input type="number" id="tarifaSeg" name="tarifaSeg" step="0.1" min="0" placeholder="Ej: 1.1">
-</div>
-
-
-  <div class="form-group">
-    <label for="fechaEstado">Ingrese fecha</label>
-    <input type="date" id="fechaEstado" name="fechaEstado">
-  </div>
-
-  <button type="submit" class="action-btn">Actualizar Estado</button>
-</form>
-<div id="mensajeActualizar" class="mensaje" style="display:none;">
-Esta plataforma es de prueba, dog. Acción no disponible por el momento.
-</div>
-</section>
-
-
-<!-- ESTADÍSTICAS (Nueva sección) -->
-<section id="estadisticas">
-  <div id="estadisticas-container">
-    <iframe id="estadisticasFrame" src="" title="Estadísticas"></iframe>
-  </div>
+<section id="seguimiento">
+<h2>Seguimiento de Pedido</h2>
+<label for="codigo">Código de seguimiento:</label>
+<input type="text" id="codigo" placeholder="Ej: ABC123">
+<button class="calc-btn">Buscar</button>
+<div class="resultado">Aquí se mostrará el estado del envío.</div>
 </section>
 
 <footer>
-&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
+<p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
 </footer>
 
-</div><!-- /#app -->
-
-<!-- OVERLAY: LOCK INICIAL -->
-<div id="lockOverlay" class="authOverlay">
-  <div class="authBox">
-    <h2>Acceso al Panel</h2>
-    <input type="password" id="lockPass" placeholder="Contraseña">
-    <button class="btn" id="lockSubmit">Entrar</button>
-    <div class="authError" id="lockError">Contraseña incorrecta</div>
-  </div>
-</div>
-
-<!-- OVERLAY: ESTADÍSTICAS -->
-<div id="statsOverlay" class="authOverlay" style="display:none;">
-  <div class="authBox">
-    <h2>Acceso a Estadísticas</h2>
-    <input type="password" id="statsPass" placeholder="Contraseña">
-    <button class="btn" id="statsSubmit">Acceder</button>
-    <button class="btn secondary" id="statsCancel" style="margin-top:0.5rem;">Cancelar</button>
-    <div class="authError" id="statsError">Contraseña incorrecta</div>
-  </div>
-</div>
-
-<!-- Lightbox Recordatorio -->
-<div id="lightbox-recordatorio" class="lightbox hidden">
-  <div class="lightbox-content">
-    <button class="close-lightbox">&times;</button>
-    <h2>Recordatorio</h2>
-    <p>Versión de prueba, datos no disponibles</p>
-    <button class="btn-eliminar">Eliminar recordatorio</button>
-  </div>
-</div>
-
-<!-- Spinner overlay -->
-<div id="overlaySpinner" class="overlay-spinner">
-  <div class="spinner-box">
-    <div class="spinner"></div>
-    <div>Realizando operación, espera...</div>
-  </div>
-</div>
-
-<!-- Resultado -->
-<div id="popResult" class="pop-result" role="dialog" aria-modal="true">
-  <div class="title" id="popResultTitle">Operación</div>
-  <div class="msg" id="popResultMsg">Mensaje</div>
-  <button id="popResultClose" class="btn-close">Cerrar</button>
-</div>
-
 <script>
-/*
-  Integración fetch:
-  - API_BASE: ajusta si tu backend tiene otra ruta base.
-  - Rutas asumidas (puedes modificarlas si tu backend usa otras):
-      GET  /recordatorios
-      POST /recordatorios
-      DELETE /recordatorios/:id
-      POST /paquetes
-      GET  /paquetes?codigo=XXXX
-      PUT  /paquetes/:id
-  Si tus rutas son distintas, cambia API_BASE o las URLs concretas abajo.
-*/
-const API_BASE = 'https://nicaexpressway.onrender.com'; // <- ajusta si es necesario
-
-// ================== NAVEGACIÓN (ajustada para incluir Estadísticas) ==================
 const btnInicio = document.getElementById('btnInicio');
-const btnAgregar = document.getElementById('btnAgregar');
-const btnActualizar = document.getElementById('btnActualizar');
-const btnEstadisticas = document.getElementById('btnEstadisticas');
-
+const btnCotizar = document.getElementById('btnCotizar');
+const btnSeguimiento = document.getElementById('btnSeguimiento');
 const secciones = {
-  inicio: document.getElementById('inicio'),
-  agregar: document.getElementById('agregar'),
-  actualizar: document.getElementById('actualizar'),
-  estadisticas: document.getElementById('estadisticas')
+inicio: document.getElementById('inicio'),
+cotizar: document.getElementById('cotizar'),
+seguimiento: document.getElementById('seguimiento')
 };
 
-function mostrarSeccion(nombre){
-  for(let sec in secciones) secciones[sec].classList.remove('active');
-  secciones[nombre].classList.add('active');
-
-  btnInicio.classList.add('inactive');
-  btnAgregar.classList.add('inactive');
-  btnActualizar.classList.add('inactive');
-  btnEstadisticas.classList.add('inactive');
-
-  if(nombre==='inicio') btnInicio.classList.remove('inactive');
-  if(nombre==='agregar') btnAgregar.classList.remove('inactive');
-  if(nombre==='actualizar') btnActualizar.classList.remove('inactive');
-  if(nombre==='estadisticas') btnEstadisticas.classList.remove('inactive');
+function mostrarSeccion(nombre) {
+for (let sec in secciones) {
+secciones[sec].classList.remove('active');
 }
-btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
-btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
-btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
-btnEstadisticas.addEventListener('click',()=>{
-  // Abrimos el modal de estadísticas (no cambiamos de sección aún)
-  document.getElementById('statsOverlay').style.display = 'flex';
-});
-
-// ================== FECHA ACTUAL PRESELECCIONADA ==================
-document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
-
-// ================== SPINNER / POP RESULT ================
-const overlaySpinner = document.getElementById('overlaySpinner');
-const popResult = document.getElementById('popResult');
-const popResultTitle = document.getElementById('popResultTitle');
-const popResultMsg = document.getElementById('popResultMsg');
-const popResultClose = document.getElementById('popResultClose');
-
-function showSpinner(){ overlaySpinner.style.display = 'flex'; appWrapper.style.filter = 'blur(3px)'; }
-function hideSpinner(){ overlaySpinner.style.display = 'none'; appWrapper.style.filter = ''; }
-
-function showResult(title, msg){
-  popResultTitle.textContent = title;
-  popResultMsg.textContent = msg;
-  popResult.style.display = 'block';
-}
-popResultClose.addEventListener('click', ()=>{ popResult.style.display = 'none'; });
-
-// ================== FORMULARIOS (ahora con fetch) ==================
-const formAgregar = document.getElementById('formAgregar');
-const formActualizar = document.getElementById('formActualizar');
-
-// helpers
-function mapTipoToId(tipoStr){
-  return tipoStr === 'aereo' ? 1 : 2;
+secciones[nombre].classList.add('active');
+btnInicio.classList.add('inactive');
+btnCotizar.classList.add('inactive');
+btnSeguimiento.classList.add('inactive');
+if (nombre === 'inicio') btnInicio.classList.remove('inactive');
+if (nombre === 'cotizar') btnCotizar.classList.remove('inactive');
+if (nombre === 'seguimiento') btnSeguimiento.classList.remove('inactive');
 }
 
-// ---------- AGREGAR PAQUETE (POST) ----------
-formAgregar.addEventListener('submit', async function(e){
-  e.preventDefault();
+btnInicio.addEventListener('click', () => mostrarSeccion('inicio'));
+btnCotizar.addEventListener('click', () => mostrarSeccion('cotizar'));
+btnSeguimiento.addEventListener('click', () => mostrarSeccion('seguimiento'));
 
-  // Construir payload con solo los campos que existan (backend soporta nulos)
-  const nombre = document.getElementById('nombre').value.trim();
-  const codigo = document.getElementById('codigo').value.trim() || null;
-  const telCode = document.getElementById('telCode').value;
-  const telefonoDigits = document.getElementById('telefonoDigits').value.trim();
-  const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
-  const tipo = document.getElementById('tipo').value;
-  const tipo_envio_id = mapTipoToId(tipo);
+function calcular() {
+const tipo = document.getElementById('tipoEnvio').value;
+const peso = parseFloat(document.getElementById('peso').value);
+const resultadoDiv = document.getElementById('resultado');
 
-  const payload = {
-    nombre_cliente: nombre || null,
-    codigo_seguimiento: codigo,
-    telefono: telefono,
-    tipo_envio_id: tipo_envio_id
-    // peso, tarifa, fecha no vienen aquí al crear (puedes añadir si quieres)
-  };
-
-  // Mostrar spinner
-  showSpinner();
-
-  try {
-    const res = await fetch(`${API_BASE}/paquetes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) throw new Error(`Error ${res.status}`);
-
-    // éxito
-    hideSpinner();
-    showResult('Operación realizada', 'Paquete registrado correctamente.');
-    formAgregar.reset();
-  } catch(err){
-    hideSpinner();
-    showResult('Error', 'No se pudo registrar el paquete. Revisa consola o intenta más tarde.');
-    console.error('Agregar paquete error:', err);
-  }
-});
-
-// ---------- ACTUALIZAR SEGUIMIENTO (buscar por código y actualizar peso/tarifa/fecha) ----------
-formActualizar.addEventListener('submit', async function(e){
-  e.preventDefault();
-
-  const codigo = document.getElementById('codigoSeg').value.trim();
-  if (!codigo) { showResult('Error', 'Debe ingresar el código de seguimiento.'); return; }
-
-  // Campos opcionales a actualizar
-  const peso = document.getElementById('pesoSeg').value;
-  const tarifa = document.getElementById('tarifaSeg').value;
-  const fecha_estado = document.getElementById('fechaEstado').value || null;
-
-  // Solo enviar lo que venga (backend acepta nulos)
-  const updates = {};
-  if (peso !== '') updates.peso_libras = Number(peso);
-  if (tarifa !== '') updates.tarifa_usd = Number(tarifa);
-  if (fecha_estado) updates.fecha_estado = fecha_estado;
-
-  if (Object.keys(updates).length === 0){
-    showResult('Aviso', 'No hay campos para actualizar.');
-    return;
-  }
-
-  showSpinner();
-
-  try {
-    // 1) buscar paquete por código
-    const searchRes = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
-    if (!searchRes.ok) throw new Error(`Buscar fallo ${searchRes.status}`);
-    const found = await searchRes.json();
-
-    // Si tu backend devuelve un objeto en vez de array, adapta aquí.
-    // Esperamos un array; tomamos el primero.
-    const paquete = Array.isArray(found) ? found[0] : found;
-
-    if (!paquete || (!paquete.id && !paquete.codigo_seguimiento)){
-      hideSpinner();
-      showResult('No encontrado', 'No se encontró paquete con ese código.');
-      return;
-    }
-
-    const paqueteId = paquete.id || paquete.paquete_id || null;
-    // Si tu backend no usa id numérico, prueba actualizar por codigo directamente:
-    const updateUrl = paqueteId ? `${API_BASE}/paquetes/${paqueteId}` : `${API_BASE}/paquetes/${encodeURIComponent(codigo)}`;
-
-    const updateRes = await fetch(updateUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    });
-
-    if (!updateRes.ok) throw new Error(`Actualizar fallo ${updateRes.status}`);
-
-    hideSpinner();
-    showResult('Operación realizada', 'Estado del paquete actualizado.');
-    formActualizar.reset();
-    document.getElementById("fechaEstado").value = new Date().toISOString().split('T')[0];
-  } catch(err){
-    hideSpinner();
-    showResult('Error', 'No fue posible actualizar el paquete. Revisa consola o intenta más tarde.');
-    console.error('Actualizar seguimiento error:', err);
-  }
-});
-
-// ================== RECORDATORIOS (ahora conectados al backend con fallback a localStorage) ==================
-const listDiv = document.getElementById('listaRecordatorios');
-const formR = document.getElementById('formRecord');
-const popForm = document.getElementById('popFormRecord');
-const popConfirm = document.getElementById('popConfirm');
-const popEliminarConfirm = document.getElementById('popEliminarConfirm');
-const btnAgregarRecord = document.getElementById('btnAgregarRecord');
-const cerrarPopForm = document.getElementById('cerrarPopForm');
-const cerrarPopConfirm = document.getElementById('cerrarPopConfirm');
-const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
-const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
-const fechaInput = document.getElementById('fechaRecord');
-let indexEliminar = null; // será id del recordatorio en DB o índice en localStorage
-
-fechaInput.value = new Date().toISOString().split('T')[0];
-
-/**
- * cargarRecord: trae recordatorios desde API; si falla, usa localStorage.
- * Formato esperado del API: [{ id, titulo, descripcion, fecha_limite }, ...]
- */
-async function cargarRecord(){
-  listDiv.innerHTML = '<p>Cargando recordatorios...</p>';
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios`);
-    if (!res.ok) throw new Error(`fetch ${res.status}`);
-    const arr = await res.json();
-
-    renderRecordList(arr);
-  } catch(err){
-    // fallback localStorage (modo prueba)
-    console.warn('Fallo al cargar recordatorios desde API, usando localStorage', err);
-    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-    // adaptamos estructura localStorage -> misma vista (titulo, desc, fecha)
-    const mapped = arr.map((r, idx) => ({ id: `local-${idx}`, titulo: r.titulo, descripcion: r.desc || r.descripcion, fecha_limite: r.fecha || r.fecha }));
-    renderRecordList(mapped);
-  }
+if (isNaN(peso) || peso <= 0) {
+resultadoDiv.textContent = "Por favor, ingresa un peso válido.";
+return;
 }
 
-function renderRecordList(arr){
-  const hoy = new Date().toISOString().split('T')[0];
-  listDiv.innerHTML = '';
-  const activos = (arr||[]).filter(r => !r.fecha_limite || r.fecha_limite >= hoy);
-  if (!activos.length){ listDiv.innerHTML = '<p>No hay recordatorios por el momento.</p>'; return; }
-  activos.forEach((r, index) => {
-    const div = document.createElement('div');
-    div.classList.add('recordatorio-item');
-    // guardamos id real para poder eliminar por ID
-    div.dataset.id = r.id ?? `local-${index}`;
-    div.innerHTML = `
-      <div class="recordatorio-info"><strong>${r.titulo || ''}</strong><br>${r.descripcion || r.desc || ''}<br><small>${r.fecha_limite || r.fecha || ''}</small></div>
-      <button class="btnEliminar" data-id="${r.id ?? `local-${index}`}">X</button>`;
-    listDiv.appendChild(div);
-    if ((r.fecha_limite || r.fecha) === hoy){ div.querySelector('.recordatorio-info').style.animation = "parpadeo 1.2s infinite"; }
-  });
+let precio = 0;
+let dias = 0;
+
+if (tipo === "aereo") {
+precio = peso * 7.50;
+dias = 7;
+} else {
+precio = peso * 3.00;
+dias = 15;
 }
 
-// abrir/ cerrar form
-btnAgregarRecord.addEventListener('click', ()=>{ popForm.style.display='block'; });
-cerrarPopForm.addEventListener('click', ()=>{ popForm.style.display='none'; });
-
-// submit agregar record (POST)
-formR.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const titulo = document.getElementById('tituloRecord').value.trim();
-  const desc = document.getElementById('descRecord').value.trim();
-  const fecha = fechaInput.value;
-
-  const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
-
-  showSpinner();
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(`POST record ${res.status}`);
-    hideSpinner();
-    popForm.style.display = 'none';
-    showResult('Registro', 'Recordatorio agregado.');
-    // recargar desde API
-    await cargarRecord();
-    formR.reset(); fechaInput.value = new Date().toISOString().split('T')[0];
-  } catch(err){
-    // fallback: guardar en localStorage (modo prueba)
-    hideSpinner();
-    console.warn('Agregar record falló, guardando en localStorage', err);
-    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-    arr.push({ titulo, desc, fecha });
-    localStorage.setItem('recordatorios', JSON.stringify(arr));
-    popForm.style.display = 'none';
-    popConfirm.style.display = 'block';
-    cargarRecord();
-  }
-});
-cerrarPopConfirm.addEventListener('click', ()=>{ popConfirm.style.display='none'; });
-
-// Delegación: botones X (eliminar) y click item (lightbox)
-const lightbox = document.getElementById('lightbox-recordatorio');
-const closeBtn = document.querySelector('.close-lightbox');
-const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
-let indexSeleccionado = null;
-
-listDiv.addEventListener('click', (e) => {
-  // Si click en X (eliminar clásico)
-  const eliminarBtn = e.target.closest('.btnEliminar');
-  if (eliminarBtn) {
-    // mostramos el popEliminarConfirm, guardamos id
-    indexEliminar = eliminarBtn.dataset.id;
-    popEliminarConfirm.style.display = 'block';
-    return;
-  }
-
-  // Si click en el item -> abrir lightbox
-  const item = e.target.closest('.recordatorio-item');
-  if (item) {
-    indexSeleccionado = item.dataset.id;
-    // Para mostrar el contenido: intentamos buscar en API (por si existe) sino localStorage
-    (async () => {
-      try {
-        // si id empieza con 'local-' no pedimos al backend
-        if (String(indexSeleccionado).startsWith('local-')) {
-          const arrLocal = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-          const idx = Number(indexSeleccionado.replace('local-',''));
-          const r = arrLocal[idx] || {};
-          fillLightbox(r.titulo, r.desc, r.fecha);
-        } else {
-          const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexSeleccionado)}`);
-          if (!res.ok) throw new Error('no fetch lb');
-          const r = await res.json();
-          fillLightbox(r.titulo || r.titulo, r.descripcion || r.desc, r.fecha_limite || r.fecha);
-        }
-      } catch(err){
-        // fallback: si falla, rellenar con el contenido que ya mostramos en la lista DOM
-        const info = item.querySelector('.recordatorio-info').innerHTML;
-        // intentamos parsear simple
-        const title = item.querySelector('.recordatorio-info strong')?.textContent || 'Recordatorio';
-        const small = item.querySelector('.recordatorio-info small')?.textContent || '';
-        const descText = item.querySelector('.recordatorio-info')?.childNodes[2]?.textContent || '';
-        fillLightbox(title, descText, small);
-      }
-      lightbox.classList.remove('hidden');
-    })();
-  }
-});
-
-function fillLightbox(titulo, desc, fecha){
-  const titleEl = lightbox.querySelector('h2');
-  const pEl = lightbox.querySelector('p');
-  titleEl.textContent = titulo || 'Recordatorio';
-  pEl.innerHTML = `${desc || ''}${(desc && fecha)?'<br>':''}<small>${fecha || ''}</small>`;
+resultadoDiv.innerHTML = `
+   Precio estimado: $${precio.toFixed(2)} USD<br>
+   Llegada estimada: ${dias} días
+ `;
 }
-
-// Cerrar lightbox
-closeBtn.addEventListener('click', () => { lightbox.classList.add('hidden'); });
-lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.add('hidden'); });
-
-// Botón "Eliminar" en lightbox -> abrir popEliminarConfirm (ya definido)
-lbDelete.addEventListener('click', () => {
-  if (indexSeleccionado != null) {
-    popEliminarConfirm.style.display = 'block';
-    lightbox.classList.add('hidden');
-    indexEliminar = indexSeleccionado;
-  }
-});
-
-// confirmar eliminación (popEliminarConfirm)
-btnConfirmEliminar.addEventListener('click', async () => {
-  if (!indexEliminar) { popEliminarConfirm.style.display='none'; return; }
-
-  showSpinner();
-  try {
-    // Si id local- => eliminar localStorage, sino pedir al backend
-    if (String(indexEliminar).startsWith('local-')) {
-      const idx = Number(indexEliminar.replace('local-',''));
-      const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
-      arr.splice(idx,1);
-      localStorage.setItem('recordatorios', JSON.stringify(arr));
-      hideSpinner();
-      popEliminarConfirm.style.display='none';
-      cargarRecord();
-      showResult('Eliminado', 'Recordatorio eliminado (local).');
-      indexEliminar = null;
-      return;
-    }
-
-    const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`Delete failed ${res.status}`);
-    hideSpinner();
-    popEliminarConfirm.style.display='none';
-    showResult('Eliminado', 'Recordatorio eliminado.');
-    indexEliminar = null;
-    // recargar
-    await cargarRecord();
-  } catch(err){
-    hideSpinner();
-    popEliminarConfirm.style.display='none';
-    console.error('Eliminar record error', err);
-    showResult('Error', 'No se pudo eliminar. Intenta más tarde.');
-  }
-});
-
-btnCancelarEliminar.addEventListener('click', ()=>{ popEliminarConfirm.style.display='none'; indexEliminar=null; });
-
-// ================== NUEVO: CONTRASEÑAS/OVERLAYS ==================
-const PASS_LOCK  = "12345678"; // puedes cambiarlas luego
-const PASS_STATS = "12345678";
-
-const appWrapper   = document.getElementById('app');
-const lockOverlay  = document.getElementById('lockOverlay');
-const statsOverlay = document.getElementById('statsOverlay');
-
-const lockPass   = document.getElementById('lockPass');
-const lockSubmit = document.getElementById('lockSubmit');
-const lockError  = document.getElementById('lockError');
-
-const statsPass    = document.getElementById('statsPass');
-const statsSubmit  = document.getElementById('statsSubmit');
-const statsCancel  = document.getElementById('statsCancel');
-const statsError   = document.getElementById('statsError');
-
-const statsFrame   = document.getElementById('estadisticasFrame');
-
-// Mostrar blur al inicio (por si el navegador no soporta backdrop-filter)
-appWrapper.style.filter = 'blur(6px)';
-
-// LOCK INICIAL
-function tryUnlock(){
-  if (lockPass.value === PASS_LOCK){
-    lockError.style.display = 'none';
-    lockOverlay.style.display = 'none';
-    appWrapper.style.filter = 'none';
-    lockPass.value = '';
-    // cargamos recordatorios al desbloquear
-    cargarRecord();
-  } else {
-    lockError.style.display = 'block';
-  }
-}
-lockSubmit.addEventListener('click', tryUnlock);
-lockPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
-
-// ESTADÍSTICAS
-function openStats(){
-  statsOverlay.style.display = 'flex';
-  statsError.style.display = 'none';
-  statsPass.value = '';
-  statsPass.focus();
-}
-function closeStats(){
-  statsOverlay.style.display = 'none';
-}
-function loadStatsIfAuthorized(){
-  if (statsPass.value === PASS_STATS){
-    statsError.style.display = 'none';
-    closeStats();
-    // Cargar dentro de la misma página (integrado con iframe)
-    if (statsFrame.src !== 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html'){
-      statsFrame.src = 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html';
-    }
-    mostrarSeccion('estadisticas');
-    statsPass.value = '';
-  } else {
-    statsError.style.display = 'block';
-  }
-}
-statsSubmit.addEventListener('click', loadStatsIfAuthorized);
-statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
-statsCancel.addEventListener('click', closeStats);
-
-// ================== Inicial ==================
-/* No cargamos recordatorios hasta que el panel esté desbloqueado */
 </script>
+
 </body>
 </html>
