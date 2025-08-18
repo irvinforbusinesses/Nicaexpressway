@@ -134,17 +134,50 @@ app.get('/paquetes', async (req, res) => {
 });
 
 // PATCH: actualizar solo peso, tarifa, fecha_estado basado en codigo
-app.patch('/paquetes/:codigo', async (req, res) => {
+// PATCH: actualizar solo peso, tarifa, fecha_estado basado en codigo o nombre o telefono
+app.patch('/paquetes/:codigo?', async (req, res) => {
   try {
-    const { codigo } = req.params;
+    const codigo = req.params.codigo || req.body.codigo_seguimiento || req.body.codigo || null;
+    const nombre = req.body.nombre_cliente ?? req.body.nombre ?? null;
+    const telefono = req.body.telefono ?? req.body.phone ?? null;
+
     const peso_libras = req.body.peso_libras ?? req.body.peso ?? null;
     const tarifa_usd = req.body.tarifa_usd ?? req.body.tarifa ?? null;
     const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
 
-    const { data, error } = await supabase
-      .from('paquetes')
-      .update({ peso_libras, tarifa_usd, fecha_estado })
-      .eq('codigo_seguimiento', codigo);
+    // construir query dinámico
+    let query = supabase.from('paquetes').update({
+      peso_libras,
+      tarifa_usd,
+      fecha_estado
+    });
+
+    if (codigo) {
+      query = query.eq('codigo_seguimiento', codigo);
+    } else if (nombre) {
+      query = query.eq('nombre_cliente', nombre);
+    } else if (telefono) {
+      query = query.eq('telefono', telefono);
+    } else {
+      return res.status(400).json({ error: 'Debes enviar codigo_seguimiento, nombre_cliente o telefono para actualizar' });
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Supabase patch paquetes error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'No se encontró paquete con los criterios dados' });
+    }
+    return res.json({ data });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
 
     if (error) {
       console.error('Supabase patch paquetes error:', error);
