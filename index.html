@@ -501,12 +501,12 @@ function hideResult(){
 
 /* ===== CONFETTI ===== */
 let confettiTimeout = null;
-function triggerConfetti(){
+function triggerConfettiDesktop(){
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
   // avoid stacking: clear previous
   wrap.innerHTML = '';
-  const N = 30;
+  const N = 1000;
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
   for (let i=0;i<N;i++){
     const el = document.createElement('div');
@@ -533,7 +533,7 @@ function triggerConfetti(){
     });
   }
   if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 2000);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 15000);
 }
 
 /* quick Enter to search */
@@ -549,7 +549,7 @@ hideResult();
 
   wrap.innerHTML = ''; // limpiar previos
 
-  const N = 15; // menos partículas para móviles
+  const N = 1000; // menos partículas para móviles
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
 
   for(let i=0;i<N;i++){
@@ -563,7 +563,7 @@ hideResult();
     el.style.background = colors[Math.floor(Math.random()*colors.length)];
     el.style.opacity = String(0.7 + Math.random()*0.3); // opacidad más visible
     el.style.borderRadius='2px';
-    el.style.zIndex = 2500;
+    el.style.zIndex = 3500;
     el.style.transition = `transform 1.5s ease-out, opacity 1.5s linear, top 1.5s linear`;
 
     wrap.appendChild(el);
@@ -579,7 +579,7 @@ hideResult();
   }
 
   if(confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 2000);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 5000);
 }
 
 // Detectar pantalla móvil y usar versión optimizada
