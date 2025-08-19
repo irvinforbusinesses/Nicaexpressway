@@ -385,6 +385,70 @@ app.patch('/paquetes/:identifier', async (req, res) => {
     .handle(req, res);
 });
 
+// GET /historial?codigo=...  -> devuelve la fila de historial para un codigo_seguimiento (objeto o 404)
+app.get('/historial', async (req, res) => {
+  try {
+    const { codigo } = req.query;
+    if (!codigo) return res.status(400).json({ error: 'codigo query required' });
+
+    const { data, error } = await supabase
+      .from('historial')
+      .select('*')
+      .eq('codigo_seguimiento', codigo)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Supabase get historial error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    if (!data) return res.status(404).json({ error: 'Historial no encontrado' });
+    return res.json(data);
+  } catch (err) {
+    console.error('GET /historial error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+// POST /paquetes/search -> busca paquetes por nombre (ilike) o telefono (eq). 
+// Body: { nombre?: string, telefono?: string }
+// Devuelve array de paquetes (posible vacío).
+app.post('/paquetes/search', async (req, res) => {
+  try {
+    const { nombre, telefono } = req.body ?? {};
+
+    // Si no vienen filtros, devolver 400
+    if (!nombre && !telefono) {
+      return res.status(400).json({ error: 'Se requiere nombre o telefono para buscar' });
+    }
+
+    // Construir query: preferimos usar .or() cuando hay ambos
+    let query = supabase.from('paquetes').select('*');
+
+    if (nombre && telefono) {
+      // Usar or: nombre ilike %nombre% OR telefono eq telefono
+      // nota: la sintaxis .or() usa filtros tipo postgrest
+      const escapedName = nombre.replace(/%/g, '\\%').replace(/'/g, "''");
+      query = query.or(`nombre_cliente.ilike.%${escapedName}%,telefono.eq.${telefono}`);
+    } else if (nombre) {
+      query = query.ilike('nombre_cliente', `%${nombre}%`);
+    } else if (telefono) {
+      query = query.eq('telefono', telefono);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Supabase paquetes search error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json(data || []);
+  } catch (err) {
+    console.error('POST /paquetes/search error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+
 // ---------- SERVER ----------
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend corriendo en puerto ${PORT}`));
