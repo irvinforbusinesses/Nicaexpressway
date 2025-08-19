@@ -313,25 +313,72 @@ async function onBuscar(){
   }
 }
 
-/* ***********************
-   fetchPackageFromAPI()
-   ***********************
-   Actualmente esta función es un *placeholder*:
-   - Aquí debes conectar con tus endpoints reales de Supabase o tu backend.
-   - Ejemplos (descomentar y adaptar):
-     // Buscar por código (GET)
-     const res = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
-     const arr = await res.json();
+  //fecth package
 
-     // Buscar por nombre/telefono -> podrías implementar un endpoint POST /paquetes/search
-     const res = await fetch(`${API_BASE}/paquetes/search`, {
-       method:'POST', headers:{'Content-Type':'application/json'},
-       body: JSON.stringify({ nombre, telefono })
-     });
-     const arr = await res.json();
+*async function fetchPackageFromAPI({ codigo, nombre, telefono }){
+  // Normaliza valores
+  codigo = codigo ? String(codigo).trim() : null;
+  nombre = nombre ? String(nombre).trim() : null;
+  telefono = telefono ? String(telefono).trim() : null;
 
-   Por ahora la función devuelve datos MOCK cuando `codigo === 'demo'` (útil para pruebas).
-*/
+  // 1) Si tenemos código, buscar por código (GET /paquetes?codigo=...)
+  if (codigo) {
+    // obtener paquete(s)
+    const resP = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+    if (!resP.ok) {
+      // si 404 o 400 devolvemos null para manejar en UI
+      console.warn('paquetes fetch fallo', resP.status);
+      return null;
+    }
+    const arr = await resP.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const paquete = arr[0];
+
+    // intentar obtener historial
+    try {
+      const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+      let historial = null;
+      if (resH.ok) {
+        historial = await resH.json();
+      }
+      return { paquete, historial };
+    } catch (err) {
+      console.warn('historial fetch failed', err);
+      return { paquete, historial: null };
+    }
+  }
+
+  // 2) Si no hay código, pero hay nombre o telefono -> POST /paquetes/search
+  if (nombre || telefono) {
+    const res = await fetch(`${API_BASE}/paquetes/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, telefono })
+    });
+    if (!res.ok) {
+      console.warn('search endpoint fallo', res.status);
+      return null;
+    }
+    const arr = await res.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const paquete = arr[0];
+
+    // obtener historial si hay codigo_seguimiento
+    let historial = null;
+    if (paquete?.codigo_seguimiento) {
+      try {
+        const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+        if (resH.ok) historial = await resH.json();
+      } catch(e){ console.warn('hist fetch failed', e); }
+    }
+
+    return { paquete, historial };
+  }
+
+  // nada para buscar
+  return null;
+}
+
 async function fetchPackageFromAPI({codigo, nombre, telefono}){
   // Si conectas con APIs reales, reemplaza esta función por tus fetch(...) y devuelve:
   // { paquete: { codigo_seguimiento, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado }, historial: { estado1,... fecha1... } }
