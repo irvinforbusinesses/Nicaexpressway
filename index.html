@@ -187,7 +187,7 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
       </div>
       <div>
         <div class="small-muted">Tarifa / lb (USD)</div>
-        <div id="detalleTarifa">-</div>
+        <div id="detalleTarifa">USD-</div>
       </div>
     </div>
 
@@ -411,7 +411,7 @@ function renderPackageResult({ paquete, historial }){
   const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
   detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? 'Datos aún no disponibles';
 
-  detallePeso.textContent = paquete?.peso_libras ?? 'Datos aún no disponibles';
+  detallePeso.textContent = paquete?.peso_libras  ?? 'Datos aún no disponibles';
   detalleTarifa.textContent = paquete?.tarifa_usd ?? 'Datos aún no disponibles';
 
   // Total
