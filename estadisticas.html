@@ -14,7 +14,7 @@
   --card-shadow: 0 6px 18px rgba(47,82,143,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Inter",sans-serif;background:var(--color-bg);color:#1a1a1a;padding:1.2rem;max-width:980px;margin:auto;padding-bottom:72px;}
+body{font-family:"Inter",sans-serif;background:var(--color-bg);color:#1a1a1a;padding:1.2rem;max-width:980px;margin:auto;padding-bottom:96px;}
 h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75rem}
 .filters-container{display:flex;gap:1rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap}
 .filter-item label{display:block;margin-bottom:0.25rem;font-weight:600}
@@ -36,14 +36,20 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
   width: 100%;
   text-align: center;
   color: #888;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   padding: 0.5rem;
   font-size: 0.8rem;
   box-shadow: 0 -1px 6px rgba(0,0,0,0.03);
 }
 
-/* responsive */
-@media (max-width:520px){.card-value{font-size:1.2rem}.canvas-holder{height:180px}}
+/* responsive - mobile optimizations: tarjetas cuadradas y 2 columnas */
+@media (max-width:520px){
+  .grid{grid-template-columns: repeat(2, 1fr); gap:0.6rem}
+  .card{aspect-ratio: 1 / 1; padding:0.9rem; min-height:auto}
+  .card-title{font-size:0.95rem}
+  .card-value{font-size:1.2rem}
+  .canvas-holder{height:180px}
+}
 </style>
 </head>
 <body>
@@ -97,6 +103,14 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
       </div>
     </div>
 
+    <!-- Nueva tarjeta: Libras totales -->
+    <div class="card">
+      <div>
+        <div class="card-title">Libras totales</div>
+        <div id="card-pounds" class="card-value">—</div>
+      </div>
+    </div>
+
     <div class="card" style="grid-column: span 2;">
       <div>
         <div class="card-title">Ganancias (USD)</div>
@@ -112,8 +126,6 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
     </div>
     <div id="chartLegend" style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap"></div>
   </div>
-
-  <div class="note">Los conteos se calculan por el estado más reciente en cada fila de <code>historial</code> (estado4..estado1).</div>
 
   <!-- footer legal -->
   <div class="site-footer">&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things</div>
@@ -131,6 +143,7 @@ const cardEnviados = document.getElementById('card-enviados');
 const cardBodega = document.getElementById('card-bodega');
 const cardCamino = document.getElementById('card-camino');
 const cardAduana = document.getElementById('card-aduana');
+const cardPounds = document.getElementById('card-pounds');
 const cardGanancias = document.getElementById('card-ganancias');
 
 const chartWrap = document.getElementById('chartWrap');
@@ -140,21 +153,12 @@ const ctx = pieCanvas.getContext('2d');
 
 const PIE_COLORS = ['#2F528F','#1f3a66','#79A7E4','#9bbcf3'];
 
-/* small inline SVG generators (no external images) */
-/* color argument accepts any CSS color */
-function svgMailbox(color){ return `
-  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M3 11v8a2 2 0 0 0 2 2h14v-2H5v-6H3z"/><path d="M21 7h-6.5L12 3 9.5 7H3v6h18V7z"/>
-  </svg>`; }
-function svgWarehouse(color){ return `
-  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M12 2L2 7v13a1 1 0 0 0 1 1h6v-7h6v7h6a1 1 0 0 0 1-1V7L12 2z"/><path d="M12 12v8"/></svg>`; }
-function svgPlane(color){ return `
-  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9L2 14v2l8-1.5V21l1 .5 1-.5v-6.5L21 16z"/></svg>`; }
-function svgClock(color){ return `
-  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 11h4v-2h-3V6h-2v7z"/></svg>`; }
+/* SVG icons inline */
+function svgMailbox(color){ return `<svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 11v8a2 2 0 0 0 2 2h14v-2H5v-6H3z"/><path d="M21 7h-6.5L12 3 9.5 7H3v6h18V7z"/></svg>`; }
+function svgWarehouse(color){ return `<svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2L2 7v13a1 1 0 0 0 1 1h6v-7h6v7h6a1 1 0 0 0 1-1V7L12 2z"/><path d="M12 12v8"/></svg>`; }
+function svgPlane(color){ return `<svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9L2 14v2l8-1.5V21l1 .5 1-.5v-6.5L21 16z"/></svg>`; }
+function svgClock(color){ return `<svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 11h4v-2h-3V6h-2v7z"/></svg>`; }
+function svgScale(color){ return `<svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 20h10v-2H7v2zM5 8l1.5-4h11L19 8h-14zm3 0h8l-1.5-3h-5L8 8z"/></svg>`; }
 
 /* fetch stats */
 async function fetchStats(filter = 'general'){
@@ -177,6 +181,7 @@ async function fetchStats(filter = 'general'){
 }
 
 function formatMoney(v){ return `$${Number(v||0).toFixed(2)}`; }
+function formatPounds(v){ return `${Number(v||0).toFixed(2)} lbs`; }
 
 /* render cards: inject number + inline SVG icons matching meaning */
 function renderCards(data){
@@ -185,16 +190,15 @@ function renderCards(data){
   const camino = data.counts.camino ?? 0;
   const aduana = data.counts.aduana ?? 0;
   const ganancias = data.ganancias ?? 0;
+  const total_pounds = data.total_pounds ?? 0;
 
-  // colores del icono para armonizar con el sitio
-  const c = 'var(--color-accent)' ; // we will use CSS var — fallback to hex
-  // but inline SVG fill must be concrete: use the CSS color value via computed style
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent') || '#2F528F';
 
   cardEnviados.innerHTML = `${enviados} ${svgMailbox(accent)}`;
   cardBodega.innerHTML  = `${bodega} ${svgWarehouse(accent)}`;
   cardCamino.innerHTML  = `${camino} ${svgPlane(accent)}`;
   cardAduana.innerHTML  = `${aduana} ${svgClock(accent)}`;
+  cardPounds.innerHTML  = `${formatPounds(total_pounds)} ${svgScale(accent)}`;
   cardGanancias.textContent = formatMoney(ganancias);
 }
 
@@ -306,9 +310,9 @@ async function refreshUI(){
     cardBodega.textContent  = '—';
     cardCamino.textContent  = '—';
     cardAduana.textContent  = '—';
+    cardPounds.textContent  = '—';
     cardGanancias.textContent = '—';
     chartWrap.style.display = 'none';
-    // no alert automático aquí (opcional)
   } finally {
     loading.style.display = 'none';
   }
