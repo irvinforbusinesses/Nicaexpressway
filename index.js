@@ -420,15 +420,17 @@ app.get('/stats', async (req, res) => {
     const tipoMap = { 'aereo': 1, 'maritimo': 2 };
     const tipoId = tipoMap[filter] ?? null;
 
-    // 1) obtener lista de codigo_seguimiento y tarifas (según filtro tipo si existe)
-    let paquetesQuery = supabase.from('paquetes').select('codigo_seguimiento, tarifa_usd');
+    // 1) traer paquetes (filtrando por tipo si aplica) -> necesitamos codigo_seguimiento, tarifa_usd, peso_libras
+    let paquetesQuery = supabase.from('paquetes').select('codigo_seguimiento, tarifa_usd, peso_libras, tipo_envio_id');
     if (tipoId) paquetesQuery = paquetesQuery.eq('tipo_envio_id', tipoId);
     const paquetesFiltered = await paquetesQuery;
     if (paquetesFiltered.error) throw paquetesFiltered.error;
     const paquetesList = paquetesFiltered.data || [];
+
+    // 2) extraer códigos válidos para limitar historial
     const codes = paquetesList.map(p => p.codigo_seguimiento).filter(Boolean);
 
-    // 2) traer historial (filtrado por codes si existen)
+    // 3) traer historial (solo filas relacionadas si hay codes)
     let historialRes;
     if (codes.length > 0) {
       historialRes = await supabase
@@ -436,6 +438,7 @@ app.get('/stats', async (req, res) => {
         .select('codigo_seguimiento, estado1, estado2, estado3, estado4')
         .in('codigo_seguimiento', codes);
     } else {
+      // si no hay códigos (pocos o ninguno) traemos todo (advertencia: datos grandes -> paginar)
       historialRes = await supabase
         .from('historial')
         .select('codigo_seguimiento, estado1, estado2, estado3, estado4');
@@ -443,7 +446,7 @@ app.get('/stats', async (req, res) => {
     if (historialRes.error) throw historialRes.error;
     const historialRows = historialRes.data || [];
 
-    // 3) calcular estado "más reciente" por fila (estado4->estado3->estado2->estado1)
+    // normalizador y helper: estado mas reciente (estado4 -> estado1)
     function normalizeState(v){
       if (v === null || v === undefined) return null;
       const s = String(v).trim();
@@ -457,6 +460,7 @@ app.get('/stats', async (req, res) => {
       return null;
     }
 
+    // 4) Contadores por estado (según latest state)
     let enviadosCount = 0;
     let bodegaCount = 0;
     let caminoCount = 0;
@@ -476,12 +480,19 @@ app.get('/stats', async (req, res) => {
       }
     }
 
-    // 4) Ganancias: sumar tarifa_usd de los paquetes (aplica filtro tipo si se usó)
+    // 5) Ganancias: SUM(peso_libras * tarifa_usd) sobre paquetesList (aplica filtro tipo si se usó)
     let ganancias = 0;
+    let total_pounds = 0;
     for (const p of paquetesList) {
-      const t = Number(p.tarifa_usd ?? 0);
-      if (!Number.isNaN(t)) ganancias += t;
+      const peso = Number(p.peso_libras ?? 0);
+      const tarifa = Number(p.tarifa_usd ?? 0);
+      if (!Number.isNaN(peso)) total_pounds += peso;
+      if (!Number.isNaN(peso) && !Number.isNaN(tarifa)) ganancias += (peso * tarifa);
     }
+
+    // redondear a 2 decimales (opcional)
+    ganancias = Math.round((ganancias + Number.EPSILON) * 100) / 100;
+    total_pounds = Math.round((total_pounds + Number.EPSILON) * 100) / 100;
 
     const counts = {
       enviados: enviadosCount,
@@ -490,7 +501,12 @@ app.get('/stats', async (req, res) => {
       aduana: aduanaCount
     };
 
-    return res.json({ counts, ganancias, total: (enviadosCount + bodegaCount + caminoCount + aduanaCount) });
+    return res.json({
+      counts,
+      ganancias,       // number (USD)
+      total_pounds,    // number (libras)
+      total: (enviadosCount + bodegaCount + caminoCount + aduanaCount)
+    });
   } catch (err) {
     console.error('GET /stats error:', err);
     return res.status(500).json({ error: 'server error' });
