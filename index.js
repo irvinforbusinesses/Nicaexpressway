@@ -448,6 +448,80 @@ app.post('/paquetes/search', async (req, res) => {
   }
 });
 
+//estadisticas 
+// GET /stats?filter=general|aereo|maritimo
+app.get('/stats', async (req, res) => {
+  try {
+    const filter = (req.query.filter || 'general').toString().toLowerCase();
+
+    // map filter -> tipo_envio_id (si aplica)
+    const tipoMap = { 'aereo': 1, 'maritimo': 2 };
+    const tipoId = tipoMap[filter] ?? null;
+
+    // 1) obtener lista de codigo_seguimiento y tarifas (según filtro tipo si existe)
+    let paquetesFiltered = { data: [], error: null };
+    if (tipoId) {
+      paquetesFiltered = await supabase
+        .from('paquetes')
+        .select('codigo_seguimiento, tarifa_usd')
+        .eq('tipo_envio_id', tipoId);
+      if (paquetesFiltered.error) throw paquetesFiltered.error;
+    } else {
+      // si general, traemos códigos y tarifas para poder sumar y filtrar historial localmente
+      paquetesFiltered = await supabase
+        .from('paquetes')
+        .select('codigo_seguimiento, tarifa_usd');
+      if (paquetesFiltered.error) throw paquetesFiltered.error;
+    }
+
+    const paquetesList = paquetesFiltered.data || [];
+    const codes = paquetesList.map(p => p.codigo_seguimiento).filter(Boolean);
+
+    // helper: cuenta rows en historial con filtro por columna y termino (usamos ilike para robustez)
+    async function countByColumn(column, termPattern) {
+      let q = supabase
+        .from('historial')
+        .select('codigo_seguimiento', { count: 'exact', head: true })
+        .ilike(column, termPattern);
+
+      if (codes.length > 0) {
+        // cuando hay filtro de tipo (o codes disponibles) limitamos a esos códigos.
+        q = q.in('codigo_seguimiento', codes);
+      }
+      const { count, error } = await q;
+      if (error) throw error;
+      // count may be null if server doesn't support exact count; fallback to 0
+      return Number(count || 0);
+    }
+
+    // Contadores estrictos por columna (estado1..estado4)
+    // usamos patrones para capturar variantes de texto (recibido, en_transito, en_aduana, listo_recoger)
+    const enviadosCount = await countByColumn('estado4', '%listo%');      // estado4 -> Listo Para Recoger
+    const bodegaCount   = await countByColumn('estado1', '%recib%');      // estado1 -> Recibido
+    const caminoCount   = await countByColumn('estado2', '%transit%');    // estado2 -> En transito
+    const aduanaCount   = await countByColumn('estado3', '%aduan%');      // estado3 -> En aduana
+
+    // Ganancias: sumar tarifa_usd de los paquetes aplicando filtro tipo si corresponde
+    let ganancias = 0;
+    for (const p of paquetesList) {
+      const t = Number(p.tarifa_usd ?? 0);
+      if (!Number.isNaN(t)) ganancias += t;
+    }
+
+    // construir respuesta
+    const counts = {
+      enviados: enviadosCount,
+      bodega: bodegaCount,
+      camino: caminoCount,
+      aduana: aduanaCount
+    };
+
+    return res.json({ counts, ganancias, total: (enviadosCount + bodegaCount + caminoCount + aduanaCount) });
+  } catch (err) {
+    console.error('GET /stats error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
 
 // ---------- SERVER ----------
 const PORT = process.env.PORT || 10000;
