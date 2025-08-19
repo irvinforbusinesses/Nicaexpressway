@@ -449,6 +449,47 @@ app.post('/paquetes/search', async (req, res) => {
 });
 
 // GET /stats?filter=general|aereo|maritimo
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+// 🔧 Configuración CORS
+const allowedOrigins = [
+  'https://htmleditor.in',       // editor donde pruebas
+  'http://localhost:3000',       // dev local
+  'http://127.0.0.1:5500',       // otro dev local
+  'https://nicaexpressway.onrender.com' // tu propio dominio
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // permitir peticiones sin "origin" (ej: curl, postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error(`CORS bloqueado para origin: ${origin}`));
+    }
+  },
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// responder preflight OPTIONS
+app.options('*', cors());
+
+// ⬇️ aquí recién van tus rutas
+app.get('/stats', async (req, res) => {
+  try {
+    // ... tu código de estadísticas ...
+  } catch (err) {
+    console.error('GET /stats error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
 app.get('/stats', async (req, res) => {
   try {
     const filter = (req.query.filter || 'general').toString().toLowerCase();
