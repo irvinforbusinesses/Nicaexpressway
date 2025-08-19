@@ -499,77 +499,40 @@ function hideResult(){
   if(timelineEl) timelineEl.innerHTML='';
 }
 
-/* ===== CONFETTI ===== */
+/* ===== CONFETTI =====
+   Confetti burst usando divs, colores azul oscuro/medio/claro.
+   Duración extendida 7–10s para efecto más natural.
+*/
 let confettiTimeout = null;
+
 function triggerConfettiDesktop(){
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
-  // avoid stacking: clear previous
-  wrap.innerHTML = '';
-  const N = 1000;
+
+  const N = 1000; // menos que 1000, pero con duración larga
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
-  for (let i=0;i<N;i++){
+
+  for (let i=0; i<N; i++){
     const el = document.createElement('div');
     const size = Math.floor(Math.random()*8)+6;
+    el.className = 'confetti';
     el.style.position='absolute';
     el.style.left = (Math.random()*100)+'%';
-    el.style.top = '-10%';
+   el.style.top = (-50 + Math.random()*-50) + 'px'; // entre -50px y -100px
     el.style.width = size+'px';
     el.style.height = (size*0.6)+'px';
     el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = String(0.9 - Math.random()*0.4);
-    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.opacity = String(0.7 + Math.random()*0.3);
     el.style.borderRadius='2px';
     el.style.zIndex = 2500;
-    const destX = (Math.random()*60 - 30);
-    const destY = (Math.random()*80 + 60);
-    el.style.transition = `transform 1.9s cubic-bezier(.2,.8,.2,1), top 1.9s linear, left 1.9s linear, opacity 1.9s linear`;
-    wrap.appendChild(el);
-    requestAnimationFrame(()=>{
-      el.style.top = destY + '%';
-      el.style.left = `calc(${el.style.left} + ${destX}px)`;
-      el.style.transform = `translateY(${destY}px) rotate(${Math.random()*360}deg)`;
-      el.style.opacity = '0';
-    });
-  }
-  if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 15000);
-}
 
-/* quick Enter to search */
-['codigo','telefonoBuscar','nombreBuscar'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
-});
-/* inicial */
-hideResult();
-  function triggerConfettiMobile(){
-  const wrap = document.getElementById('confettiWrap');
-  if (!wrap) return;
+   const destX = (Math.random()*500 - 250); // dispersión más aleatoria
+    const destY = window.innerHeight + 100;  // siempre cae más abajo del viewport
+    const duration = 5 + Math.random()*5;    // entre 7 y 10s
 
-  wrap.innerHTML = ''; // limpiar previos
-
-  const N = 1000; // menos partículas para móviles
-  const colors = ['#1f3a66','#2F528F','#79A7E4'];
-
-  for(let i=0;i<N;i++){
-    const el = document.createElement('div');
-    const size = Math.floor(Math.random()*6)+8; // un poco más grande que escritorio
-    el.style.position='absolute';
-    el.style.left = (Math.random()*100)+'%';
-    el.style.top = '-10px'; // iniciar fuera del viewport
-    el.style.width = size+'px';
-    el.style.height = (size*0.6)+'px';
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = String(0.7 + Math.random()*0.3); // opacidad más visible
-    el.style.borderRadius='2px';
-    el.style.zIndex = 3500;
-    el.style.transition = `transform 1.5s ease-out, opacity 1.5s linear, top 1.5s linear`;
+    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
 
     wrap.appendChild(el);
-
-    const destY = window.innerHeight * 0.7 + Math.random() * window.innerHeight * 0.3;
-    const destX = (Math.random()*60 - 30);
 
     requestAnimationFrame(()=>{
       el.style.top = destY + 'px';
@@ -578,18 +541,69 @@ hideResult();
     });
   }
 
-  if(confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 5000);
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000); // limpiar tras 11s
 }
 
-// Detectar pantalla móvil y usar versión optimizada
+/* ======================
+   UTIL: enable quick test by pressing Enter in phone/code fields
+   ====================== */
+['codigo','telefonoBuscar','nombreBuscar'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
+});
+
+/* inicial */
+hideResult();
+  function triggerConfettiMobile(){
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+
+  const N = 280; // menos que 1000, pero con duración larga
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+
+  for (let i=0; i<N; i++){
+    const el = document.createElement('div');
+    const size = Math.floor(Math.random()*8)+6;
+    el.className = 'confetti';
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+   el.style.top = (-50 + Math.random()*-50) + 'px'; // entre -50px y -100px
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.7 + Math.random()*0.3);
+    el.style.borderRadius='2px';
+    el.style.zIndex = 2500;
+
+   const destX = (Math.random()*500 - 250); // dispersión más aleatoria
+    const destY = window.innerHeight + 100;  // siempre cae más abajo del viewport
+    const duration = 5 + Math.random()*5;    // entre 7 y 10s
+
+    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
+
+    wrap.appendChild(el);
+
+    requestAnimationFrame(()=>{
+      el.style.top = destY + 'px';
+      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
+      el.style.opacity = '0';
+    });
+  }
+
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000); // limpiar tras 11s
+}
+
+// Detecta móvil o escritorio
 function triggerConfetti(){
   if(window.innerWidth <= 420){
     triggerConfettiMobile();
   } else {
-    triggerConfettiDesktop(); // tu función original
+    triggerConfettiDesktop();
   }
 }
+
 
 </script>
 </body>
