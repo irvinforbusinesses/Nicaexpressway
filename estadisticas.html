@@ -14,21 +14,35 @@
   --card-shadow: 0 6px 18px rgba(47,82,143,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Inter",sans-serif;background:var(--color-bg);color:#1a1a1a;padding:1.2rem;max-width:980px;margin:auto}
+body{font-family:"Inter",sans-serif;background:var(--color-bg);color:#1a1a1a;padding:1.2rem;max-width:980px;margin:auto;padding-bottom:72px;}
 h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75rem}
 .filters-container{display:flex;gap:1rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap}
 .filter-item label{display:block;margin-bottom:0.25rem;font-weight:600}
 .filter-select{padding:0.55rem 0.75rem;border-radius:10px;border:1px solid #d7dbe6;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 2px 6px rgba(47,82,143,0.04);font-weight:600}
 .grid{display:grid;grid-template-columns: repeat(auto-fit,minmax(220px,1fr));gap:1rem}
-.card{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
-.card-title{font-weight:700;color:#233a66}
+.card{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);min-height:110px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.card-title{font-weight:700;color:#233a66;margin-bottom:0.4rem}
 .card-value{font-size:1.45rem;font-weight:800;display:flex;align-items:center;gap:0.6rem}
-.card-sub{color:var(--muted);font-size:0.95rem;margin-top:0.35rem}
-.pkg-icon{width:26px;height:26px;display:inline-block;vertical-align:middle}
+.pkg-icon{width:28px;height:28px;display:inline-block;vertical-align:middle}
 .chart-wrap{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);margin-top:1rem}
 .canvas-holder{width:100%;height:220px;position:relative}
 .note{margin-top:1rem;text-align:center;color:var(--muted);font-style:italic}
 .loading{background:linear-gradient(90deg,#f4f8ff,#f8fbff);border:1px dashed #dbe7fb;padding:0.8rem;border-radius:10px;color:#234;display:flex;align-items:center;gap:0.6rem;box-shadow:0 2px 6px rgba(47,82,143,0.03)}
+/* footer legal */
+.site-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  color: #888;
+  background: rgba(255,255,255,0.9);
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  box-shadow: 0 -1px 6px rgba(0,0,0,0.03);
+}
+
+/* responsive */
 @media (max-width:520px){.card-value{font-size:1.2rem}.canvas-holder{height:180px}}
 </style>
 </head>
@@ -58,32 +72,28 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
     <div class="card">
       <div>
         <div class="card-title">Paquetes enviados</div>
-        <div id="card-enviados" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
-        <div class="card-sub">Conteo de paquetes con dato en <code>estado4</code></div>
+        <div id="card-enviados" class="card-value">—</div>
       </div>
     </div>
 
     <div class="card">
       <div>
         <div class="card-title">Paquetes en bodega</div>
-        <div id="card-bodega" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
-        <div class="card-sub">Conteo de paquetes con dato en <code>estado1</code></div>
+        <div id="card-bodega" class="card-value">—</div>
       </div>
     </div>
 
     <div class="card">
       <div>
         <div class="card-title">Paquetes camino a Nicaragua</div>
-        <div id="card-camino" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
-        <div class="card-sub">Conteo de paquetes con dato en <code>estado2</code></div>
+        <div id="card-camino" class="card-value">—</div>
       </div>
     </div>
 
     <div class="card">
       <div>
         <div class="card-title">Paquetes en aduana</div>
-        <div id="card-aduana" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
-        <div class="card-sub">Conteo de paquetes con dato en <code>estado3</code></div>
+        <div id="card-aduana" class="card-value">—</div>
       </div>
     </div>
 
@@ -91,7 +101,6 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
       <div>
         <div class="card-title">Ganancias (USD)</div>
         <div id="card-ganancias" class="card-value">—</div>
-        <div class="card-sub">Suma de <code>tarifa_usd</code> en tabla <code>paquetes</code></div>
       </div>
     </div>
   </div>
@@ -99,16 +108,19 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
   <div class="chart-wrap" id="chartWrap" style="display:none;margin-top:1rem">
     <h2 style="margin:0 0 0.6rem 0;font-size:1rem;color:var(--color-accent)">Distribución por estado (Pie)</h2>
     <div class="canvas-holder">
-      <canvas id="pieCanvas" width="800" height="400" role="img" aria-label="Gráfico de pastel con distribución de paquetes"></canvas>
+      <canvas id="pieCanvas" width="800" height="400" role="img" aria-label="Gráfico de pastel con distribución de paquetes" style="width:100%;height:220px;display:block"></canvas>
     </div>
     <div id="chartLegend" style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap"></div>
   </div>
 
-  <div class="note">Los conteos por estado usan exclusivamente su columna correspondiente en <code>historial</code> (estado1..estado4) para evitar dobles conteos.</div>
+  <div class="note">Los conteos se calculan por el estado más reciente en cada fila de <code>historial</code> (estado4..estado1).</div>
+
+  <!-- footer legal -->
+  <div class="site-footer">&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things</div>
 
 <script>
-/* --- CONFIG: quita la slash final para evitar // en URLs --- */
-const API_BASE = 'https://nicaexpressway.onrender.com'; // <- sin slash al final
+/* --- CONFIG: ajusta si tu backend está en otro host --- */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // sin slash final
 
 /* refs */
 const selectFilter = document.getElementById('filter-general');
@@ -126,8 +138,23 @@ const pieCanvas = document.getElementById('pieCanvas');
 const chartLegend = document.getElementById('chartLegend');
 const ctx = pieCanvas.getContext('2d');
 
-/* palette: tonos de azul contrastantes */
 const PIE_COLORS = ['#2F528F','#1f3a66','#79A7E4','#9bbcf3'];
+
+/* small inline SVG generators (no external images) */
+/* color argument accepts any CSS color */
+function svgMailbox(color){ return `
+  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M3 11v8a2 2 0 0 0 2 2h14v-2H5v-6H3z"/><path d="M21 7h-6.5L12 3 9.5 7H3v6h18V7z"/>
+  </svg>`; }
+function svgWarehouse(color){ return `
+  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M12 2L2 7v13a1 1 0 0 0 1 1h6v-7h6v7h6a1 1 0 0 0 1-1V7L12 2z"/><path d="M12 12v8"/></svg>`; }
+function svgPlane(color){ return `
+  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9L2 14v2l8-1.5V21l1 .5 1-.5v-6.5L21 16z"/></svg>`; }
+function svgClock(color){ return `
+  <svg class="pkg-icon" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 11h4v-2h-3V6h-2v7z"/></svg>`; }
 
 /* fetch stats */
 async function fetchStats(filter = 'general'){
@@ -151,7 +178,7 @@ async function fetchStats(filter = 'general'){
 
 function formatMoney(v){ return `$${Number(v||0).toFixed(2)}`; }
 
-/* render cards */
+/* render cards: inject number + inline SVG icons matching meaning */
 function renderCards(data){
   const enviados = data.counts.enviados ?? 0;
   const bodega = data.counts.bodega ?? 0;
@@ -159,10 +186,15 @@ function renderCards(data){
   const aduana = data.counts.aduana ?? 0;
   const ganancias = data.ganancias ?? 0;
 
-  cardEnviados.innerHTML = `${enviados} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
-  cardBodega.innerHTML = `${bodega} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
-  cardCamino.innerHTML = `${camino} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
-  cardAduana.innerHTML = `${aduana} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
+  // colores del icono para armonizar con el sitio
+  const c = 'var(--color-accent)' ; // we will use CSS var — fallback to hex
+  // but inline SVG fill must be concrete: use the CSS color value via computed style
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent') || '#2F528F';
+
+  cardEnviados.innerHTML = `${enviados} ${svgMailbox(accent)}`;
+  cardBodega.innerHTML  = `${bodega} ${svgWarehouse(accent)}`;
+  cardCamino.innerHTML  = `${camino} ${svgPlane(accent)}`;
+  cardAduana.innerHTML  = `${aduana} ${svgClock(accent)}`;
   cardGanancias.textContent = formatMoney(ganancias);
 }
 
@@ -171,15 +203,20 @@ function resizeCanvasToDisplaySize(canvas) {
   const ratio = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
-  if (canvas.width !== Math.floor(w * ratio) || canvas.height !== Math.floor(h * ratio)) {
+  if (w === 0 || h === 0) return false;
+  const needResize = canvas.width !== Math.floor(w * ratio) || canvas.height !== Math.floor(h * ratio);
+  if (needResize) {
     canvas.width  = Math.floor(w * ratio);
     canvas.height = Math.floor(h * ratio);
-    canvas.getContext('2d').setTransform(ratio, 0, 0, ratio, 0, 0);
+    // scale so drawing uses CSS px coordinates
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
+  return true;
 }
 
 /* draw pie based on counts */
 function drawPieFromCounts(counts){
+  lastCounts = counts; // keep last for resize/redraw
   const enviados = counts.enviados||0;
   const bodega = counts.bodega||0;
   const camino = counts.camino||0;
@@ -200,10 +237,15 @@ function drawPieFromCounts(counts){
     { label: 'Aduana', value: aduana, color: PIE_COLORS[3] }
   ].filter(s => s.value > 0);
 
-  // resize canvas for DPR
-  resizeCanvasToDisplaySize(pieCanvas);
+  // ensure canvas has size
+  const ok = resizeCanvasToDisplaySize(pieCanvas);
+  if (!ok) {
+    // fallback: postpone drawing
+    setTimeout(()=> drawPieFromCounts(counts), 200);
+    return;
+  }
 
-  // draw
+  // compute drawing dimensions in CSS pixels
   const w = pieCanvas.clientWidth;
   const h = pieCanvas.clientHeight;
   const cx = w/2;
@@ -220,7 +262,7 @@ function drawPieFromCounts(counts){
     const slice = seg.value / total * Math.PI * 2;
     const end = start + slice;
 
-    // draw slice (use ctx with device pixel ratio already set)
+    // draw slice
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, radius, start, end);
@@ -248,26 +290,25 @@ function drawPieFromCounts(counts){
 }
 
 /* main flow */
+let lastCounts = null;
 async function refreshUI(){
   try {
     const filter = selectFilter.value || 'general';
     loading.style.display = 'flex';
     const data = await fetchStats(filter);
-    // backend returns { counts: {enviados,bodega,camino,aduana}, ganancias }
-    if(!data || !data.counts){
-      throw new Error('Respuesta inválida del servidor');
-    }
+    if(!data || !data.counts) throw new Error('Respuesta inválida del servidor');
     renderCards(data);
-    drawPieFromCounts(data.counts);
+    lastCounts = data.counts;
+    drawPieFromCounts(lastCounts);
   } catch (e) {
-    cardEnviados.textContent = 'Error';
-    cardBodega.textContent = 'Error';
-    cardCamino.textContent = 'Error';
-    cardAduana.textContent = 'Error';
-    cardGanancias.textContent = 'Error';
-    chartWrap.style.display = 'none';
     console.error(e);
-    alert('No se pudieron obtener estadísticas. Revisa la consola.');
+    cardEnviados.textContent = '—';
+    cardBodega.textContent  = '—';
+    cardCamino.textContent  = '—';
+    cardAduana.textContent  = '—';
+    cardGanancias.textContent = '—';
+    chartWrap.style.display = 'none';
+    // no alert automático aquí (opcional)
   } finally {
     loading.style.display = 'none';
   }
@@ -276,27 +317,10 @@ async function refreshUI(){
 /* events */
 selectFilter.addEventListener('change', refreshUI);
 refreshBtn.addEventListener('click', refreshUI);
+window.addEventListener('resize', ()=>{ if(lastCounts) drawPieFromCounts(lastCounts); });
 
 /* initial */
 refreshUI();
-window.addEventListener('resize', ()=>{ if(chartWrap.style.display!=='none') drawPieFromCounts(lastCounts||{enviados:0,bodega:0,camino:0,aduana:0}); });
-
-/* keep last counts for redraw on resize */
-let lastCounts = null;
-(async function patchedRefresh(){
-  try{
-    const filter = selectFilter.value || 'general';
-    loading.style.display = 'flex';
-    const data = await fetchStats(filter);
-    lastCounts = data.counts || {enviados:0,bodega:0,camino:0,aduana:0};
-    renderCards(data);
-    drawPieFromCounts(lastCounts);
-  } catch(e){
-    console.warn(e);
-  } finally {
-    loading.style.display = 'none';
-  }
-})();
 </script>
 </body>
 </html>
