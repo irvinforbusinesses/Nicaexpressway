@@ -12,7 +12,8 @@ const allowedOrigins = [
   'https://htmleditor.in',
   'http://localhost:3000',
   'http://127.0.0.1:5500',
-  'https://nicaexpressway.onrender.com'
+  'https://nicaexpressway.onrender.com',
+  'https://irvinforbusinesses.github.io'
 ];
 
 // Para pruebas puedes temporalmente usar origin: '*' pero no recomendado en prod
