@@ -205,7 +205,7 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
 
 <script>
 /* CONFIG */
-const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta cuando conectes la API real
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
 
 /* UI refs */
 const btnInicio = document.getElementById('btnInicio');
@@ -216,17 +216,21 @@ const secciones = {
   cotizar: document.getElementById('cotizar'),
   seguimiento: document.getElementById('seguimiento')
 };
+
+/* Navigation */
 function mostrarSeccion(nombre){
-  for(let s in secciones) secciones[s].classList.remove('active');
-  secciones[nombre].classList.add('active');
-  [btnInicio,btnCotizar,btnSeguimiento].forEach(b=>b.classList.add('inactive'));
-  if(nombre==='inicio') btnInicio.classList.remove('inactive');
-  if(nombre==='cotizar') btnCotizar.classList.remove('inactive');
-  if(nombre==='seguimiento') btnSeguimiento.classList.remove('inactive');
+  for(let s in secciones) {
+    if(secciones[s]) secciones[s].classList.remove('active');
+  }
+  if(secciones[nombre]) secciones[nombre].classList.add('active');
+  [btnInicio,btnCotizar,btnSeguimiento].forEach(b=>{ if(b) b.classList.add('inactive'); });
+  if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
+  if(nombre==='cotizar' && btnCotizar) btnCotizar.classList.remove('inactive');
+  if(nombre==='seguimiento' && btnSeguimiento) btnSeguimiento.classList.remove('inactive');
 }
-btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
-btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
-btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
+if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
+if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
 /* calcular (mantener) */
 function calcular(){
@@ -253,14 +257,18 @@ const detallePeso = document.getElementById('detallePeso');
 const detalleTarifa = document.getElementById('detalleTarifa');
 const detalleTotal = document.getElementById('detalleTotal');
 
-btnBuscar.addEventListener('click', onBuscar);
-btnLimpiar.addEventListener('click', onLimpiar);
+if(btnBuscar) btnBuscar.addEventListener('click', onBuscar);
+if(btnLimpiar) btnLimpiar.addEventListener('click', onLimpiar);
 
 function onLimpiar(){
-  document.getElementById('codigo').value='';
-  document.getElementById('nombreBuscar').value='';
-  document.getElementById('telefonoBuscar').value='';
-  document.getElementById('telCodeBuscar').value='+505';
+  const c = document.getElementById('codigo');
+  const n = document.getElementById('nombreBuscar');
+  const t = document.getElementById('telefonoBuscar');
+  const cc = document.getElementById('telCodeBuscar');
+  if(c) c.value='';
+  if(n) n.value='';
+  if(t) t.value='';
+  if(cc) cc.value='+505';
   hideResult();
 }
 
@@ -286,47 +294,41 @@ async function onBuscar(){
     return;
   }
 
-  // Mostrar overlay
-  overlay.style.display = 'block';
-  hideResult(); // limpiar resultado previo
+  // Mostrar overlay y limpiar
+  if(overlay) overlay.style.display = 'block';
+  hideResult();
 
   try {
-    // Llamada a la API
-    const pkg = await fetchPackageFromAPI(params); // <-- implementa tu API aquí
+    const pkg = await fetchPackageFromAPI(params); // implementada abajo
 
     if(!pkg){
-      // nada encontrado
-      overlay.style.display = 'none';
-      noResult.style.display = 'block';
-      noResult.textContent = 'No se encontró paquete con los criterios introducidos.';
+      if(overlay) overlay.style.display = 'none';
+      if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'No se encontró paquete con los criterios introducidos.'; }
       return;
     }
 
     // Mostrar datos en UI
     renderPackageResult(pkg);
-    overlay.style.display = 'none';
+    if(overlay) overlay.style.display = 'none';
   } catch (err) {
     console.error('Error búsqueda:', err);
-    overlay.style.display = 'none';
-    noResult.style.display = 'block';
-    noResult.textContent = 'Ocurrió un error buscando el paquete. Revisa la consola.';
+    if(overlay) overlay.style.display = 'none';
+    if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'Ocurrió un error buscando el paquete. Revisa la consola.'; }
   }
 }
 
-  //fecth package
-
-*async function fetchPackageFromAPI({ codigo, nombre, telefono }){
-  // Normaliza valores
+/* ===========================
+   fetchPackageFromAPI (unificada)
+   =========================== */
+async function fetchPackageFromAPI({ codigo, nombre, telefono }){
   codigo = codigo ? String(codigo).trim() : null;
   nombre = nombre ? String(nombre).trim() : null;
   telefono = telefono ? String(telefono).trim() : null;
 
-  // 1) Si tenemos código, buscar por código (GET /paquetes?codigo=...)
+  // 1) si hay código: GET /paquetes?codigo=...
   if (codigo) {
-    // obtener paquete(s)
     const resP = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
     if (!resP.ok) {
-      // si 404 o 400 devolvemos null para manejar en UI
       console.warn('paquetes fetch fallo', resP.status);
       return null;
     }
@@ -334,13 +336,11 @@ async function onBuscar(){
     if (!Array.isArray(arr) || arr.length === 0) return null;
     const paquete = arr[0];
 
-    // intentar obtener historial
+    // intentar historial
     try {
       const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
       let historial = null;
-      if (resH.ok) {
-        historial = await resH.json();
-      }
+      if (resH.ok) historial = await resH.json();
       return { paquete, historial };
     } catch (err) {
       console.warn('historial fetch failed', err);
@@ -348,7 +348,7 @@ async function onBuscar(){
     }
   }
 
-  // 2) Si no hay código, pero hay nombre o telefono -> POST /paquetes/search
+  // 2) si no hay código pero hay nombre/telefono: POST /paquetes/search
   if (nombre || telefono) {
     const res = await fetch(`${API_BASE}/paquetes/search`, {
       method: 'POST',
@@ -363,7 +363,6 @@ async function onBuscar(){
     if (!Array.isArray(arr) || arr.length === 0) return null;
     const paquete = arr[0];
 
-    // obtener historial si hay codigo_seguimiento
     let historial = null;
     if (paquete?.codigo_seguimiento) {
       try {
@@ -371,73 +370,25 @@ async function onBuscar(){
         if (resH.ok) historial = await resH.json();
       } catch(e){ console.warn('hist fetch failed', e); }
     }
-
     return { paquete, historial };
   }
 
-  // nada para buscar
-  return null;
-}
-
-async function fetchPackageFromAPI({codigo, nombre, telefono}){
-  // Si conectas con APIs reales, reemplaza esta función por tus fetch(...) y devuelve:
-  // { paquete: { codigo_seguimiento, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado }, historial: { estado1,... fecha1... } }
-
-  // ---- DEMO: si el usuario escribe 'demo' o '1989' devolvemos un mock ----
-  if((codigo && (codigo.toLowerCase()==='demo' || codigo==='1989')) || nombre==='Lester Gamez'){
-    await delay(700); // simula latencia
+  // fallback demo para pruebas (si pones codigo='demo' o '1989' o nombre='Lester Gamez')
+  if ((codigo && (codigo.toLowerCase()==='demo' || codigo==='1989')) || nombre==='Lester Gamez'){
+    await delay(700);
     return {
-      paquete: {
-        codigo_seguimiento: codigo || '1989',
-        tipo_envio_id: 1,
-        peso_libras: 5.5,
-        tarifa_usd: 4.25,
-        fecha_estado: '2025-08-18'
-      },
+      paquete: { codigo_seguimiento: codigo||'1989', tipo_envio_id:1, peso_libras:5.5, tarifa_usd:4.25, fecha_estado:'2025-08-18' },
       historial: {
-        estado1: 'recibido', fecha1: '2025-08-10',
-        estado2: 'en_transito', fecha2: '2025-08-12',
-        estado3: 'en_aduana', fecha3: '2025-08-16',
-        estado4: 'listo_recoger', fecha4: '2025-08-18'
+        estado1:'recibido', fecha1:'2025-08-10',
+        estado2:'en_transito', fecha2:'2025-08-12',
+        estado3:'en_aduana', fecha3:'2025-08-16',
+        estado4:'listo_recoger', fecha4:'2025-08-18'
       }
     };
   }
 
-  // ---- PLACEHOLDER: aquí deberías invocar tu backend/Supabase ----
-  // ejemplo (comenta/descomenta y adapta):
-  /*
-  if (codigo) {
-    const res = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
-    if (!res.ok) throw new Error('fetch paquetes failed');
-    const arr = await res.json();
-    if (!Array.isArray(arr) || arr.length === 0) return null;
-    const paquete = arr[0];
-
-    // Obtener historial (si tienes endpoint de historial)
-    const histRes = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
-    const histArr = await histRes.json();
-    const historial = histArr && histArr.length>0 ? histArr[0] : null;
-
-    return { paquete, historial };
-  } else {
-    // Búsquedas por nombre/telefono podrían requerir un endpoint específico en tu backend
-    const res = await fetch(`${API_BASE}/paquetes/search`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ nombre, telefono })
-    });
-    if (!res.ok) throw new Error('search endpoint failed');
-    const arr = await res.json();
-    if (!Array.isArray(arr) || arr.length === 0) return null;
-    const paquete = arr[0];
-
-    // recuperar historial análogo al ejemplo anterior
-    return { paquete, historial: null };
-  }
-  */
-
-  // Si no hay implementación, devolvemos null.
-  await delay(600);
+  // si no implementado en backend o no hay params:
+  await delay(400);
   return null;
 }
 
@@ -452,8 +403,8 @@ function renderPackageResult({ paquete, historial }){
   detallePeso.textContent = 'Datos aún no disponibles';
   detalleTarifa.textContent = 'Datos aún no disponibles';
   detalleTotal.innerHTML = '<strong>Total:</strong> Datos aún no disponibles';
-  noResult.style.display='none';
-  resultContainer.style.display='block';
+  if(noResult) noResult.style.display='none';
+  if(resultContainer) resultContainer.style.display='block';
 
   // Map tipo_envio_id -> texto
   const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
@@ -472,31 +423,26 @@ function renderPackageResult({ paquete, historial }){
   if (!historial) {
     timelineEl.innerHTML = '<div class="small-muted">Historial no disponible</div>';
   } else {
-    // buscar pares estado1..4 y fecha1..4
     const items = [];
     for (let i=1;i<=4;i++){
       const s = historial[`estado${i}`];
       const f = historial[`fecha${i}`];
-      if ((s && s.toString().trim()!=='') || (f && f.toString().trim()!=='')){
+      if ((s && String(s).trim()!=='') || (f && String(f).trim()!=='')){
         items.push({ estado: s || null, fecha: f || null, index: i });
       }
     }
     if (items.length===0){
       timelineEl.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
     } else {
-      // render items top->bottom in order they appear
       items.forEach(it => {
         const div = document.createElement('div');
         div.className = 'timeline-item';
-        // human readable label
         const label = mapStateLabel(it.estado);
         div.innerHTML = `<div class="state">${label}</div>
                          <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
                          <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
-        // if it's listo_recoger then mark blink and later trigger confetti
-        if (it.estado==='listo_recoger'){
+        if (String(it.estado).toLowerCase()==='listo_recoger'){
           div.classList.add('blink');
-          // schedule confetti
           triggerConfetti();
         }
         timelineEl.appendChild(div);
@@ -529,11 +475,9 @@ function mapStateSubtext(raw){
   }
 }
 function formatDate(d){
-  // aceptamos YYYY-MM-DD o ISO; devolvemos formato legible dd/mm/yyyy
   try {
     const dt = new Date(d);
     if (isNaN(dt)) {
-      // intentar split si viene "YYYY-MM-DD"
       if(typeof d==='string' && d.includes('-')){
         const [y,m,day] = d.split('-');
         return `${day}/${m}/${y}`;
@@ -549,27 +493,22 @@ function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 
 /* show/hide */
 function hideResult(){
-  resultContainer.style.display='none';
-  noResult.style.display='block';
-  noResult.textContent = 'Aquí se mostrará el estado del envío.';
-  timelineEl.innerHTML='';
+  if(resultContainer) resultContainer.style.display='none';
+  if(noResult) { noResult.style.display='block'; noResult.textContent = 'Aquí se mostrará el estado del envío.'; }
+  if(timelineEl) timelineEl.innerHTML='';
 }
 
-/* ===== CONFETTI =====
-   simple confetti burst using small divs. colors: dark/ light blue.
-   lasts 2s and then clears.
-*/
+/* ===== CONFETTI ===== */
 let confettiTimeout = null;
 function triggerConfetti(){
-  // avoid stacking: if already running, return
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
-  // create N confetti elements
+  // avoid stacking: clear previous
+  wrap.innerHTML = '';
   const N = 30;
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
   for (let i=0;i<N;i++){
     const el = document.createElement('div');
-    el.className = 'confetti';
     const size = Math.floor(Math.random()*8)+6;
     el.style.position='absolute';
     el.style.left = (Math.random()*100)+'%';
@@ -581,12 +520,10 @@ function triggerConfetti(){
     el.style.transform = `rotate(${Math.random()*360}deg)`;
     el.style.borderRadius='2px';
     el.style.zIndex = 2500;
-    // animate using CSS transitions by setting final position
-    const destX = (Math.random()*60 - 30); // horizontal shift
-    const destY = (Math.random()*80 + 60); // vertical drop
+    const destX = (Math.random()*60 - 30);
+    const destY = (Math.random()*80 + 60);
     el.style.transition = `transform 1.9s cubic-bezier(.2,.8,.2,1), top 1.9s linear, left 1.9s linear, opacity 1.9s linear`;
     wrap.appendChild(el);
-    // trigger animation next tick
     requestAnimationFrame(()=>{
       el.style.top = destY + '%';
       el.style.left = `calc(${el.style.left} + ${destX}px)`;
@@ -594,14 +531,11 @@ function triggerConfetti(){
       el.style.opacity = '0';
     });
   }
-  // clear after 2s
   if (confettiTimeout) clearTimeout(confettiTimeout);
   confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 2000);
 }
 
-/* ======================
-   UTIL: enable quick test by pressing Enter in phone/code fields
-   ====================== */
+/* quick Enter to search */
 ['codigo','telefonoBuscar','nombreBuscar'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
