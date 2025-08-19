@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -65,6 +65,33 @@ display: none;
 section.active {
 display: block;
 }
+/* Secciones generales */
+section {
+  background: #FFFFFF; /* crema frío sólido */
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+  display: none;
+  opacity: 0;           /* para fade-in */
+  transform: translateY(15px); /* ligera caída inicial */
+  animation: fadeIn 0.8s forwards; /* animación suave */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* sombra ligera */
+}
+
+/* Cuando se activa la sección */
+section.active {
+  display: block;
+}
+
+/* Animación fade-in */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 
 /* Sección de bienvenida */
 #inicio {
@@ -82,6 +109,26 @@ font-size: 1.1rem;
 line-height: 1.6;
 white-space: pre-line;
 }
+
+
+;
+  border-radius: 16px;
+  padding: 2rem 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.link-btn {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+#inicio {
+  opacity: 0;
+  animation: fadeIn 1s forwards; /* 1 segundo de animación */
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+
 
 /* Inputs mobile-friendly */
 label {
@@ -125,6 +172,37 @@ text-align: center;
 padding: 0.5rem;
 font-size: 0.8rem;
 }
+ .link-btn {
+  display: flex;             /* activa flexbox */
+  justify-content: center;   /* centra horizontalmente */
+  align-items: center;       /* centra verticalmente */
+  background: var(--color-accent);
+  color: white;
+  text-decoration: none;
+  padding: 0.99rem 9rem;  /* mantiene altura y ancho visual */
+  border-radius: 20px;       /* extremos redondeados */
+  font-weight: bold;
+  font-size: 1rem;
+  max-width: 200px;          /* opcional */
+  margin: 0.5rem auto;       /* centra bloque */
+  transition: 0.2s;
+}
+
+.link-btn:hover {
+  background: #1f3a66;
+}
+
+
+#inicio img {
+  width: 100px;       /* tamaño del logo */
+  height: 100px;      /* fuerza a cuadrado */
+  border-radius: 50%; /* círculo perfecto */
+  display: block;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* sombra suave */
+  object-fit: cover;  /* recorta y centra la imagen dentro del círculo */
+}
+
 </style>
 </head>
 <body>
@@ -139,11 +217,16 @@ font-size: 0.8rem;
 </header>
 
 <section id="inicio" class="active">
-<h2>Bienvenido</h2>
-<p>✈️📦 Envíos de USA a Nicaragua  
-🚛 Rápidos, seguros y confiables  
-📍 Miami — 🇳🇮 Nicaragua</p>
+  <img src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway" style="width:100px; margin: 0 auto 1rem; display:block;">
+  <p style="margin-bottom:2rem;">Conéctate con nosotros en nuestras redes y mantente al día con tus envíos</p>
+
+  <div class="linktree-buttons" style="display:flex; flex-direction:column; gap:1rem;">
+    <a href="https://www.instagram.com/nicaexpressway/" target="_blank" class="link-btn">Instagram</a>
+    <a href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank" class="link-btn">Facebook</a>
+    <a href="https://wa.me/17869133662" target="_blank" class="link-btn">WhatsApp</a>
+  </div>
 </section>
+
 
 <section id="cotizar">
 <h2>Calculadora de Envío</h2>
