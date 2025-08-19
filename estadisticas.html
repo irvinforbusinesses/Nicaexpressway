@@ -14,66 +14,22 @@
   --card-shadow: 0 6px 18px rgba(47,82,143,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family: "Inter", sans-serif;
-  background: var(--color-bg);
-  color: #1a1a1a;
-  padding:1.2rem;
-  max-width:980px;
-  margin:auto;
-}
+body{font-family:"Inter",sans-serif;background:var(--color-bg);color:#1a1a1a;padding:1.2rem;max-width:980px;margin:auto}
 h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75rem}
 .filters-container{display:flex;gap:1rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap}
 .filter-item label{display:block;margin-bottom:0.25rem;font-weight:600}
-.filter-select{
-  padding:0.55rem 0.75rem;border-radius:10px;border:1px solid #d7dbe6;
-  background:linear-gradient(180deg,#fff,#fbfdff);
-  box-shadow: 0 2px 6px rgba(47,82,143,0.04);
-  font-weight:600;
-}
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-  gap:1rem;
-}
-.card{
-  background:var(--color-light);
-  border-radius:12px;
-  padding:1rem;
-  box-shadow: var(--card-shadow);
-  min-height:110px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
+.filter-select{padding:0.55rem 0.75rem;border-radius:10px;border:1px solid #d7dbe6;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 2px 6px rgba(47,82,143,0.04);font-weight:600}
+.grid{display:grid;grid-template-columns: repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.card{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
 .card-title{font-weight:700;color:#233a66}
 .card-value{font-size:1.45rem;font-weight:800;display:flex;align-items:center;gap:0.6rem}
 .card-sub{color:var(--muted);font-size:0.95rem;margin-top:0.35rem}
-
-/* package icon small */
 .pkg-icon{width:26px;height:26px;display:inline-block;vertical-align:middle}
-
-/* pie chart area */
 .chart-wrap{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);margin-top:1rem}
-canvas{width:100%;height:220px;display:block}
-
-/* loading overlay text */
-.loading {
-  background: linear-gradient(90deg,#f4f8ff,#f8fbff);
-  border:1px dashed #dbe7fb;
-  padding:0.8rem;border-radius:10px;color:#234;
-  display:flex;align-items:center;gap:0.6rem;
-  box-shadow: 0 2px 6px rgba(47,82,143,0.03);
-}
-
-/* small note */
+.canvas-holder{width:100%;height:220px;position:relative}
 .note{margin-top:1rem;text-align:center;color:var(--muted);font-style:italic}
-
-/* responsive */
-@media (max-width:520px){
-  .card-value{font-size:1.2rem}
-  canvas{height:180px}
-}
+.loading{background:linear-gradient(90deg,#f4f8ff,#f8fbff);border:1px dashed #dbe7fb;padding:0.8rem;border-radius:10px;color:#234;display:flex;align-items:center;gap:0.6rem;box-shadow:0 2px 6px rgba(47,82,143,0.03)}
+@media (max-width:520px){.card-value{font-size:1.2rem}.canvas-holder{height:180px}}
 </style>
 </head>
 <body>
@@ -142,16 +98,19 @@ canvas{width:100%;height:220px;display:block}
 
   <div class="chart-wrap" id="chartWrap" style="display:none;margin-top:1rem">
     <h2 style="margin:0 0 0.6rem 0;font-size:1rem;color:var(--color-accent)">Distribución por estado (Pie)</h2>
-    <canvas id="pieCanvas" width="600" height="300" role="img" aria-label="Gráfico de pastel con distribución de paquetes"></canvas>
+    <div class="canvas-holder">
+      <canvas id="pieCanvas" width="800" height="400" role="img" aria-label="Gráfico de pastel con distribución de paquetes"></canvas>
+    </div>
     <div id="chartLegend" style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap"></div>
   </div>
 
   <div class="note">Los conteos por estado usan exclusivamente su columna correspondiente en <code>historial</code> (estado1..estado4) para evitar dobles conteos.</div>
 
 <script>
-const API_BASE = 'https://nicaexpressway.onrender.com/'; // ajusta si hace falta
+/* --- CONFIG: quita la slash final para evitar // en URLs --- */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- sin slash al final
 
-// refs
+/* refs */
 const selectFilter = document.getElementById('filter-general');
 const refreshBtn = document.getElementById('refreshBtn');
 const loading = document.getElementById('loading');
@@ -167,10 +126,15 @@ const pieCanvas = document.getElementById('pieCanvas');
 const chartLegend = document.getElementById('chartLegend');
 const ctx = pieCanvas.getContext('2d');
 
+/* palette: tonos de azul contrastantes */
+const PIE_COLORS = ['#2F528F','#1f3a66','#79A7E4','#9bbcf3'];
+
+/* fetch stats */
 async function fetchStats(filter = 'general'){
   loading.style.display = 'flex';
   try {
-    const res = await fetch(`${API_BASE}/stats?filter=${encodeURIComponent(filter)}`);
+    const url = `${API_BASE}/stats?filter=${encodeURIComponent(filter)}`;
+    const res = await fetch(url);
     if (!res.ok) {
       const txt = await res.text().catch(()=>null);
       throw new Error(`Error ${res.status} ${txt||''}`);
@@ -185,10 +149,9 @@ async function fetchStats(filter = 'general'){
   }
 }
 
-function formatMoney(v){
-  return `$${Number(v||0).toFixed(2)}`;
-}
+function formatMoney(v){ return `$${Number(v||0).toFixed(2)}`; }
 
+/* render cards */
 function renderCards(data){
   const enviados = data.counts.enviados ?? 0;
   const bodega = data.counts.bodega ?? 0;
@@ -203,73 +166,100 @@ function renderCards(data){
   cardGanancias.textContent = formatMoney(ganancias);
 }
 
+/* HIGH DPI / retina scaling for canvas */
+function resizeCanvasToDisplaySize(canvas) {
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (canvas.width !== Math.floor(w * ratio) || canvas.height !== Math.floor(h * ratio)) {
+    canvas.width  = Math.floor(w * ratio);
+    canvas.height = Math.floor(h * ratio);
+    canvas.getContext('2d').setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+}
+
+/* draw pie based on counts */
 function drawPieFromCounts(counts){
   const enviados = counts.enviados||0;
   const bodega = counts.bodega||0;
   const camino = counts.camino||0;
   const aduana = counts.aduana||0;
   const total = enviados + bodega + camino + aduana;
+
   if (total === 0) {
     chartWrap.style.display = 'none';
     return;
   }
   chartWrap.style.display = 'block';
-  // clear canvas
-  ctx.clearRect(0,0,pieCanvas.width,pieCanvas.height);
 
-  const data = [
-    {label:'Enviados', value:enviados, color:'#2F528F'},
-    {label:'Bodega', value:bodega, color:'#79A7E4'},
-    {label:'Camino', value:camino, color:'#1f3a66'},
-    {label:'Aduana', value:aduana, color:'#9bbcf3'}
-  ].filter(d => d.value>0);
+  // prepare data segments (only >0)
+  const segments = [
+    { label: 'Enviados', value: enviados, color: PIE_COLORS[0] },
+    { label: 'Bodega', value: bodega, color: PIE_COLORS[2] },
+    { label: 'Camino', value: camino, color: PIE_COLORS[1] },
+    { label: 'Aduana', value: aduana, color: PIE_COLORS[3] }
+  ].filter(s => s.value > 0);
 
-  // draw pie centered
-  const cx = pieCanvas.width/2;
-  const cy = pieCanvas.height/2;
+  // resize canvas for DPR
+  resizeCanvasToDisplaySize(pieCanvas);
+
+  // draw
+  const w = pieCanvas.clientWidth;
+  const h = pieCanvas.clientHeight;
+  const cx = w/2;
+  const cy = h/2;
   const radius = Math.min(cx, cy) - 10;
-  let start = -Math.PI/2;
 
+  // clear
+  ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+
+  let start = -Math.PI/2;
   chartLegend.innerHTML = '';
 
-  data.forEach(segment=>{
-    const slice = segment.value / total * Math.PI*2;
+  segments.forEach((seg, idx) => {
+    const slice = seg.value / total * Math.PI * 2;
     const end = start + slice;
 
-    // draw slice
+    // draw slice (use ctx with device pixel ratio already set)
     ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,radius,start,end);
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, start, end);
     ctx.closePath();
-    ctx.fillStyle = segment.color;
+    ctx.fillStyle = seg.color;
     ctx.fill();
 
-    // small stroke
+    // stroke edge
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // legend
+    // legend item with percent
+    const percent = Math.round((seg.value / total) * 100);
     const leg = document.createElement('div');
-    leg.style.display='flex'; leg.style.alignItems='center'; leg.style.gap='0.5rem';
-    leg.innerHTML = `<div style="width:14px;height:14px;background:${segment.color};border-radius:4px"></div><div style="font-size:0.95rem">${segment.label}: ${segment.value}</div>`;
+    leg.style.display='flex';
+    leg.style.alignItems='center';
+    leg.style.gap='0.5rem';
+    leg.innerHTML = `<div style="width:14px;height:14px;background:${seg.color};border-radius:4px"></div>
+                     <div style="font-size:0.95rem">${seg.label}: ${seg.value} (${percent}%)</div>`;
     chartLegend.appendChild(leg);
 
     start = end;
   });
 }
 
-/* flow */
+/* main flow */
 async function refreshUI(){
   try {
     const filter = selectFilter.value || 'general';
-    // show loading
     loading.style.display = 'flex';
     const data = await fetchStats(filter);
+    // backend returns { counts: {enviados,bodega,camino,aduana}, ganancias }
+    if(!data || !data.counts){
+      throw new Error('Respuesta inválida del servidor');
+    }
     renderCards(data);
     drawPieFromCounts(data.counts);
-  } catch(e){
-    // muestra fallback en tarjetas
+  } catch (e) {
     cardEnviados.textContent = 'Error';
     cardBodega.textContent = 'Error';
     cardCamino.textContent = 'Error';
@@ -283,11 +273,30 @@ async function refreshUI(){
   }
 }
 
+/* events */
 selectFilter.addEventListener('change', refreshUI);
 refreshBtn.addEventListener('click', refreshUI);
 
-// auto load
+/* initial */
 refreshUI();
+window.addEventListener('resize', ()=>{ if(chartWrap.style.display!=='none') drawPieFromCounts(lastCounts||{enviados:0,bodega:0,camino:0,aduana:0}); });
+
+/* keep last counts for redraw on resize */
+let lastCounts = null;
+(async function patchedRefresh(){
+  try{
+    const filter = selectFilter.value || 'general';
+    loading.style.display = 'flex';
+    const data = await fetchStats(filter);
+    lastCounts = data.counts || {enviados:0,bodega:0,camino:0,aduana:0};
+    renderCards(data);
+    drawPieFromCounts(lastCounts);
+  } catch(e){
+    console.warn(e);
+  } finally {
+    loading.style.display = 'none';
+  }
+})();
 </script>
 </body>
 </html>
