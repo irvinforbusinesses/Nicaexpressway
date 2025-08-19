@@ -448,7 +448,6 @@ app.post('/paquetes/search', async (req, res) => {
   }
 });
 
-//estadisticas 
 // GET /stats?filter=general|aereo|maritimo
 app.get('/stats', async (req, res) => {
   try {
@@ -459,56 +458,92 @@ app.get('/stats', async (req, res) => {
     const tipoId = tipoMap[filter] ?? null;
 
     // 1) obtener lista de codigo_seguimiento y tarifas (según filtro tipo si existe)
-    let paquetesFiltered = { data: [], error: null };
+    let paquetesFiltered;
     if (tipoId) {
       paquetesFiltered = await supabase
         .from('paquetes')
         .select('codigo_seguimiento, tarifa_usd')
         .eq('tipo_envio_id', tipoId);
-      if (paquetesFiltered.error) throw paquetesFiltered.error;
     } else {
-      // si general, traemos códigos y tarifas para poder sumar y filtrar historial localmente
       paquetesFiltered = await supabase
         .from('paquetes')
         .select('codigo_seguimiento, tarifa_usd');
-      if (paquetesFiltered.error) throw paquetesFiltered.error;
     }
-
+    if (paquetesFiltered.error) throw paquetesFiltered.error;
     const paquetesList = paquetesFiltered.data || [];
+
+    // extraer códigos válidos (no nulos)
     const codes = paquetesList.map(p => p.codigo_seguimiento).filter(Boolean);
 
-    // helper: cuenta rows en historial con filtro por columna y termino (usamos ilike para robustez)
-    async function countByColumn(column, termPattern) {
-      let q = supabase
+    // 2) traer historial (sólo filas relacionadas con esos códigos si existen, si no -> todas)
+    let historialRes;
+    if (codes.length > 0) {
+      historialRes = await supabase
         .from('historial')
-        .select('codigo_seguimiento', { count: 'exact', head: true })
-        .ilike(column, termPattern);
+        .select('codigo_seguimiento, estado1, estado2, estado3, estado4')
+        .in('codigo_seguimiento', codes);
+    } else {
+      // advertencia: esto traerá TODO el historial; ok para datasets pequeños, en producción convendría paginar/usar SQL
+      historialRes = await supabase
+        .from('historial')
+        .select('codigo_seguimiento, estado1, estado2, estado3, estado4');
+    }
+    if (historialRes.error) throw historialRes.error;
+    const historialRows = historialRes.data || [];
 
-      if (codes.length > 0) {
-        // cuando hay filtro de tipo (o codes disponibles) limitamos a esos códigos.
-        q = q.in('codigo_seguimiento', codes);
-      }
-      const { count, error } = await q;
-      if (error) throw error;
-      // count may be null if server doesn't support exact count; fallback to 0
-      return Number(count || 0);
+    // 3) procesar para obtener 'latest_estado' por fila
+    // normalizamos: convertir a string, trim y lowercase; considerar '' como null
+    function normalizeState(v){
+      if (v === null || v === undefined) return null;
+      const s = String(v).trim();
+      return s === '' ? null : s.toLowerCase();
     }
 
-    // Contadores estrictos por columna (estado1..estado4)
-    // usamos patrones para capturar variantes de texto (recibido, en_transito, en_aduana, listo_recoger)
-    const enviadosCount = await countByColumn('estado4', '%listo%');      // estado4 -> Listo Para Recoger
-    const bodegaCount   = await countByColumn('estado1', '%recib%');      // estado1 -> Recibido
-    const caminoCount   = await countByColumn('estado2', '%transit%');    // estado2 -> En transito
-    const aduanaCount   = await countByColumn('estado3', '%aduan%');      // estado3 -> En aduana
+    // helper para obtener el estado más reciente de la fila (estado4 -> estado1)
+    function latestEstadoFromRow(row){
+      const e4 = normalizeState(row.estado4);
+      if (e4) return e4;
+      const e3 = normalizeState(row.estado3);
+      if (e3) return e3;
+      const e2 = normalizeState(row.estado2);
+      if (e2) return e2;
+      const e1 = normalizeState(row.estado1);
+      if (e1) return e1;
+      return null;
+    }
 
-    // Ganancias: sumar tarifa_usd de los paquetes aplicando filtro tipo si corresponde
+    // inicializar contadores
+    let enviadosCount = 0;
+    let bodegaCount = 0;
+    let caminoCount = 0;
+    let aduanaCount = 0;
+
+    // contar por el latest_estado
+    for (const row of historialRows) {
+      const latest = latestEstadoFromRow(row); // ya en lowercase
+      if (!latest) continue;
+
+      // permitimos coincidencias flexibles (para aceptar "Listo Para Recoger", "listo_recoger", etc.)
+      if (latest.includes('listo')) {
+        enviadosCount++;
+      } else if (latest.includes('recib')) {      // recibido
+        bodegaCount++;
+      } else if (latest.includes('transit') || latest.includes('en transito') || latest.includes('en_transito')) {
+        caminoCount++;
+      } else if (latest.includes('aduan')) {
+        aduanaCount++;
+      } else {
+        // estado desconocido / otro => no lo contabilizamos en estas 4 tarjetas
+      }
+    }
+
+    // 4) Ganancias: sumar tarifa_usd de los paquetes aplicando filtro tipo si corresponde
     let ganancias = 0;
     for (const p of paquetesList) {
       const t = Number(p.tarifa_usd ?? 0);
       if (!Number.isNaN(t)) ganancias += t;
     }
 
-    // construir respuesta
     const counts = {
       enviados: enviadosCount,
       bodega: bodegaCount,
