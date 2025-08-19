@@ -1,108 +1,293 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estadísticas - Versión de prueba</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Estadísticas - Nica Expressway (En vivo)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --color-bg: #E8F0F5;
-  --color-accent: #2F528F;
-  --color-light: #FFFFFF;
-  --color-gray: #F6F8FB;
-  --color-text-dark: #1A1A1A;
+:root{
+  --color-bg:#E8F0F5;
+  --color-accent:#2F528F;
+  --color-light:#FFFFFF;
+  --muted:#888;
+  --card-shadow: 0 6px 18px rgba(47,82,143,0.08);
 }
-* { box-sizing: border-box; margin:0; padding:0; }
-
-body {
-  font-family: 'Inter', sans-serif;
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family: "Inter", sans-serif;
   background: var(--color-bg);
-  color: var(--color-text-dark);
-  padding: 1rem;
-  max-width: 900px;
-  margin: auto;
+  color: #1a1a1a;
+  padding:1.2rem;
+  max-width:980px;
+  margin:auto;
+}
+h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75rem}
+.filters-container{display:flex;gap:1rem;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap}
+.filter-item label{display:block;margin-bottom:0.25rem;font-weight:600}
+.filter-select{
+  padding:0.55rem 0.75rem;border-radius:10px;border:1px solid #d7dbe6;
+  background:linear-gradient(180deg,#fff,#fbfdff);
+  box-shadow: 0 2px 6px rgba(47,82,143,0.04);
+  font-weight:600;
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap:1rem;
+}
+.card{
+  background:var(--color-light);
+  border-radius:12px;
+  padding:1rem;
+  box-shadow: var(--card-shadow);
+  min-height:110px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.card-title{font-weight:700;color:#233a66}
+.card-value{font-size:1.45rem;font-weight:800;display:flex;align-items:center;gap:0.6rem}
+.card-sub{color:var(--muted);font-size:0.95rem;margin-top:0.35rem}
+
+/* package icon small */
+.pkg-icon{width:26px;height:26px;display:inline-block;vertical-align:middle}
+
+/* pie chart area */
+.chart-wrap{background:var(--color-light);border-radius:12px;padding:1rem;box-shadow:var(--card-shadow);margin-top:1rem}
+canvas{width:100%;height:220px;display:block}
+
+/* loading overlay text */
+.loading {
+  background: linear-gradient(90deg,#f4f8ff,#f8fbff);
+  border:1px dashed #dbe7fb;
+  padding:0.8rem;border-radius:10px;color:#234;
+  display:flex;align-items:center;gap:0.6rem;
+  box-shadow: 0 2px 6px rgba(47,82,143,0.03);
 }
 
-h1, h2 { font-family: 'Poppins', sans-serif; color: var(--color-accent); }
+/* small note */
+.note{margin-top:1rem;text-align:center;color:var(--muted);font-style:italic}
 
-.filters-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  align-items: flex-end;
-}
-.filter-item { display: flex; flex-direction: column; }
-.filter-item label { margin-bottom: 0.25rem; font-weight: 600; }
-.filter-select { padding: 0.5rem 0.75rem; border-radius: 8px; border:1px solid #ccc; }
-
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
-  gap: 1rem;
-}
-
-.card {
-  background: var(--color-light);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.card-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.card-text {
-  font-size: 1rem;
-  color: #555;
-}
-
-/* Nota al final */
-.note {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-style: italic;
-  color: #888;
+/* responsive */
+@media (max-width:520px){
+  .card-value{font-size:1.2rem}
+  canvas{height:180px}
 }
 </style>
 </head>
 <body>
-<!-- FILTROS -->
-<div class="filters-container">
-  <div class="filter-item">
-    <label for="filter-general">Filtrar por:</label>
-    <select id="filter-general" class="filter-select">
-      <option value="general">Ventas Generales</option>
-      <option value="maritimo">Marítimo</option>
-      <option value="aereo">Aéreo</option>
-    </select>
-  </div>
-</div>
+  <h1>Estadísticas (En vivo)</h1>
 
-<!-- TARJETAS -->
-<div class="cards-container">
-  <div class="card">
-    <h3 class="card-title">Paquetes enviados</h3>
-    <p class="card-text">Versión de prueba, datos no disponibles</p>
+  <div class="filters-container">
+    <div class="filter-item">
+      <label for="filter-general">Filtrar por:</label>
+      <select id="filter-general" class="filter-select" aria-label="Filtro estadisticas">
+        <option value="general">Generales</option>
+        <option value="maritimo">Marítimo</option>
+        <option value="aereo">Aéreo</option>
+      </select>
+    </div>
+
+    <div style="margin-left:auto;align-self:flex-end">
+      <button id="refreshBtn" style="background:var(--color-accent);color:#fff;padding:.55rem .9rem;border-radius:10px;border:none;font-weight:700;cursor:pointer">Actualizar</button>
+    </div>
   </div>
-  <div class="card">
-    <h3 class="card-title">Paquetes en bodega</h3>
-    <p class="card-text">Versión de prueba, datos no disponibles</p>
+
+  <div id="loading" class="loading" style="display:none;">
+    <strong>Extrayendo datos, espera...</strong>
   </div>
-  <div class="card">
-    <h3 class="card-title">Paquetes camino a Nicaragua</h3>
-    <p class="card-text">Versión de prueba, datos no disponibles</p>
+
+  <div class="grid" style="margin-top:1rem">
+    <div class="card">
+      <div>
+        <div class="card-title">Paquetes enviados</div>
+        <div id="card-enviados" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
+        <div class="card-sub">Conteo de paquetes con dato en <code>estado4</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div>
+        <div class="card-title">Paquetes en bodega</div>
+        <div id="card-bodega" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
+        <div class="card-sub">Conteo de paquetes con dato en <code>estado1</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div>
+        <div class="card-title">Paquetes camino a Nicaragua</div>
+        <div id="card-camino" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
+        <div class="card-sub">Conteo de paquetes con dato en <code>estado2</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div>
+        <div class="card-title">Paquetes en aduana</div>
+        <div id="card-aduana" class="card-value">— <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/></div>
+        <div class="card-sub">Conteo de paquetes con dato en <code>estado3</code></div>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+      <div>
+        <div class="card-title">Ganancias (USD)</div>
+        <div id="card-ganancias" class="card-value">—</div>
+        <div class="card-sub">Suma de <code>tarifa_usd</code> en tabla <code>paquetes</code></div>
+      </div>
+    </div>
   </div>
-  <div class="card">
-    <h3 class="card-title">Ganancias en dólares</h3>
-    <p class="card-text">Versión de prueba, datos no disponibles</p>
+
+  <div class="chart-wrap" id="chartWrap" style="display:none;margin-top:1rem">
+    <h2 style="margin:0 0 0.6rem 0;font-size:1rem;color:var(--color-accent)">Distribución por estado (Pie)</h2>
+    <canvas id="pieCanvas" width="600" height="300" role="img" aria-label="Gráfico de pastel con distribución de paquetes"></canvas>
+    <div id="chartLegend" style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap"></div>
   </div>
-</div>
+
+  <div class="note">Los conteos por estado usan exclusivamente su columna correspondiente en <code>historial</code> (estado1..estado4) para evitar dobles conteos.</div>
+
+<script>
+const API_BASE = 'https://nicaexpressway.onrender.com/'; // ajusta si hace falta
+
+// refs
+const selectFilter = document.getElementById('filter-general');
+const refreshBtn = document.getElementById('refreshBtn');
+const loading = document.getElementById('loading');
+
+const cardEnviados = document.getElementById('card-enviados');
+const cardBodega = document.getElementById('card-bodega');
+const cardCamino = document.getElementById('card-camino');
+const cardAduana = document.getElementById('card-aduana');
+const cardGanancias = document.getElementById('card-ganancias');
+
+const chartWrap = document.getElementById('chartWrap');
+const pieCanvas = document.getElementById('pieCanvas');
+const chartLegend = document.getElementById('chartLegend');
+const ctx = pieCanvas.getContext('2d');
+
+async function fetchStats(filter = 'general'){
+  loading.style.display = 'flex';
+  try {
+    const res = await fetch(`${API_BASE}/stats?filter=${encodeURIComponent(filter)}`);
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>null);
+      throw new Error(`Error ${res.status} ${txt||''}`);
+    }
+    const json = await res.json();
+    loading.style.display = 'none';
+    return json;
+  } catch (err) {
+    loading.style.display = 'none';
+    console.error('fetchStats error', err);
+    throw err;
+  }
+}
+
+function formatMoney(v){
+  return `$${Number(v||0).toFixed(2)}`;
+}
+
+function renderCards(data){
+  const enviados = data.counts.enviados ?? 0;
+  const bodega = data.counts.bodega ?? 0;
+  const camino = data.counts.camino ?? 0;
+  const aduana = data.counts.aduana ?? 0;
+  const ganancias = data.ganancias ?? 0;
+
+  cardEnviados.innerHTML = `${enviados} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
+  cardBodega.innerHTML = `${bodega} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
+  cardCamino.innerHTML = `${camino} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
+  cardAduana.innerHTML = `${aduana} <img class="pkg-icon" src="https://img.icons8.com/ios-filled/50/2F528F/parcel.png" alt="paquete"/>`;
+  cardGanancias.textContent = formatMoney(ganancias);
+}
+
+function drawPieFromCounts(counts){
+  const enviados = counts.enviados||0;
+  const bodega = counts.bodega||0;
+  const camino = counts.camino||0;
+  const aduana = counts.aduana||0;
+  const total = enviados + bodega + camino + aduana;
+  if (total === 0) {
+    chartWrap.style.display = 'none';
+    return;
+  }
+  chartWrap.style.display = 'block';
+  // clear canvas
+  ctx.clearRect(0,0,pieCanvas.width,pieCanvas.height);
+
+  const data = [
+    {label:'Enviados', value:enviados, color:'#2F528F'},
+    {label:'Bodega', value:bodega, color:'#79A7E4'},
+    {label:'Camino', value:camino, color:'#1f3a66'},
+    {label:'Aduana', value:aduana, color:'#9bbcf3'}
+  ].filter(d => d.value>0);
+
+  // draw pie centered
+  const cx = pieCanvas.width/2;
+  const cy = pieCanvas.height/2;
+  const radius = Math.min(cx, cy) - 10;
+  let start = -Math.PI/2;
+
+  chartLegend.innerHTML = '';
+
+  data.forEach(segment=>{
+    const slice = segment.value / total * Math.PI*2;
+    const end = start + slice;
+
+    // draw slice
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,radius,start,end);
+    ctx.closePath();
+    ctx.fillStyle = segment.color;
+    ctx.fill();
+
+    // small stroke
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // legend
+    const leg = document.createElement('div');
+    leg.style.display='flex'; leg.style.alignItems='center'; leg.style.gap='0.5rem';
+    leg.innerHTML = `<div style="width:14px;height:14px;background:${segment.color};border-radius:4px"></div><div style="font-size:0.95rem">${segment.label}: ${segment.value}</div>`;
+    chartLegend.appendChild(leg);
+
+    start = end;
+  });
+}
+
+/* flow */
+async function refreshUI(){
+  try {
+    const filter = selectFilter.value || 'general';
+    // show loading
+    loading.style.display = 'flex';
+    const data = await fetchStats(filter);
+    renderCards(data);
+    drawPieFromCounts(data.counts);
+  } catch(e){
+    // muestra fallback en tarjetas
+    cardEnviados.textContent = 'Error';
+    cardBodega.textContent = 'Error';
+    cardCamino.textContent = 'Error';
+    cardAduana.textContent = 'Error';
+    cardGanancias.textContent = 'Error';
+    chartWrap.style.display = 'none';
+    console.error(e);
+    alert('No se pudieron obtener estadísticas. Revisa la consola.');
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+selectFilter.addEventListener('change', refreshUI);
+refreshBtn.addEventListener('click', refreshUI);
+
+// auto load
+refreshUI();
+</script>
 </body>
 </html>
