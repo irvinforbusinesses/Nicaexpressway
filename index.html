@@ -1,315 +1,567 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Seguimiento y Cotización</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
 <style>
-:root {
---color-bg: #E8F0F5;
---color-accent: #2F528F;
---color-light: #FFFFFF;
---color-gray: #F6F8FB;
---color-text-dark: #1A1A1A;
+:root{
+  --color-bg:#E8F0F5;
+  --color-accent:#2F528F;
+  --text:#1A1A1A;
 }
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--color-bg);
+  color:var(--text);
+  padding:1rem;
+  max-width:500px;
+  margin:auto;
+  padding-bottom:80px;
 }
-body {
-font-family: 'Inter', sans-serif;
-background: var(--color-bg);
-color: var(--color-text-dark);
-padding: 1rem;
-max-width: 500px;
-margin: auto;
-padding-bottom: 60px; /* espacio para el footer */
+header{text-align:center;margin-bottom:1.5rem}
+h1{font-family:'Poppins',sans-serif;font-size:1.8rem;color:var(--color-accent)}
+nav{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
+nav button{flex:1;background:var(--color-accent);color:#fff;border:none;padding:.75rem;font-weight:700;border-radius:8px;cursor:pointer}
+nav button.inactive{background:#a0b6e0}
+
+/* sections */
+section{
+  background:#FFFFFF;
+  padding:1.5rem;
+  border-radius:12px;
+  margin-top:1rem;
+  display:none;
+  opacity:0;
+  transform:translateY(12px);
+  animation: fadeIn 0.7s forwards;
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
 }
-header {
-text-align: center;
-margin-bottom: 2rem;
+section.active{display:block}
+@keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
+
+/* Inicio linktree - small tweaks */
+#inicio{text-align:center;padding:2rem 1rem}
+#inicio img{width:100px;height:100px;border-radius:50%;display:block;margin:0 auto 1rem;object-fit:cover;box-shadow:0 6px 18px rgba(47,82,143,0.18)}
+.linktree-buttons{display:flex;flex-direction:column;gap:1rem}
+.link-btn{display:flex;justify-content:center;align-items:center;background:var(--color-accent);color:#fff;text-decoration:none;padding:.75rem 1.6rem;border-radius:999px;font-weight:700;font-size:1rem;max-width:220px;margin:0.3rem auto;box-shadow:0 2px 6px rgba(0,0,0,0.12);transition:transform .12s}
+.link-btn:hover{transform:translateY(-3px);background:#1f3a66}
+
+/* Form basics */
+label{display:block;margin:1rem 0 .5rem;font-weight:600}
+select,input{width:100%;padding:.75rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
+button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;border:none;padding:.75rem;font-size:1rem;border-radius:8px;width:100%;font-weight:bold;cursor:pointer}
+.resultado{margin-top:1rem;font-size:1.05rem;font-weight:600}
+
+/* Seguimiento form layout */
+.row{display:flex;gap:.5rem}
+.col{flex:1}
+
+/* small flag+phone */
+.phone-row{display:flex;gap:.5rem}
+.phone-row select{width:35%;padding:.6rem;border-radius:8px}
+.phone-row input{flex:1}
+
+/* resultado package box */
+.package-box{margin-top:1rem;padding:1rem;border-radius:10px;background:#fbfcfe;border:1px solid #eef3f8}
+.package-title{font-weight:700;margin-bottom:.5rem;color:var(--color-accent)}
+.details-row{display:flex;justify-content:space-between;gap:.5rem;margin-top:.4rem;font-size:.95rem}
+.details-row div{flex:1;text-align:left}
+
+/* timeline */
+.timeline{position:relative;padding-left:24px;border-left:2px solid rgba(47,82,143,0.08);margin-bottom:.5rem}
+.timeline-item{position:relative;padding:8px 12px;margin-bottom:.5rem}
+.timeline-item::before{content:"";position:absolute;left:-11px;top:8px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--color-accent)}
+.timeline-item .state{font-weight:700}
+.timeline-item .subtext{font-size:.9rem;color:#555;margin-top:.25rem}
+.timeline-item .fecha{font-size:.85rem;color:#666;margin-top:.25rem}
+
+/* blinking mini section for listo_recoger */
+.blink {
+  animation: blinkAnim 0.9s step-start 0s infinite;
+  box-shadow:0 0 0 4px rgba(47,82,143,0.06) inset;
+  border-radius:8px;
 }
-h1 {
-font-family: 'Poppins', sans-serif;
-font-size: 1.8rem;
-color: var(--color-accent);
-}
-nav {
-display: flex;
-justify-content: center;
-gap: 0.5rem;
-margin-top: 1rem;
-}
-nav button {
-flex: 1;
-background: var(--color-accent);
-color: white;
-border: none;
-padding: 0.75rem;
-font-weight: bold;
-border-radius: 8px;
-cursor: pointer;
-}
-nav button.inactive {
-background: #a0b6e0;
-}
-section {
-background: var(--color-light);
-padding: 1.5rem;
-border-radius: 12px;
-margin-top: 1rem;
-display: none;
-}
-section.active {
-display: block;
-}
-/* Secciones generales */
-section {
-  background: #FFFFFF; /* crema frío sólido */
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-top: 1rem;
-  display: none;
-  opacity: 0;           /* para fade-in */
-  transform: translateY(15px); /* ligera caída inicial */
-  animation: fadeIn 0.8s forwards; /* animación suave */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* sombra ligera */
+@keyframes blinkAnim {
+  50% { opacity: 0.25; transform: translateY(-1px); }
 }
 
-/* Cuando se activa la sección */
-section.active {
-  display: block;
-}
+/* confetti container */
+#confettiWrap{pointer-events:none;position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:2000}
 
-/* Animación fade-in */
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* small utility */
+.small-muted{font-size:.9rem;color:#666;margin-top:.25rem}
+.center{text-align:center}
 
-
-
-/* Sección de bienvenida */
-#inicio {
-text-align: center;
-padding: 2rem 1rem;
-}
-#inicio h2 {
-font-family: 'Poppins', sans-serif;
-font-size: 2rem;
-margin-bottom: 1rem;
-color: var(--color-accent);
-}
-#inicio p {
-font-size: 1.1rem;
-line-height: 1.6;
-white-space: pre-line;
-}
-
-
-;
-  border-radius: 16px;
-  padding: 2rem 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.link-btn {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-#inicio {
-  opacity: 0;
-  animation: fadeIn 1s forwards; /* 1 segundo de animación */
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-
-
-/* Inputs mobile-friendly */
-label {
-display: block;
-margin: 1rem 0 0.5rem;
-font-weight: 600;
-}
-select, input {
-width: 100%;
-padding: 0.75rem;
-border-radius: 8px;
-border: 1px solid #ccc;
-font-size: 1rem;
-}
-button.calc-btn {
-margin-top: 1rem;
-background: var(--color-accent);
-color: white;
-border: none;
-padding: 0.75rem;
-font-size: 1rem;
-border-radius: 8px;
-width: 100%;
-font-weight: bold;
-cursor: pointer;
-}
-.resultado {
-margin-top: 1rem;
-font-size: 1.1rem;
-font-weight: 600;
-}
-
-/* Footer */
-footer {
-position: fixed;
-bottom: 0;
-left: 0;
-width: 100%;
-color: #888;
-text-align: center;
-padding: 0.5rem;
-font-size: 0.8rem;
-}
- .link-btn {
-  display: flex;             /* activa flexbox */
-  justify-content: center;   /* centra horizontalmente */
-  align-items: center;       /* centra verticalmente */
-  background: var(--color-accent);
-  color: white;
-  text-decoration: none;
-  padding: 0.99rem 9rem;  /* mantiene altura y ancho visual */
-  border-radius: 20px;       /* extremos redondeados */
-  font-weight: bold;
-  font-size: 1rem;
-  max-width: 200px;          /* opcional */
-  margin: 0.5rem auto;       /* centra bloque */
-  transition: 0.2s;
-}
-
-.link-btn:hover {
-  background: #1f3a66;
-}
-
-
-#inicio img {
-  width: 100px;       /* tamaño del logo */
-  height: 100px;      /* fuerza a cuadrado */
-  border-radius: 50%; /* círculo perfecto */
-  display: block;
-  margin: 0 auto 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* sombra suave */
-  object-fit: cover;  /* recorta y centra la imagen dentro del círculo */
-}
-
+/* responsive tweaks */
+@media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Nica Expressway </h1>
-<nav>
-<button id="btnInicio">Inicio</button>
-<button id="btnCotizar" class="inactive">Cotizar</button>
-<button id="btnSeguimiento" class="inactive">Seguimiento</button>
-</nav>
+  <h1>Nica Expressway</h1>
+  <nav>
+    <button id="btnInicio">Inicio</button>
+    <button id="btnCotizar" class="inactive">Cotizar</button>
+    <button id="btnSeguimiento" class="inactive">Seguimiento</button>
+  </nav>
 </header>
 
+<!-- INICIO -->
 <section id="inicio" class="active">
-  <img src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway" style="width:100px; margin: 0 auto 1rem; display:block;">
-  <p style="margin-bottom:2rem;">Conéctate con nosotros en nuestras redes y mantente al día con tus envíos</p>
-
-  <div class="linktree-buttons" style="display:flex; flex-direction:column; gap:1rem;">
-    <a href="https://www.instagram.com/nicaexpressway/" target="_blank" class="link-btn">Instagram</a>
-    <a href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank" class="link-btn">Facebook</a>
-    <a href="https://wa.me/17869133662" target="_blank" class="link-btn">WhatsApp</a>
+  <img id="logoMain" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway">
+  <p style="margin-bottom:1.25rem;">Conéctate con nosotros en nuestras redes y mantente al día con tus envíos</p>
+  <div class="linktree-buttons">
+    <a class="link-btn" href="https://www.instagram.com/nicaexpressway/" target="_blank">Instagram</a>
+    <a class="link-btn" href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank">Facebook</a>
+    <a class="link-btn" href="https://wa.me/17869133662" target="_blank">WhatsApp</a>
   </div>
 </section>
 
-
+<!-- COTIZAR -->
 <section id="cotizar">
-<h2>Calculadora de Envío</h2>
-<label for="tipoEnvio">Tipo de envío:</label>
-<select id="tipoEnvio">
-<option value="aereo">Aéreo</option>
-<option value="maritimo">Marítimo</option>
-</select>
+  <h2>Calculadora de Envío</h2>
+  <label for="tipoEnvio">Tipo de envío:</label>
+  <select id="tipoEnvio">
+    <option value="aereo">Aéreo</option>
+    <option value="maritimo">Marítimo</option>
+  </select>
 
-<label for="peso">Peso aproximado (libras):</label>
-<input type="number" id="peso" placeholder="Ej: 5">
+  <label for="peso">Peso aproximado (libras):</label>
+  <input type="number" id="peso" placeholder="Ej: 5">
 
-<button class="calc-btn" onclick="calcular()">Calcular</button>
+  <button class="calc-btn" onclick="calcular()">Calcular</button>
 
-<div class="resultado" id="resultado"></div>
+  <div class="resultado" id="resultado"></div>
 </section>
 
+<!-- SEGUIMIENTO (actualizado) -->
 <section id="seguimiento">
-<h2>Seguimiento de Pedido</h2>
-<label for="codigo">Código de seguimiento:</label>
-<input type="text" id="codigo" placeholder="Ej: ABC123">
-<button class="calc-btn">Buscar</button>
-<div class="resultado">Aquí se mostrará el estado del envío.</div>
+  <h2>Seguimiento de Pedido</h2>
+
+  <!-- Form: codigo OR nombre OR telefono -->
+  <label for="codigo">Código de seguimiento</label>
+  <input type="text" id="codigo" placeholder="Ej: ABC123">
+
+  <label for="nombreBuscar">Nombre del cliente</label>
+  <input type="text" id="nombreBuscar" placeholder="Ej: Lester Gamez">
+
+  <label for="telefonoBuscar">Teléfono (8-10 dígitos)</label>
+  <div class="phone-row" style="margin-bottom:0.5rem;">
+    <select id="telCodeBuscar">
+      <option value="+505">+505</option>
+      <option value="+1">+1</option>
+      <option value="+52">+52</option>
+    </select>
+    <input type="tel" id="telefonoBuscar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
+  </div>
+
+  <div class="row" style="gap:.6rem;margin-top:.6rem;">
+    <div class="col"><button id="btnBuscar" class="calc-btn">Buscar</button></div>
+    <div class="col"><button id="btnLimpiar" class="calc-btn" style="background:#888;">Limpiar</button></div>
+  </div>
+
+  <!-- Loader / overlay pequeño -->
+  <div id="searchOverlay" style="display:none;margin-top:1rem;padding:.9rem;border-radius:8px;background:#f3f7fb;text-align:center;">
+    <strong>Buscando tu paquete, espera...</strong>
+  </div>
+
+  <!-- Resultado -->
+  <div id="resultContainer" class="package-box" style="display:none;">
+    <!-- timeline -->
+    <div id="timeline" class="timeline"></div>
+
+    <!-- datos principales -->
+    <div id="packageDetails" class="details-row" style="margin-top:1rem">
+      <div>
+        <div class="small-muted">Tipo de envío</div>
+        <div id="detalleTipo">-</div>
+      </div>
+      <div>
+        <div class="small-muted">Peso (lbs)</div>
+        <div id="detallePeso">-</div>
+      </div>
+      <div>
+        <div class="small-muted">Tarifa / lb (USD)</div>
+        <div id="detalleTarifa">-</div>
+      </div>
+    </div>
+
+    <div style="margin-top:.8rem" id="detalleTotal"><strong>Total:</strong> -</div>
+  </div>
+
+  <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado del envío.</div>
 </section>
 
-<footer>
-<p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
+<!-- confetti wrapper -->
+<div id="confettiWrap" aria-hidden="true"></div>
+
+<footer style="margin-top:2rem;">
+  <p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things</p>
 </footer>
 
 <script>
+/* CONFIG */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta cuando conectes la API real
+
+/* UI refs */
 const btnInicio = document.getElementById('btnInicio');
 const btnCotizar = document.getElementById('btnCotizar');
 const btnSeguimiento = document.getElementById('btnSeguimiento');
 const secciones = {
-inicio: document.getElementById('inicio'),
-cotizar: document.getElementById('cotizar'),
-seguimiento: document.getElementById('seguimiento')
+  inicio: document.getElementById('inicio'),
+  cotizar: document.getElementById('cotizar'),
+  seguimiento: document.getElementById('seguimiento')
 };
-
-function mostrarSeccion(nombre) {
-for (let sec in secciones) {
-secciones[sec].classList.remove('active');
+function mostrarSeccion(nombre){
+  for(let s in secciones) secciones[s].classList.remove('active');
+  secciones[nombre].classList.add('active');
+  [btnInicio,btnCotizar,btnSeguimiento].forEach(b=>b.classList.add('inactive'));
+  if(nombre==='inicio') btnInicio.classList.remove('inactive');
+  if(nombre==='cotizar') btnCotizar.classList.remove('inactive');
+  if(nombre==='seguimiento') btnSeguimiento.classList.remove('inactive');
 }
-secciones[nombre].classList.add('active');
-btnInicio.classList.add('inactive');
-btnCotizar.classList.add('inactive');
-btnSeguimiento.classList.add('inactive');
-if (nombre === 'inicio') btnInicio.classList.remove('inactive');
-if (nombre === 'cotizar') btnCotizar.classList.remove('inactive');
-if (nombre === 'seguimiento') btnSeguimiento.classList.remove('inactive');
-}
+btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
+btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
-btnInicio.addEventListener('click', () => mostrarSeccion('inicio'));
-btnCotizar.addEventListener('click', () => mostrarSeccion('cotizar'));
-btnSeguimiento.addEventListener('click', () => mostrarSeccion('seguimiento'));
-
-function calcular() {
-const tipo = document.getElementById('tipoEnvio').value;
-const peso = parseFloat(document.getElementById('peso').value);
-const resultadoDiv = document.getElementById('resultado');
-
-if (isNaN(peso) || peso <= 0) {
-resultadoDiv.textContent = "Por favor, ingresa un peso válido.";
-return;
+/* calcular (mantener) */
+function calcular(){
+  const tipo = document.getElementById('tipoEnvio').value;
+  const peso = parseFloat(document.getElementById('peso').value);
+  const resultadoDiv = document.getElementById('resultado');
+  if(isNaN(peso)||peso<=0){ resultadoDiv.textContent="Por favor, ingresa un peso válido."; return; }
+  let precio=0,dias=0;
+  if(tipo==='aereo'){ precio = peso*7.50; dias=7; } else { precio = peso*3.00; dias=15; }
+  resultadoDiv.innerHTML = `Precio estimado: $${precio.toFixed(2)} USD<br>Llegada estimada: ${dias} días`;
 }
 
-let precio = 0;
-let dias = 0;
+/* ================================
+   SEGUIMIENTO: lógica de búsqueda
+   ================================ */
+const btnBuscar = document.getElementById('btnBuscar');
+const btnLimpiar = document.getElementById('btnLimpiar');
+const overlay = document.getElementById('searchOverlay');
+const resultContainer = document.getElementById('resultContainer');
+const noResult = document.getElementById('noResult');
+const timelineEl = document.getElementById('timeline');
+const detalleTipo = document.getElementById('detalleTipo');
+const detallePeso = document.getElementById('detallePeso');
+const detalleTarifa = document.getElementById('detalleTarifa');
+const detalleTotal = document.getElementById('detalleTotal');
 
-if (tipo === "aereo") {
-precio = peso * 7.50;
-dias = 7;
-} else {
-precio = peso * 3.00;
-dias = 15;
+btnBuscar.addEventListener('click', onBuscar);
+btnLimpiar.addEventListener('click', onLimpiar);
+
+function onLimpiar(){
+  document.getElementById('codigo').value='';
+  document.getElementById('nombreBuscar').value='';
+  document.getElementById('telefonoBuscar').value='';
+  document.getElementById('telCodeBuscar').value='+505';
+  hideResult();
 }
 
-resultadoDiv.innerHTML = `
-   Precio estimado: $${precio.toFixed(2)} USD<br>
-   Llegada estimada: ${dias} días
- `;
+/* Validación: al menos uno de codigo / nombre / telefono */
+function gatherSearchParams(){
+  const codigo = (document.getElementById('codigo').value||'').trim() || null;
+  const nombre = (document.getElementById('nombreBuscar').value||'').trim() || null;
+  const country = document.getElementById('telCodeBuscar').value;
+  const telefonoDigits = (document.getElementById('telefonoBuscar').value||'').trim() || null;
+  const telefono = telefonoDigits ? `${country}${telefonoDigits}` : null;
+  return { codigo, nombre, telefono };
 }
+
+function validateAtLeastOne(params){
+  return Boolean(params.codigo || params.nombre || params.telefono);
+}
+
+/* Main search handler */
+async function onBuscar(){
+  const params = gatherSearchParams();
+  if(!validateAtLeastOne(params)){
+    alert('Ingresa al menos el código, o el nombre, o el teléfono para buscar.');
+    return;
+  }
+
+  // Mostrar overlay
+  overlay.style.display = 'block';
+  hideResult(); // limpiar resultado previo
+
+  try {
+    // Llamada a la API
+    const pkg = await fetchPackageFromAPI(params); // <-- implementa tu API aquí
+
+    if(!pkg){
+      // nada encontrado
+      overlay.style.display = 'none';
+      noResult.style.display = 'block';
+      noResult.textContent = 'No se encontró paquete con los criterios introducidos.';
+      return;
+    }
+
+    // Mostrar datos en UI
+    renderPackageResult(pkg);
+    overlay.style.display = 'none';
+  } catch (err) {
+    console.error('Error búsqueda:', err);
+    overlay.style.display = 'none';
+    noResult.style.display = 'block';
+    noResult.textContent = 'Ocurrió un error buscando el paquete. Revisa la consola.';
+  }
+}
+
+/* ***********************
+   fetchPackageFromAPI()
+   ***********************
+   Actualmente esta función es un *placeholder*:
+   - Aquí debes conectar con tus endpoints reales de Supabase o tu backend.
+   - Ejemplos (descomentar y adaptar):
+     // Buscar por código (GET)
+     const res = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+     const arr = await res.json();
+
+     // Buscar por nombre/telefono -> podrías implementar un endpoint POST /paquetes/search
+     const res = await fetch(`${API_BASE}/paquetes/search`, {
+       method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({ nombre, telefono })
+     });
+     const arr = await res.json();
+
+   Por ahora la función devuelve datos MOCK cuando `codigo === 'demo'` (útil para pruebas).
+*/
+async function fetchPackageFromAPI({codigo, nombre, telefono}){
+  // Si conectas con APIs reales, reemplaza esta función por tus fetch(...) y devuelve:
+  // { paquete: { codigo_seguimiento, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado }, historial: { estado1,... fecha1... } }
+
+  // ---- DEMO: si el usuario escribe 'demo' o '1989' devolvemos un mock ----
+  if((codigo && (codigo.toLowerCase()==='demo' || codigo==='1989')) || nombre==='Lester Gamez'){
+    await delay(700); // simula latencia
+    return {
+      paquete: {
+        codigo_seguimiento: codigo || '1989',
+        tipo_envio_id: 1,
+        peso_libras: 5.5,
+        tarifa_usd: 4.25,
+        fecha_estado: '2025-08-18'
+      },
+      historial: {
+        estado1: 'recibido', fecha1: '2025-08-10',
+        estado2: 'en_transito', fecha2: '2025-08-12',
+        estado3: 'en_aduana', fecha3: '2025-08-16',
+        estado4: 'listo_recoger', fecha4: '2025-08-18'
+      }
+    };
+  }
+
+  // ---- PLACEHOLDER: aquí deberías invocar tu backend/Supabase ----
+  // ejemplo (comenta/descomenta y adapta):
+  /*
+  if (codigo) {
+    const res = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+    if (!res.ok) throw new Error('fetch paquetes failed');
+    const arr = await res.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const paquete = arr[0];
+
+    // Obtener historial (si tienes endpoint de historial)
+    const histRes = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+    const histArr = await histRes.json();
+    const historial = histArr && histArr.length>0 ? histArr[0] : null;
+
+    return { paquete, historial };
+  } else {
+    // Búsquedas por nombre/telefono podrían requerir un endpoint específico en tu backend
+    const res = await fetch(`${API_BASE}/paquetes/search`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ nombre, telefono })
+    });
+    if (!res.ok) throw new Error('search endpoint failed');
+    const arr = await res.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const paquete = arr[0];
+
+    // recuperar historial análogo al ejemplo anterior
+    return { paquete, historial: null };
+  }
+  */
+
+  // Si no hay implementación, devolvemos null.
+  await delay(600);
+  return null;
+}
+
+/* helper delay */
+function delay(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+/* render result logic */
+function renderPackageResult({ paquete, historial }){
+  // limpiar
+  timelineEl.innerHTML = '';
+  detalleTipo.textContent = 'Datos aún no disponibles';
+  detallePeso.textContent = 'Datos aún no disponibles';
+  detalleTarifa.textContent = 'Datos aún no disponibles';
+  detalleTotal.innerHTML = '<strong>Total:</strong> Datos aún no disponibles';
+  noResult.style.display='none';
+  resultContainer.style.display='block';
+
+  // Map tipo_envio_id -> texto
+  const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
+  detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? 'Datos aún no disponibles';
+
+  detallePeso.textContent = paquete?.peso_libras ?? 'Datos aún no disponibles';
+  detalleTarifa.textContent = paquete?.tarifa_usd ?? 'Datos aún no disponibles';
+
+  // Total
+  if (paquete?.peso_libras != null && paquete?.tarifa_usd != null){
+    const total = Number(paquete.peso_libras) * Number(paquete.tarifa_usd);
+    detalleTotal.innerHTML = `<strong>Total:</strong> $${isFinite(total) ? total.toFixed(2) : '0.00'} USD`;
+  }
+
+  // Timeline: procesar estados emparejando estadoN con fechaN
+  if (!historial) {
+    timelineEl.innerHTML = '<div class="small-muted">Historial no disponible</div>';
+  } else {
+    // buscar pares estado1..4 y fecha1..4
+    const items = [];
+    for (let i=1;i<=4;i++){
+      const s = historial[`estado${i}`];
+      const f = historial[`fecha${i}`];
+      if ((s && s.toString().trim()!=='') || (f && f.toString().trim()!=='')){
+        items.push({ estado: s || null, fecha: f || null, index: i });
+      }
+    }
+    if (items.length===0){
+      timelineEl.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
+    } else {
+      // render items top->bottom in order they appear
+      items.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'timeline-item';
+        // human readable label
+        const label = mapStateLabel(it.estado);
+        div.innerHTML = `<div class="state">${label}</div>
+                         <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
+                         <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
+        // if it's listo_recoger then mark blink and later trigger confetti
+        if (it.estado==='listo_recoger'){
+          div.classList.add('blink');
+          // schedule confetti
+          triggerConfetti();
+        }
+        timelineEl.appendChild(div);
+      });
+    }
+  }
+}
+
+/* Helpers: estado label/subtext */
+function mapStateLabel(raw){
+  if(!raw) return 'Estado desconocido';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Recibido';
+    case 'en_transito': return 'En tránsito';
+    case 'en_aduana': return 'En aduana';
+    case 'listo_recoger': return 'Listo Para Recoger';
+    default: return capitalize(r.replace(/_/g,' '));
+  }
+}
+function mapStateSubtext(raw){
+  if(!raw) return '';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Paquete recibido por Nica Express Way en Estados Unidos';
+    case 'en_transito': return 'Paquete en camino a Nicaragua';
+    case 'en_aduana': return 'Paquete en aduanas, será recibido por la agencia pronto';
+    case 'listo_recoger': return 'Paquete listo para retirar!';
+    default: return '';
+  }
+}
+function formatDate(d){
+  // aceptamos YYYY-MM-DD o ISO; devolvemos formato legible dd/mm/yyyy
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt)) {
+      // intentar split si viene "YYYY-MM-DD"
+      if(typeof d==='string' && d.includes('-')){
+        const [y,m,day] = d.split('-');
+        return `${day}/${m}/${y}`;
+      }
+      return d;
+    }
+    return dt.toLocaleDateString('es-ES');
+  } catch(e){
+    return d;
+  }
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* show/hide */
+function hideResult(){
+  resultContainer.style.display='none';
+  noResult.style.display='block';
+  noResult.textContent = 'Aquí se mostrará el estado del envío.';
+  timelineEl.innerHTML='';
+}
+
+/* ===== CONFETTI =====
+   simple confetti burst using small divs. colors: dark/ light blue.
+   lasts 2s and then clears.
+*/
+let confettiTimeout = null;
+function triggerConfetti(){
+  // avoid stacking: if already running, return
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+  // create N confetti elements
+  const N = 30;
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+  for (let i=0;i<N;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    const size = Math.floor(Math.random()*8)+6;
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+    el.style.top = '-10%';
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.9 - Math.random()*0.4);
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.borderRadius='2px';
+    el.style.zIndex = 2500;
+    // animate using CSS transitions by setting final position
+    const destX = (Math.random()*60 - 30); // horizontal shift
+    const destY = (Math.random()*80 + 60); // vertical drop
+    el.style.transition = `transform 1.9s cubic-bezier(.2,.8,.2,1), top 1.9s linear, left 1.9s linear, opacity 1.9s linear`;
+    wrap.appendChild(el);
+    // trigger animation next tick
+    requestAnimationFrame(()=>{
+      el.style.top = destY + '%';
+      el.style.left = `calc(${el.style.left} + ${destX}px)`;
+      el.style.transform = `translateY(${destY}px) rotate(${Math.random()*360}deg)`;
+      el.style.opacity = '0';
+    });
+  }
+  // clear after 2s
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 2000);
+}
+
+/* ======================
+   UTIL: enable quick test by pressing Enter in phone/code fields
+   ====================== */
+['codigo','telefonoBuscar','nombreBuscar'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
+});
+
+/* inicial */
+hideResult();
 </script>
-
 </body>
 </html>
