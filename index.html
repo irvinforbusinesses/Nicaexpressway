@@ -540,9 +540,56 @@ function triggerConfetti(){
   const el = document.getElementById(id);
   if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
 });
-
 /* inicial */
 hideResult();
+  function triggerConfettiMobile(){
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+
+  wrap.innerHTML = ''; // limpiar previos
+
+  const N = 15; // menos partículas para móviles
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+
+  for(let i=0;i<N;i++){
+    const el = document.createElement('div');
+    const size = Math.floor(Math.random()*6)+8; // un poco más grande que escritorio
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+    el.style.top = '-10px'; // iniciar fuera del viewport
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.7 + Math.random()*0.3); // opacidad más visible
+    el.style.borderRadius='2px';
+    el.style.zIndex = 2500;
+    el.style.transition = `transform 1.5s ease-out, opacity 1.5s linear, top 1.5s linear`;
+
+    wrap.appendChild(el);
+
+    const destY = window.innerHeight * 0.7 + Math.random() * window.innerHeight * 0.3;
+    const destX = (Math.random()*60 - 30);
+
+    requestAnimationFrame(()=>{
+      el.style.top = destY + 'px';
+      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
+      el.style.opacity = '0';
+    });
+  }
+
+  if(confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 2000);
+}
+
+// Detectar pantalla móvil y usar versión optimizada
+function triggerConfetti(){
+  if(window.innerWidth <= 420){
+    triggerConfettiMobile();
+  } else {
+    triggerConfettiDesktop(); // tu función original
+  }
+}
+
 </script>
 </body>
 </html>
