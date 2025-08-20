@@ -43,12 +43,25 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
 }
 
 /* responsive - mobile optimizations: tarjetas cuadradas y 2 columnas */
-@media (max-width:520px){
-  .grid{grid-template-columns: repeat(2, 1fr); gap:0.6rem}
-  .card{aspect-ratio: 1 / 1; padding:0.9rem; min-height:auto}
-  .card-title{font-size:0.95rem}
-  .card-value{font-size:1.2rem}
-  .canvas-holder{height:180px}
+@media (max-width: 768px) {
+  /* Libras totales ocupa ancho completo */
+  .card.libras-card {
+    grid-column: span 2 !important;
+  }
+
+  /* Ganancias más baja, para dejar aire al gráfico */
+  .card.ganancia-card {
+    grid-column: span 2 !important;
+    height: 50% !important;
+  }
+
+  /* Espacio visual para el contenedor del gráfico */
+  .chart-container {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
 }
 </style>
 </head>
