@@ -51,8 +51,30 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   align-items: center;
   overflow: hidden;
 }
-.link-btn{display:flex;justify-content:center;align-items:center;background:var(--color-accent);color:#fff;text-decoration:none;padding:.96rem 6rem;border-radius:999px;font-weight:700;font-size:1rem;max-width:220px;margin:0.3rem auto;box-shadow:0 2px 6px rgba(0,0,0,0.12);transition:transform .12s}
-.link-btn:hover{transform:translateY(-3px);background:#1f3a66}
+.link-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-accent);
+  color: #fff;
+  text-decoration: none;
+  padding: .56rem 6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1rem;
+  max-width: 220px;
+  margin: 0.3rem auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: transform .12s;
+
+  /* 👉 Esta línea evita que el texto se divida en 2 */
+  white-space: nowrap;
+}
+
+.link-btn:hover {
+  transform: translateY(-3px);
+  background: #1f3a66;
+}
 
 
 .recordatorio-info {
