@@ -53,6 +53,11 @@ h1{font-family:'Poppins',sans-serif;color:var(--color-accent);margin-bottom:0.75
   .card.ganancia-card {
     grid-column: span 2 !important;
     height: 50% !important;
+    display: flex;              /* activa flexbox */
+  flex-direction: column;     /* apila título y valor */
+  justify-content: center;    /* centra verticalmente */
+  align-items: center;        /* centra horizontalmente */
+  text-align: center;         /* centra el texto */
   }
 
   /* Espacio visual para el contenedor del gráfico */
