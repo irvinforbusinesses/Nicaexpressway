@@ -650,7 +650,7 @@ function triggerConfettiMobile(){
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
 
-  const N = 280;
+  const N = 295;
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
 
   for (let i=0; i<N; i++){
@@ -738,11 +738,11 @@ function calcularSolicitar(){
   rcLibras.textContent = `${Number(peso).toFixed(2)} lb`;
   rcTotal.innerHTML = `<strong>$${isFinite(total) ? total.toFixed(2) : '0.00'} USD</strong>`;
 
-  // estimated arrival: if maritime -> 15 days, aerial -> 4 days (user requested)
+  // estimated arrival: if maritime -> 15 days, aerial -> 7 days (user requested)
   if (tipo === 'maritimo') {
     rcEstimado.textContent = 'Llegada estimada: 15 días';
   } else {
-    rcEstimado.textContent = 'Llegada estimada: 4 días';
+    rcEstimado.textContent = 'Llegada estimada: 7 días';
   }
 
   reciboSolicitar.style.display = 'block';
