@@ -512,6 +512,122 @@ app.get('/stats', async (req, res) => {
     return res.status(500).json({ error: 'server error' });
   }
 });
+/* -------------------- PEDIDOS -------------------- */
+
+/**
+ * POST /pedidos
+ * Inserta un nuevo pedido desde el formulario cliente.
+ * Acepta nombres de campo flexibles (nombre, telefono, plataforma/agencia, descripcion, tipo, peso).
+ * Determina tipo_envio_id: 'aéreo' -> 1, 'marítimo' -> 2 (si se pasa texto).
+ */
+app.post('/pedidos', async (req, res) => {
+  try {
+    // tolerant parsing: distintos nombres que podría enviar el frontend
+    const nombre = req.body.nombre ?? req.body.nombreSolicitar ?? req.body.nombre_cliente ?? null;
+    const telefono = req.body.telefono ?? req.body.telefonoSolicitar ?? req.body.phone ?? null;
+    const agencia = req.body.agencia ?? req.body.plataforma ?? req.body.plataformaSolicitar ?? null;
+    const descripcion = req.body.descripcion ?? req.body.descripcionSolicitar ?? req.body.description ?? null;
+
+    // tipo_envio: si viene id numérico lo usamos; si viene texto intentamos mapearlo
+    let tipo_envio_id = null;
+    if (req.body.tipo_envio_id !== undefined && req.body.tipo_envio_id !== null) {
+      const parsed = Number(req.body.tipo_envio_id);
+      tipo_envio_id = Number.isFinite(parsed) ? parsed : null;
+    } else {
+      const tipoRaw = (req.body.tipo ?? req.body.tipoEnvio ?? req.body.tipoEnvioSolicitar ?? '').toString().toLowerCase();
+      if (tipoRaw.includes('aer')) tipo_envio_id = 1;
+      else if (tipoRaw.includes('mar')) tipo_envio_id = 2;
+      else tipo_envio_id = null; // dejar null si no se puede inferir
+    }
+
+    // peso aproximado
+    const peso_aprox = (req.body.peso_aprox ?? req.body.peso ?? req.body.pesoSolicitar ?? null);
+
+    const insertObj = {
+      nombre,
+      telefono,
+      agencia,
+      descripcion,
+      tipo_envio_id,
+      peso_aprox
+    };
+
+    const { data, error } = await supabase
+      .from('pedidos')
+      .insert([insertObj])
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.error('Supabase insert pedidos error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+
+    return res.status(201).json(data);
+  } catch (err) {
+    console.error('POST /pedidos error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+/**
+ * GET /pedidos
+ * Lista pedidos; soporta query params opcionales:
+ *  - nombre: búsquedas ilike (parcial)
+ *  - telefono: match exacto
+ */
+app.get('/pedidos', async (req, res) => {
+  try {
+    const { nombre, telefono } = req.query ?? {};
+
+    // Construir query base
+    let query = supabase.from('pedidos').select('*').order('id', { ascending: false });
+
+    if (nombre) {
+      // usar ilike para búsqueda parcial, escapando % simples
+      const escaped = nombre.replace(/%/g, '\\%').replace(/'/g, "''");
+      query = query.ilike('nombre', `%${escaped}%`);
+    } else if (telefono) {
+      query = query.eq('telefono', telefono);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Supabase get pedidos error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    return res.json(data || []);
+  } catch (err) {
+    console.error('GET /pedidos error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+/**
+ * GET /pedidos/:id
+ * Devuelve un pedido por su id (PK)
+ */
+app.get('/pedidos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Supabase get pedido by id error:', error);
+      return res.status(400).json({ error: error.message || error });
+    }
+    if (!data) return res.status(404).json({ error: 'No encontrado' });
+    return res.json(data);
+  } catch (err) {
+    console.error('GET /pedidos/:id error:', err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
 
 // -------------------- START SERVER --------------------
 const PORT = process.env.PORT || 10000;
