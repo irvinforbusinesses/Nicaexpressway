@@ -51,10 +51,12 @@ section.active{display:block}
 
 /* Form basics */
 label{display:block;margin:1rem 0 .5rem;font-weight:600}
-select,input{width:100%;padding:.75rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
+select,input,textarea{width:100%;padding:.75rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
+input::placeholder { color:#9aa3ad; }
+textarea { resize: vertical; }
 button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;border:none;padding:.75rem;font-size:1rem;border-radius:8px;width:100%;font-weight:bold;cursor:pointer}
 .resultado{margin-top:1rem;font-size:1.05rem;font-weight:600}
-  footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
+footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
 
 /* Seguimiento form layout */
 .row{display:flex;gap:.5rem}
@@ -98,6 +100,31 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
 
 /* responsive tweaks */
 @media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
+
+/* ======= NUEVOS: Solicitar section + popups styling ======= */
+#solicitar .resultado-solicitar { margin-top:12px; font-weight:700; }
+#reciboSolicitar { margin-top:10px; padding:12px; border-radius:10px; background:#fbfcfe; border:1px solid #eef3f8; display:none; text-align:left; }
+#reciboSolicitar .line { margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
+#reciboSolicitar .estimado { text-align:center; margin-top:8px; font-weight:600; color:#444; }
+
+/* waiting overlay / popup (solicitando...) */
+#waitingPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
+#waitingPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
+.waiting-circle { width:76px; height:76px; border-radius:999px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; background: rgba(47,82,143,0.06); }
+.spinner { width:36px; height:36px; border-radius:50%; border:4px solid rgba(47,82,143,0.18); border-top-color: var(--color-accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* confirm pop (check) */
+#confirmPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
+#confirmPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
+.check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
+.check-icon svg { display:block; }
+
+/* small error text in waiting pop */
+#waitingPop .error { color:#c0392b; margin-top:8px; font-size:0.95rem; }
+
+/* smooth fade when section toggles - keep as is since sections have animation */
+/* end new styles */
 </style>
 </head>
 <body>
@@ -107,6 +134,7 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
   <nav>
     <button id="btnInicio">Inicio</button>
     <button id="btnCotizar" class="inactive">Cotizar</button>
+    <button id="btnSolicitar" class="inactive">Solicitar</button>
     <button id="btnSeguimiento" class="inactive">Seguimiento</button>
   </nav>
 </header>
@@ -137,6 +165,50 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
   <button class="calc-btn" onclick="calcular()">Calcular</button>
 
   <div class="resultado" id="resultado"></div>
+</section>
+
+<!-- SOLICITAR (NUEVO) -->
+<section id="solicitar">
+  <h2>Solicita tu pedido</h2>
+
+  <label for="nombreSolicitar">Nombre</label>
+  <input type="text" id="nombreSolicitar" placeholder="Ej: Lester Gamez">
+
+  <label for="telCodeSolicitar">Teléfono</label>
+  <div class="phone-row">
+    <select id="telCodeSolicitar">
+      <option value="+505">Nicaragua (+505)</option>
+      <option value="+1">USA (+1)</option>
+    </select>
+    <input type="tel" id="telefonoSolicitar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
+  </div>
+
+  <label for="plataformaSolicitar">Plataforma / Agencia</label>
+  <input type="text" id="plataformaSolicitar" placeholder="Ej: Shein">
+
+  <label for="descripcionSolicitar">Descripción (opcional)</label>
+  <textarea id="descripcionSolicitar" rows="2" placeholder="Ej: Ropa, perfumes, etc"></textarea>
+
+  <label for="tipoEnvioSolicitar">Tipo de envío</label>
+  <select id="tipoEnvioSolicitar">
+    <option value="aereo">Aéreo</option>
+    <option value="maritimo">Marítimo</option>
+  </select>
+
+  <label for="pesoSolicitar">Peso aproximado (libras)</label>
+  <input type="number" id="pesoSolicitar" placeholder="Ej: 2.0" step="0.1" min="0">
+
+  <button id="btnCalcularSolicitar" class="calc-btn">Solicitar</button>
+  <button id="btnConfirmarSolicitar" class="calc-btn" style="display:none;background:#1f3a66;">Confirmar solicitud</button>
+
+  <!-- Recibo -->
+  <div id="reciboSolicitar" aria-live="polite">
+    <div class="line"><div>Precio por libra de envío</div><div id="rcPrecioLibra">-</div></div>
+    <div class="line"><div>Libras totales</div><div id="rcLibras">-</div></div>
+    <div class="line"><div><strong>Total</strong></div><div id="rcTotal"><strong>-</strong></div></div>
+    <div class="estimado" id="rcEstimado"></div>
+  </div>
+
 </section>
 
 <!-- SEGUIMIENTO (actualizado) -->
@@ -197,6 +269,29 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
   <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado del envío.</div>
 </section>
 
+<!-- waiting popup (solicitando) -->
+<div id="waitingPop" role="status" aria-live="polite">
+  <div class="waiting-circle" aria-hidden="true">
+    <div class="spinner" aria-hidden="true"></div>
+  </div>
+  <div style="font-weight:700;color:var(--color-accent);margin-bottom:6px;">Solicitando tu pedido</div>
+  <div style="color:#444;margin-bottom:8px;">Estamos procesando tu solicitud, por favor espera...</div>
+  <div class="error" id="waitingError" style="display:none;"></div>
+</div>
+
+<!-- confirm popup -->
+<div id="confirmPop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="check-icon" aria-hidden="true">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="none"/>
+      <path d="M9 12.5l2 2 4-4" stroke="#2F528F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <h3 style="color:var(--color-accent);margin-bottom:6px;">Tu solicitud ha sido enviada</h3>
+  <p style="color:#444;margin-bottom:10px;">Te contactaremos por WhatsApp para confirmar el estado de tu solicitud en los próximos minutos.</p>
+  <button id="btnCerrarConfirm" class="calc-btn" style="background:var(--color-accent);">Cerrar</button>
+</div>
+
 <!-- confetti wrapper -->
 <div id="confettiWrap" aria-hidden="true"></div>
 
@@ -208,13 +303,16 @@ button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;borde
 /* CONFIG */
 const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
 
-/* UI refs */
+/* UI refs (existing + new) */
 const btnInicio = document.getElementById('btnInicio');
 const btnCotizar = document.getElementById('btnCotizar');
+const btnSolicitar = document.getElementById('btnSolicitar');
 const btnSeguimiento = document.getElementById('btnSeguimiento');
+
 const secciones = {
   inicio: document.getElementById('inicio'),
   cotizar: document.getElementById('cotizar'),
+  solicitar: document.getElementById('solicitar'),
   seguimiento: document.getElementById('seguimiento')
 };
 
@@ -224,13 +322,16 @@ function mostrarSeccion(nombre){
     if(secciones[s]) secciones[s].classList.remove('active');
   }
   if(secciones[nombre]) secciones[nombre].classList.add('active');
-  [btnInicio,btnCotizar,btnSeguimiento].forEach(b=>{ if(b) b.classList.add('inactive'); });
+
+  [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{ if(b) b.classList.add('inactive'); });
   if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
   if(nombre==='cotizar' && btnCotizar) btnCotizar.classList.remove('inactive');
+  if(nombre==='solicitar' && btnSolicitar) btnSolicitar.classList.remove('inactive');
   if(nombre==='seguimiento' && btnSeguimiento) btnSeguimiento.classList.remove('inactive');
 }
 if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
 if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
+if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
 /* calcular (mantener) */
@@ -246,6 +347,7 @@ function calcular(){
 
 /* ================================
    SEGUIMIENTO: lógica de búsqueda
+   (unchanged)
    ================================ */
 const btnBuscar = document.getElementById('btnBuscar');
 const btnLimpiar = document.getElementById('btnLimpiar');
@@ -500,8 +602,7 @@ function hideResult(){
 }
 
 /* ===== CONFETTI =====
-   Confetti burst usando divs, colores azul oscuro/medio/claro.
-   Duración extendida 7–10s para efecto más natural.
+   (existing confetti functions unchanged)
 */
 let confettiTimeout = null;
 
@@ -509,7 +610,7 @@ function triggerConfettiDesktop(){
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
 
-  const N = 1000; // menos que 1000, pero con duración larga
+  const N = 1000;
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
 
   for (let i=0; i<N; i++){
@@ -518,7 +619,7 @@ function triggerConfettiDesktop(){
     el.className = 'confetti';
     el.style.position='absolute';
     el.style.left = (Math.random()*100)+'%';
-   el.style.top = (-50 + Math.random()*-50) + 'px'; // entre -50px y -100px
+   el.style.top = (-50 + Math.random()*-50) + 'px';
     el.style.width = size+'px';
     el.style.height = (size*0.6)+'px';
     el.style.background = colors[Math.floor(Math.random()*colors.length)];
@@ -526,9 +627,9 @@ function triggerConfettiDesktop(){
     el.style.borderRadius='2px';
     el.style.zIndex = 2500;
 
-   const destX = (Math.random()*500 - 250); // dispersión más aleatoria
-    const destY = window.innerHeight + 100;  // siempre cae más abajo del viewport
-    const duration = 5 + Math.random()*5;    // entre 7 y 10s
+   const destX = (Math.random()*500 - 250);
+    const destY = window.innerHeight + 100;
+    const duration = 5 + Math.random()*5;
 
     el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
 
@@ -542,24 +643,14 @@ function triggerConfettiDesktop(){
   }
 
   if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000); // limpiar tras 11s
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
 }
 
-/* ======================
-   UTIL: enable quick test by pressing Enter in phone/code fields
-   ====================== */
-['codigo','telefonoBuscar','nombreBuscar'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); onBuscar(); } });
-});
-
-/* inicial */
-hideResult();
-  function triggerConfettiMobile(){
+function triggerConfettiMobile(){
   const wrap = document.getElementById('confettiWrap');
   if (!wrap) return;
 
-  const N = 280; // menos que 1000, pero con duración larga
+  const N = 280;
   const colors = ['#1f3a66','#2F528F','#79A7E4'];
 
   for (let i=0; i<N; i++){
@@ -568,7 +659,7 @@ hideResult();
     el.className = 'confetti';
     el.style.position='absolute';
     el.style.left = (Math.random()*100)+'%';
-   el.style.top = (-50 + Math.random()*-50) + 'px'; // entre -50px y -100px
+   el.style.top = (-50 + Math.random()*-50) + 'px';
     el.style.width = size+'px';
     el.style.height = (size*0.6)+'px';
     el.style.background = colors[Math.floor(Math.random()*colors.length)];
@@ -576,9 +667,9 @@ hideResult();
     el.style.borderRadius='2px';
     el.style.zIndex = 2500;
 
-   const destX = (Math.random()*500 - 250); // dispersión más aleatoria
-    const destY = window.innerHeight + 100;  // siempre cae más abajo del viewport
-    const duration = 5 + Math.random()*5;    // entre 7 y 10s
+   const destX = (Math.random()*500 - 250);
+    const destY = window.innerHeight + 100;
+    const duration = 5 + Math.random()*5;
 
     el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
 
@@ -592,10 +683,9 @@ hideResult();
   }
 
   if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000); // limpiar tras 11s
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
 }
 
-// Detecta móvil o escritorio
 function triggerConfetti(){
   if(window.innerWidth <= 420){
     triggerConfettiMobile();
@@ -604,6 +694,194 @@ function triggerConfetti(){
   }
 }
 
+/* ======================
+   UTIL: enable quick test by pressing Enter in phone/code fields
+   ====================== */
+['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(id==='telefonoSolicitar') { document.getElementById('btnCalcularSolicitar').click(); } else onBuscar(); } });
+});
+
+/* inicial */
+hideResult();
+
+/* ============================
+   NUEVO: Lógica para SOLICITAR
+   ============================ */
+const btnCalcularSolicitar = document.getElementById('btnCalcularSolicitar');
+const btnConfirmarSolicitar = document.getElementById('btnConfirmarSolicitar');
+const reciboSolicitar = document.getElementById('reciboSolicitar');
+const rcPrecioLibra = document.getElementById('rcPrecioLibra');
+const rcLibras = document.getElementById('rcLibras');
+const rcTotal = document.getElementById('rcTotal');
+const rcEstimado = document.getElementById('rcEstimado');
+
+const waitingPop = document.getElementById('waitingPop');
+const waitingError = document.getElementById('waitingError');
+const confirmPop = document.getElementById('confirmPop');
+const btnCerrarConfirm = document.getElementById('btnCerrarConfirm');
+
+function calcularSolicitar(){
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso = parseFloat(document.getElementById('pesoSolicitar').value);
+  if (isNaN(peso) || peso <= 0) {
+    alert('Por favor ingresa un peso válido.');
+    return false;
+  }
+  let precioPorLb = 0;
+  if (tipo === 'aereo') precioPorLb = 7.50;
+  else precioPorLb = 3.00;
+
+  const total = precioPorLb * peso;
+
+  rcPrecioLibra.textContent = `$${precioPorLb.toFixed(2)} USD`;
+  rcLibras.textContent = `${Number(peso).toFixed(2)} lb`;
+  rcTotal.innerHTML = `<strong>$${isFinite(total) ? total.toFixed(2) : '0.00'} USD</strong>`;
+
+  // estimated arrival: if maritime -> 15 days, aerial -> 4 days (user requested)
+  if (tipo === 'maritimo') {
+    rcEstimado.textContent = 'Llegada estimada: 15 días';
+  } else {
+    rcEstimado.textContent = 'Llegada estimada: 4 días';
+  }
+
+  reciboSolicitar.style.display = 'block';
+  // swap buttons
+  btnCalcularSolicitar.style.display = 'none';
+  btnConfirmarSolicitar.style.display = 'block';
+  return true;
+}
+
+if (btnCalcularSolicitar) btnCalcularSolicitar.addEventListener('click', (e)=>{
+  e.preventDefault();
+  calcularSolicitar();
+});
+
+// helper: validate required fields before POST
+function validarFormularioSolicitar(){
+  const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
+  const telCode = document.getElementById('telCodeSolicitar').value;
+  const telefono = (document.getElementById('telefonoSolicitar').value||'').trim();
+  const plataforma = (document.getElementById('plataformaSolicitar').value||'').trim();
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso = document.getElementById('pesoSolicitar').value;
+
+  if (!nombre) { alert('Ingresa el nombre del cliente.'); return false; }
+  if (!telefono || !/^\d{8,10}$/.test(telefono)) { alert('Ingresa un teléfono válido (8-10 dígitos).'); return false; }
+  if (!plataforma) { alert('Ingresa la plataforma o agencia.'); return false; }
+  if (!tipo) { alert('Selecciona el tipo de envío.'); return false; }
+  if (!peso || isNaN(Number(peso)) || Number(peso) <= 0) { alert('Ingresa un peso válido.'); return false; }
+
+  return true;
+}
+
+// show/hide waiting pop
+function showWaiting(msg){
+  waitingError.style.display = 'none';
+  waitingError.textContent = '';
+  waitingPop.querySelector('div[style*="Solicitando"]')?.classList; // noop
+  waitingPop.classList.add('show');
+}
+function hideWaiting(){
+  waitingPop.classList.remove('show');
+  setTimeout(()=>{ waitingError.style.display='none'; waitingError.textContent=''; }, 350);
+}
+
+// show confirm
+function showConfirm(){
+  confirmPop.classList.add('show');
+}
+function hideConfirm(){
+  confirmPop.classList.remove('show');
+}
+
+// handle confirm click -> send to backend
+if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  // validate
+  if (!validarFormularioSolicitar()) return;
+
+  // build payload
+  const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
+  const telCode = document.getElementById('telCodeSolicitar').value;
+  const telefono = (document.getElementById('telefonoSolicitar').value||'').trim();
+  const agencia = (document.getElementById('plataformaSolicitar').value||'').trim();
+  const descripcion = (document.getElementById('descripcionSolicitar').value||'').trim() || null;
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso_aprox = Number(document.getElementById('pesoSolicitar').value);
+
+  const telefonoFull = `${telCode}${telefono}`;
+
+  const payload = {
+    nombre,
+    telefono: telefonoFull,
+    agencia,
+    descripcion,
+    tipo,         // backend will map 'aereo' -> 1, 'maritimo' -> 2
+    peso_aprox
+  };
+
+  // show waiting pop
+  showWaiting();
+
+  // disable button to prevent double submit
+  btnConfirmarSolicitar.disabled = true;
+
+  try {
+    const resp = await fetch(`${API_BASE}/pedidos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>null);
+      waitingError.style.display = 'block';
+      waitingError.textContent = `Error guardando la solicitud (${resp.status})`;
+      console.error('POST /pedidos failed', resp.status, txt);
+      // re-enable confirm button to allow retry
+      btnConfirmarSolicitar.disabled = false;
+      return;
+    }
+
+    // success
+    const data = await resp.json().catch(()=>null);
+    // hide waiting
+    hideWaiting();
+
+    // show confirm pop
+    showConfirm();
+
+    // reset form and UI
+    document.getElementById('nombreSolicitar').value = '';
+    document.getElementById('telCodeSolicitar').value = '+505';
+    document.getElementById('telefonoSolicitar').value = '';
+    document.getElementById('plataformaSolicitar').value = '';
+    document.getElementById('descripcionSolicitar').value = '';
+    document.getElementById('tipoEnvioSolicitar').value = 'aereo';
+    document.getElementById('pesoSolicitar').value = '';
+
+    reciboSolicitar.style.display = 'none';
+    btnConfirmarSolicitar.style.display = 'none';
+    btnConfirmarSolicitar.disabled = false;
+    btnCalcularSolicitar.style.display = 'block';
+  } catch (err) {
+    console.error('Error POST /pedidos', err);
+    waitingError.style.display = 'block';
+    waitingError.textContent = 'Ocurrió un error de red. Intenta nuevamente.';
+    btnConfirmarSolicitar.disabled = false;
+  }
+});
+
+// close confirm
+if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', (e)=>{
+  e.preventDefault();
+  hideConfirm();
+});
+
+/* ======================
+   END: Solicitar logic
+   ====================== */
 
 </script>
 </body>
