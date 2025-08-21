@@ -27,8 +27,8 @@ body {
 /* --------- NAV/SECCIONES ORIGINALES --------- */
 header { text-align: center; margin-bottom: 2rem; }
 h1 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; color: var(--color-accent); }
-nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
-nav button { flex: 1; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: nowrap; }
+nav button { flex:1; background: var(--color-accent); color: white; border: none; padding: 0.75rem; font-weight: bold; border-radius: 8px; cursor: pointer; white-space:nowrap; text-align:center; }
 nav button.inactive { background: #a0b6e0; }
 
 section { background: var(--color-light); padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
@@ -66,16 +66,9 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   margin: 0.3rem auto;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   transition: transform .12s;
-
-  /* 👉 Esta línea evita que el texto se divida en 2 */
   white-space: nowrap;
 }
-
-.link-btn:hover {
-  transform: translateY(-3px);
-  background: #1f3a66;
-}
-
+.link-btn:hover { transform: translateY(-3px); background: #1f3a66; }
 
 .recordatorio-info {
   flex: 1;
@@ -117,10 +110,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
 .phone-row select { width: 35%; min-width: 110px; }
 .phone-row input { flex: 1; }
 
-/* Mensajes */
 .mensaje { margin-top: 1rem; font-size: 0.95rem; padding: 0.75rem; border-radius: 8px; text-align: center; background: #FFF4CC; color: #665c00; border: 1px solid #FFE08A; }
 
-/* Footer */
 footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
 
 /* Optimización pop-up móviles (tus existentes) */
@@ -139,35 +130,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   .popUp form textarea { min-height: 80px; }
 }
 
-/* --------- NUEVOS: OVERLAYS DE CONTRASEÑA --------- */
-.authOverlay {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 10000;
-}
-.authBox {
-  background: var(--color-light);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  padding: 1.25rem;
-  width: 92%;
-  max-width: 340px;
-  text-align: center;
-}
-.authBox h2 { color: var(--color-accent); font-size: 1.2rem; margin-bottom: 0.75rem; }
-.authBox input {
-  width: 100%; padding: 0.65rem; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0.75rem;
-}
-.authBox .btn {
-  width: 100%; padding: 0.65rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
-  background: var(--color-accent); color: #fff;
-}
-.authBox .btn.secondary { background: #888; }
-.authError { color: #e53935; font-size: 0.9rem; display: none; margin-top: 0.25rem; }
-
 /* contenedor estadísticas */
 #estadisticas-container { margin-top: 0.75rem; }
 #estadisticasFrame {
@@ -177,31 +139,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   border-radius: 12px;
   background: #fff;
 }
-  /* --- Contenedor de estadísticas --- */
-.stats-container {
-  width: 100%;
-  max-width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 10px;
-  box-sizing: border-box;
-  margin: 0 auto;
-}
-
-/* Contenido interno */
-.stats-container .stats-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Ajustes para pantallas grandes */
-@media (min-width: 768px) {
-  .stats-container .stats-content {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
+.stats-container .stats-content { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 768px) { .stats-container .stats-content { flex-direction: row; justify-content: space-between; } }
 
 /* Fondo del lightbox con blur */
 .lightbox {
@@ -216,31 +155,26 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 
 /* Oculto por defecto */
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 /* Caja del lightbox */
 .lightbox-content {
   background: #fff;
   padding: 20px;
   border-radius: 12px;
-  max-width: 400px;       /* ancho máximo */
-  width: 90%;              /* ancho relativo a la pantalla */
-  max-height: 70vh;        /* altura máxima: 70% de la ventana */
-  overflow-y: auto;        /* scroll vertical si el contenido es largo */
+  max-width: 400px;
+  width: 90%;
+  max-height: 70vh;
+  overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   text-align: center;
   position: relative;
 }
 
-/* Asegura que los párrafos respeten saltos de línea y no se corten */
-.lightbox-content p {
-  white-space: pre-wrap;   /* respeta saltos de línea */
-  word-wrap: break-word;   /* corta palabras largas si es necesario */
-}
+/* Asegura que los párrafos respeten saltos de línea */
+.lightbox-content p { white-space: pre-wrap; word-wrap: break-word; }
 
-/* Botón cerrar (similar al sitio) */
+/* Botón cerrar */
 .close-lightbox {
   position: absolute;
   top: 10px;
@@ -252,19 +186,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 
 /* Botón eliminar */
-.btn-eliminar {
-  margin-top: 20px;
-  padding: 10px 15px;
-  border: none;
-  background: #e74c3c;
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.btn-eliminar:hover {
-  background: #c0392b;
-}
+.btn-eliminar { margin-top: 20px; padding: 10px 15px; border: none; background: #e74c3c; color: #fff; border-radius: 8px; cursor: pointer; transition: background 0.2s ease; }
+.btn-eliminar:hover { background: #c0392b; }
 
 /* --- Spinner overlay y pop result (nuevo) --- */
 .overlay-spinner {
@@ -313,6 +236,22 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .pop-result .title { font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
 .pop-result .msg { margin-bottom: 10px; }
 .pop-result .btn-close { background: var(--color-accent); color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; width: 100%; }
+
+/* Pedidos styles */
+#listaPedidos { margin-top: 8px; }
+.pedido-type { font-weight:700; color:var(--color-accent); }
+
+/* phone link style */
+.pedido-phone { color: var(--color-accent); text-decoration: underline; cursor: pointer; }
+
+/* Mobile nav optimization: force 5 buttons to fit in one row */
+@media (max-width: 420px) {
+  nav { gap: 6px; }
+  nav button { padding: 0.45rem 0.35rem; font-size: 12px; border-radius: 8px; }
+  nav button span { display:block; line-height:1; }
+  /* allow text to wrap vertically if needed */
+  nav button { white-space: normal; word-break: break-word; }
+}
 </style>
 </head>
 <body>
@@ -323,6 +262,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <h1>Panel del Operador</h1>
 <nav>
 <button id="btnInicio">Inicio</button>
+<button id="btnPedidos" class="inactive">Pedidos</button>
 <button id="btnAgregar" class="inactive">Agregar Paquete</button>
 <button id="btnActualizar" class="inactive">Actualizar Seguimiento</button>
 <button id="btnEstadisticas" class="inactive">Estadísticas</button>
@@ -364,6 +304,14 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
 <button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
 </div>
+</section>
+
+<!-- Pedidos (NUEVO) -->
+<section id="pedidos">
+  <h2>Pedidos</h2>
+  <div id="listaPedidos">
+    <p>Cargando pedidos...</p>
+  </div>
 </section>
 
 <!-- Agregar Paquete -->
@@ -440,7 +388,7 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 
   <div class="form-group">
-    <label for="estado">Estado del paquete</label>
+    <label for="estadoSeg">Estado del paquete</label>
     <select id="estadoSeg" name="estado">
       <option value="">-- Seleccione --</option>
       <option value="recibido">Recibido</option>
@@ -459,7 +407,6 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   <input type="number" id="tarifaSeg" name="tarifaSeg" step="0.1" min="0" placeholder="Ej: 1.1">
 </div>
 
-
   <div class="form-group">
     <label for="fechaEstado">Ingrese fecha</label>
     <input type="date" id="fechaEstado" name="fechaEstado">
@@ -471,7 +418,6 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 </div>
 </section>
-
 
 <!-- ESTADÍSTICAS (Nueva sección) -->
 <section id="estadisticas">
@@ -518,11 +464,32 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 </div>
 
+<!-- Lightbox Pedido (nuevo) -->
+<div id="lightbox-pedido" class="lightbox hidden" aria-hidden="true">
+  <div class="lightbox-content">
+    <button class="close-lightbox-pedido">&times;</button>
+    <h2 id="lbPedidoTitulo">Pedido</h2>
+    <div style="text-align:left;margin-top:8px;">
+      <div style="margin:8px 0;"><strong>Nombre:</strong> <span id="lbNombre">-</span></div>
+      <div style="margin:8px 0;"><strong>Teléfono:</strong> <a id="lbTelefono" class="pedido-phone" target="_blank" rel="noopener">-</a></div>
+      <div style="margin:8px 0;"><strong>Plataforma / Agencia:</strong> <span id="lbAgencia">-</span></div>
+      <div style="margin:8px 0;"><strong>Descripción:</strong> <span id="lbDescripcion">-</span></div>
+      <div style="margin:8px 0;"><strong>Tipo de envío:</strong> <span id="lbTipo">-</span></div>
+      <div style="margin:8px 0 0;"><strong>Peso aproximado:</strong> <span id="lbPeso">-</span></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="btnRechazarPedido" class="btn-eliminar" style="flex:1;">Rechazar pedido</button>
+      <button id="btnAceptarPedido" class="action-btn" style="flex:1;background:var(--color-accent);">Aceptar pedido</button>
+    </div>
+  </div>
+</div>
+
 <!-- Spinner overlay -->
 <div id="overlaySpinner" class="overlay-spinner">
   <div class="spinner-box">
     <div class="spinner"></div>
-    <div>Realizando operación, espera...</div>
+    <div id="overlaySpinnerText">Realizando operación, espera...</div>
   </div>
 </div>
 
@@ -534,39 +501,24 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 </div>
 
 <script>
-/*
-  Integración fetch ajustada al back end que mostraste.
-  - Asegúrate de que API_BASE apunte a tu deployment.
-  - POST /paquetes espera: nombre_cliente, codigo_seguimiento, telefono, tipo_envio_id, peso_libras, tarifa_usd, fecha_estado
-  - PUT  /paquetes/:identifier espera: peso_libras, tarifa_usd, fecha_estado (y opcionalmente estado)
-  - POST /recordatorios espera: titulo, descripcion, fecha_limite
-*/
+/* CONFIG */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
 
-const API_BASE = 'https://nicaexpressway.onrender.com'; // <- ajusta si es necesario
-
-// ================== Helpers DOM ==================
+/* Helpers DOM */
 function $(id){ return document.getElementById(id); }
-function getValOrNull(id){
-  const el = $(id);
-  if(!el) return null;
-  const v = (el.value ?? '').toString().trim();
-  return v === '' ? null : v;
-}
-function getNumberOrNull(id){
-  const v = getValOrNull(id);
-  if (v === null) return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
+function getValOrNull(id){ const el = $(id); if(!el) return null; const v = (el.value ?? '').toString().trim(); return v === '' ? null : v; }
+function getNumberOrNull(id){ const v = getValOrNull(id); if (v === null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
 
-// ================== NAVEGACIÓN (igual que antes) ==================
+/* NAVEGACIÓN */
 const btnInicio = $('btnInicio');
+const btnPedidos = $('btnPedidos');
 const btnAgregar = $('btnAgregar');
 const btnActualizar = $('btnActualizar');
 const btnEstadisticas = $('btnEstadisticas');
 
 const secciones = {
   inicio: $('inicio'),
+  pedidos: $('pedidos'),
   agregar: $('agregar'),
   actualizar: $('actualizar'),
   estadisticas: $('estadisticas')
@@ -576,36 +528,44 @@ function mostrarSeccion(nombre){
   for(let sec in secciones) if(secciones[sec]) secciones[sec].classList.remove('active');
   if(secciones[nombre]) secciones[nombre].classList.add('active');
 
-  [btnInicio, btnAgregar, btnActualizar, btnEstadisticas].forEach(b => { if(b) b.classList.add('inactive'); });
+  [btnInicio, btnPedidos, btnAgregar, btnActualizar, btnEstadisticas].forEach(b => { if(b) b.classList.add('inactive'); });
   if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
+  if(nombre==='pedidos' && btnPedidos) btnPedidos.classList.remove('inactive');
   if(nombre==='agregar' && btnAgregar) btnAgregar.classList.remove('inactive');
   if(nombre==='actualizar' && btnActualizar) btnActualizar.classList.remove('inactive');
   if(nombre==='estadisticas' && btnEstadisticas) btnEstadisticas.classList.remove('inactive');
 }
 if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+if(btnPedidos) btnPedidos.addEventListener('click',()=>{ mostrarSeccion('pedidos'); cargarPedidos(); });
 if(btnAgregar) btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
 if(btnActualizar) btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
 if(btnEstadisticas) btnEstadisticas.addEventListener('click',()=>{
-  const so = $('statsOverlay');
-  if(so) so.style.display = 'flex';
+  const so = $('statsOverlay'); if(so) so.style.display = 'flex';
 });
 
-// ================== FECHA ACTUAL PRESELECCIONADA ==================
+/* FECHA DEFAULT */
 const fechaEstadoDefault = new Date().toISOString().split('T')[0];
 if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
 if ($('fechaRecord')) $('fechaRecord').value = fechaEstadoDefault;
-if ($('fecha')) { /* reservado si tu formulario usa id 'fecha' */ }
 
-// ================== SPINNER / POP RESULT ==================
+/* Spinner / popResult helpers */
 const overlaySpinner = $('overlaySpinner');
 const popResult = $('popResult');
 const popResultTitle = $('popResultTitle');
 const popResultMsg = $('popResultMsg');
 const popResultClose = $('popResultClose');
 
-function showSpinner(){ if(overlaySpinner){ overlaySpinner.style.display = 'flex'; } if(window.appWrapper) appWrapper.style.filter = 'blur(3px)'; }
-function hideSpinner(){ if(overlaySpinner){ overlaySpinner.style.display = 'none'; } if(window.appWrapper) appWrapper.style.filter = ''; }
-
+function showSpinner(text){
+  if(overlaySpinner){
+    if(text) { const t = $('overlaySpinnerText'); if(t) t.textContent = text; }
+    overlaySpinner.style.display = 'flex';
+  }
+  if(window.appWrapper) appWrapper.style.filter = 'blur(3px)';
+}
+function hideSpinner(){
+  if(overlaySpinner) overlaySpinner.style.display = 'none';
+  if(window.appWrapper) appWrapper.style.filter = '';
+}
 function showResult(title, msg){
   if(popResultTitle) popResultTitle.textContent = title;
   if(popResultMsg) popResultMsg.textContent = msg;
@@ -613,151 +573,7 @@ function showResult(title, msg){
 }
 if(popResultClose) popResultClose.addEventListener('click', ()=>{ if(popResult) popResult.style.display = 'none'; });
 
-// ================== FORMULARIOS ==================
-const formAgregar = $('formAgregar');
-const formActualizar = $('formActualizar');
-
-// map tipo string -> id según tu tabla tipos_envio (1=aereo,2=maritimo)
-function mapTipoToId(tipoStr){
-  // acepta 'aereo'|'maritimo' o '1'|'2'
-  if (tipoStr === '1' || tipoStr === 1) return 1;
-  if (tipoStr === '2' || tipoStr === 2) return 2;
-  return tipoStr === 'aereo' ? 1 : (tipoStr === 'maritimo' ? 2 : null);
-}
-
-// ---------- AGREGAR PAQUETE (POST) ----------
-if (formAgregar) {
-  formAgregar.addEventListener('submit', async function(e){
-    e.preventDefault();
-
-    // Leer campos (si tu HTML tiene estos ids)
-    const nombre = getValOrNull('nombre');
-    const codigo = getValOrNull('codigo');
-    const telCode = getValOrNull('telCode') || ''; // ejemplo: +505
-    const telefonoDigits = getValOrNull('telefonoDigits') || getValOrNull('telefono'); // si tienes 'telefono' simple
-    const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
-    const tipoSel = getValOrNull('tipo'); // ejemplo: 'aereo' or 'maritimo' or '1'/'2'
-    const tipo_envio_id = mapTipoToId(tipoSel);
-
-    // Opcionales: peso, tarifa, fecha_estado (si tus inputs existen)
-    const peso_libras = getNumberOrNull('peso') ?? getNumberOrNull('peso_libras');
-    const tarifa_usd = getNumberOrNull('tarifa') ?? getNumberOrNull('tarifa_usd');
-    const fecha_estado = getValOrNull('fechaEstadoAgregar') ?? getValOrNull('fecha_estado') ?? null;
-
-    const payload = {
-      nombre_cliente: nombre || null,
-      codigo_seguimiento: codigo || null,
-      telefono: telefono || null,
-      tipo_envio_id: tipo_envio_id ?? null,
-      // sólo agregar los opcionales si no son null (para mantener request limpio)
-    };
-
-    if (peso_libras !== null) payload.peso_libras = peso_libras;
-    if (tarifa_usd !== null) payload.tarifa_usd = tarifa_usd;
-    if (fecha_estado !== null) payload.fecha_estado = fecha_estado;
-
-    showSpinner();
-    try {
-      const res = await fetch(`${API_BASE}/paquetes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        let errText = `Error ${res.status}`;
-        try { const errJson = await res.json(); if(errJson?.error) errText = errJson.error; } catch(_) {}
-        throw new Error(errText);
-      }
-
-      // éxito
-      hideSpinner();
-      showResult('Operación realizada', 'Paquete registrado correctamente.');
-      formAgregar.reset();
-      // volver a preseleccionar la fecha actual si había campo
-      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
-    } catch(err){
-      hideSpinner();
-      console.error('Agregar paquete error:', err);
-      showResult('Error', 'No se pudo registrar el paquete. Revisa la consola o intenta más tarde.');
-    }
-  });
-}
-
-// ---------- ACTUALIZAR SEGUIMIENTO (PUT /paquetes/:identifier) ----------
-if (formActualizar) {
-  formActualizar.addEventListener('submit', async function(e){
-    e.preventDefault();
-
-    // identifier (puede ser código de seguimiento o id numérico)
-    const identifier = getValOrNull('codigoSeg');
-    if (!identifier) { showResult('Error', 'Debe ingresar el código o ID del paquete.'); return; }
-
-    // Campos opcionales a actualizar
-    const pesoRaw = getValOrNull('pesoSeg');        // input id: pesoSeg
-    const tarifaRaw = getValOrNull('tarifaSeg');    // input id: tarifaSeg
-    const fecha_estado = getValOrNull('fechaEstado') || null; // input id: fechaEstado
-    const estado = getValOrNull('estadoSeg') || null; // si quieres mandar estado para historial (opcional)
-
-    // Construir updateObj según espera tu backend (peso_libras, tarifa_usd, fecha_estado, estado)
-    const updateObj = {};
-    if (pesoRaw !== null) {
-      const p = Number(pesoRaw);
-      if (!Number.isNaN(p)) updateObj.peso_libras = p;
-    }
-    if (tarifaRaw !== null) {
-      const t = Number(tarifaRaw);
-      if (!Number.isNaN(t)) updateObj.tarifa_usd = t;
-    }
-    if (fecha_estado !== null) updateObj.fecha_estado = fecha_estado;
-    if (estado !== null) updateObj.estado = estado; // backend añadirá a historial si viene estado + fecha_estado
-
-    if (Object.keys(updateObj).length === 0){
-      showResult('Aviso', 'No hay campos para actualizar.');
-      return;
-    }
-
-    showSpinner();
-    try {
-      // Usamos PUT con identifier en la URL (backend soporta id numérico o codigo_seguimiento)
-      const res = await fetch(`${API_BASE}/paquetes/${encodeURIComponent(identifier)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateObj)
-      });
-
-      if (!res.ok) {
-        let errText = `Actualizar fallo ${res.status}`;
-        try {
-          const errJson = await res.json();
-          if (errJson?.error) errText = errJson.error;
-        } catch (_) {}
-        throw new Error(errText);
-      }
-
-      const result = await res.json();
-      // backend devuelve array con filas actualizadas
-      const data = Array.isArray(result) ? result : (result?.data ?? result);
-
-      if (!data || (Array.isArray(data) && data.length === 0)) {
-        hideSpinner();
-        showResult('No encontrado', 'No se encontró paquete con ese identificador o no se realizaron cambios.');
-        return;
-      }
-
-      hideSpinner();
-      showResult('Operación realizada', 'Estado del paquete actualizado.');
-      formActualizar.reset();
-      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
-    } catch(err){
-      hideSpinner();
-      console.error('Actualizar seguimiento error:', err);
-      showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
-    }
-  });
-}
-
-// ================== RECORDATORIOS ==================
+/* ---------- RECORDATORIOS (sin cambios significativos) ---------- */
 const listDiv = $('listaRecordatorios');
 const formR = $('formRecord');
 const popForm = $('popFormRecord');
@@ -788,7 +604,6 @@ async function cargarRecord(){
     renderRecordList(mapped);
   }
 }
-
 function renderRecordList(arr){
   if (!listDiv) return;
   const hoy = new Date().toISOString().split('T')[0];
@@ -806,21 +621,16 @@ function renderRecordList(arr){
     if ((r.fecha_limite || r.fecha) === hoy){ div.querySelector('.recordatorio-info').style.animation = "parpadeo 1.2s infinite"; }
   });
 }
-
-// abrir/ cerrar form
 if (btnAgregarRecord) btnAgregarRecord.addEventListener('click', ()=>{ if(popForm) popForm.style.display='block'; });
 if (cerrarPopForm) cerrarPopForm.addEventListener('click', ()=>{ if(popForm) popForm.style.display='none'; });
 
-// submit agregar record (POST)
 if (formR) {
   formR.addEventListener('submit', async (e) => {
     e.preventDefault();
     const titulo = getValOrNull('tituloRecord');
     const desc = getValOrNull('descRecord');
     const fecha = getValOrNull('fechaRecord');
-
     const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
-
     showSpinner();
     try {
       const res = await fetch(`${API_BASE}/recordatorios`, {
@@ -848,7 +658,7 @@ if (formR) {
 }
 if (cerrarPopConfirm) cerrarPopConfirm.addEventListener('click', ()=>{ if(popConfirm) popConfirm.style.display = 'none'; });
 
-// Delegación: botones X (eliminar) y click item (lightbox)
+/* Delegación recordatorios (abrir/eliminar) */
 const lightbox = $('lightbox-recordatorio');
 const closeBtn = document.querySelector('.close-lightbox');
 const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
@@ -910,11 +720,10 @@ if(lbDelete) lbDelete.addEventListener('click', () => {
   }
 });
 
-// confirmar eliminación (popEliminarConfirm)
+/* confirm delete record */
 if (btnConfirmEliminar) {
   btnConfirmEliminar.addEventListener('click', async () => {
     if (!indexEliminar) { if(popEliminarConfirm) popEliminarConfirm.style.display='none'; return; }
-
     showSpinner();
     try {
       if (String(indexEliminar).startsWith('local-')) {
@@ -929,7 +738,6 @@ if (btnConfirmEliminar) {
         indexEliminar = null;
         return;
       }
-
       const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`Delete failed ${res.status}`);
       hideSpinner();
@@ -947,7 +755,296 @@ if (btnConfirmEliminar) {
 }
 if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', ()=>{ if(popEliminarConfirm) popEliminarConfirm.style.display='none'; indexEliminar=null; });
 
-// ================== LOCKS / STATS (igual que antes, con checks) ==================
+/* ---------- AGREGAR Y ACTUALIZAR (igual que antes) ---------- */
+const formAgregar = $('formAgregar');
+const formActualizar = $('formActualizar');
+
+function mapTipoToId(tipoStr){
+  if (tipoStr === '1' || tipoStr === 1) return 1;
+  if (tipoStr === '2' || tipoStr === 2) return 2;
+  return tipoStr === 'aereo' ? 1 : (tipoStr === 'maritimo' ? 2 : null);
+}
+
+/* Agregar paquete */
+if (formAgregar) {
+  formAgregar.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const nombre = getValOrNull('nombre');
+    const codigo = getValOrNull('codigo');
+    const telCode = getValOrNull('telCode') || '';
+    const telefonoDigits = getValOrNull('telefonoDigits') || getValOrNull('telefono');
+    const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
+    const tipoSel = getValOrNull('tipo');
+    const tipo_envio_id = mapTipoToId(tipoSel);
+    const peso_libras = getNumberOrNull('peso') ?? getNumberOrNull('peso_libras');
+    const tarifa_usd = getNumberOrNull('tarifa') ?? getNumberOrNull('tarifa_usd');
+    const fecha_estado = getValOrNull('fechaEstadoAgregar') ?? getValOrNull('fecha_estado') ?? null;
+
+    const payload = {
+      nombre_cliente: nombre || null,
+      codigo_seguimiento: codigo || null,
+      telefono: telefono || null,
+      tipo_envio_id: tipo_envio_id ?? null,
+    };
+    if (peso_libras !== null) payload.peso_libras = peso_libras;
+    if (tarifa_usd !== null) payload.tarifa_usd = tarifa_usd;
+    if (fecha_estado !== null) payload.fecha_estado = fecha_estado;
+
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/paquetes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        let errText = `Error ${res.status}`;
+        try { const errJson = await res.json(); if(errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
+      hideSpinner();
+      showResult('Operación realizada', 'Paquete registrado correctamente.');
+      formAgregar.reset();
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.error('Agregar paquete error:', err);
+      showResult('Error', 'No se pudo registrar el paquete. Revisa la consola o intenta más tarde.');
+    }
+  });
+}
+
+/* Actualizar seguimiento */
+if (formActualizar) {
+  formActualizar.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const identifier = getValOrNull('codigoSeg');
+    if (!identifier) { showResult('Error', 'Debe ingresar el código o ID del paquete.'); return; }
+
+    const pesoRaw = getValOrNull('pesoSeg');
+    const tarifaRaw = getValOrNull('tarifaSeg');
+    const fecha_estado = getValOrNull('fechaEstado') || null;
+    const estado = getValOrNull('estadoSeg') || null;
+
+    const updateObj = {};
+    if (pesoRaw !== null) { const p = Number(pesoRaw); if (!Number.isNaN(p)) updateObj.peso_libras = p; }
+    if (tarifaRaw !== null) { const t = Number(tarifaRaw); if (!Number.isNaN(t)) updateObj.tarifa_usd = t; }
+    if (fecha_estado !== null) updateObj.fecha_estado = fecha_estado;
+    if (estado !== null) updateObj.estado = estado;
+
+    if (Object.keys(updateObj).length === 0){
+      showResult('Aviso', 'No hay campos para actualizar.');
+      return;
+    }
+
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/paquetes/${encodeURIComponent(identifier)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateObj)
+      });
+      if (!res.ok) {
+        let errText = `Actualizar fallo ${res.status}`;
+        try { const errJson = await res.json(); if (errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
+      const result = await res.json();
+      const data = Array.isArray(result) ? result : (result?.data ?? result);
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        hideSpinner();
+        showResult('No encontrado', 'No se encontró paquete con ese identificador o no se realizaron cambios.');
+        return;
+      }
+      hideSpinner();
+      showResult('Operación realizada', 'Estado del paquete actualizado.');
+      formActualizar.reset();
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.error('Actualizar seguimiento error:', err);
+      showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
+    }
+  });
+}
+
+/* =============== PEDIDOS: fetch + render + lightbox actions =============== */
+const listaPedidos = $('listaPedidos');
+const lightboxPedido = $('lightbox-pedido');
+const closeLightboxPedidoBtn = document.querySelector('.close-lightbox-pedido');
+const lbNombre = $('lbNombre'), lbTelefono = $('lbTelefono'), lbAgencia = $('lbAgencia'), lbDescripcion = $('lbDescripcion'), lbTipo = $('lbTipo'), lbPeso = $('lbPeso'), lbPedidoTitulo = $('lbPedidoTitulo');
+const btnRechazarPedido = $('btnRechazarPedido'), btnAceptarPedido = $('btnAceptarPedido');
+
+async function cargarPedidos(){
+  if (!listaPedidos) return;
+  listaPedidos.innerHTML = '<p>Cargando pedidos...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/pedidos`);
+    if (!res.ok) throw new Error(`fetch ${res.status}`);
+    const arr = await res.json();
+    renderPedidosList(arr);
+  } catch(err){
+    console.warn('Fallo al cargar pedidos desde API:', err);
+    // fallback: mostrar mensaje
+    listaPedidos.innerHTML = '<p>No se pudo cargar pedidos. Intenta más tarde.</p>';
+  }
+}
+
+function tipoTextFromId(id){
+  if (id === 1 || String(id) === '1') return 'Aéreo';
+  if (id === 2 || String(id) === '2') return 'Marítimo';
+  return id || '-';
+}
+
+function renderPedidosList(arr){
+  if (!listaPedidos) return;
+  listaPedidos.innerHTML = '';
+  if (!arr || arr.length === 0){
+    listaPedidos.innerHTML = '<p>No hay pedidos por el momento.</p>';
+    return;
+  }
+  // render each pedido
+  arr.forEach((p) => {
+    const div = document.createElement('div');
+    div.classList.add('recordatorio-item');
+    div.dataset.id = p.id ?? '';
+    // left: name + agency; right: type
+    const nombre = p.nombre ?? p.nombre_cliente ?? '-';
+    const agencia = p.agencia ?? p.plataforma ?? '-';
+    const tipo = tipoTextFromId(p.tipo_envio_id ?? p.tipo_envio ?? null);
+    div.innerHTML = `
+      <div class="recordatorio-info"><strong>${escapeHtml(nombre)}</strong><br>${escapeHtml(agencia)}</div>
+      <div class="pedido-type">${escapeHtml(tipo)}</div>
+    `;
+    listaPedidos.appendChild(div);
+  });
+}
+
+/* Delegación click listaPedidos -> open lightbox */
+if (listaPedidos) {
+  listaPedidos.addEventListener('click', async (e) => {
+    const item = e.target.closest('.recordatorio-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (!id) return;
+    // show spinner while fetching details (use overlaySpinner)
+    showSpinner('Cargando pedido...');
+    try {
+      const res = await fetch(`${API_BASE}/pedidos/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error(`No se pudo obtener pedido ${res.status}`);
+      const pd = await res.json();
+      // fill lightbox
+      const nombre = pd.nombre ?? pd.nombre_cliente ?? '-';
+      const telefono = pd.telefono ?? '-';
+      const agencia = pd.agencia ?? pd.plataforma ?? '-';
+      const descripcion = pd.descripcion ?? pd.description ?? '-';
+      const tipo = tipoTextFromId(pd.tipo_envio_id ?? pd.tipo_envio ?? null);
+      const peso = (pd.peso_aprox !== undefined && pd.peso_aprox !== null) ? `${Number(pd.peso_aprox).toFixed(2)} lb` : (pd.peso_libras ? `${Number(pd.peso_libras).toFixed(2)} lb` : '-');
+
+      lbNombre.textContent = nombre;
+      // phone link (normalize digits)
+      const digits = String(telefono || '').replace(/\D/g,'');
+      if (digits.length > 0) {
+        lbTelefono.textContent = telefono;
+        lbTelefono.href = `https://wa.me/${digits}`;
+        lbTelefono.style.display = 'inline';
+      } else {
+        lbTelefono.textContent = telefono || '-';
+        lbTelefono.removeAttribute('href');
+      }
+      lbAgencia.textContent = agencia;
+      lbDescripcion.textContent = descripcion;
+      lbTipo.textContent = tipo;
+      lbPeso.textContent = peso;
+      lbPedidoTitulo.textContent = `Pedido #${id}`;
+
+      // store current pedido id on the lightbox element for handler use
+      lightboxPedido.dataset.currentId = id;
+
+      hideSpinner();
+      // show lightbox
+      lightboxPedido.classList.remove('hidden');
+      lightboxPedido.setAttribute('aria-hidden','false');
+    } catch(err){
+      hideSpinner();
+      console.error('Error cargando pedido:', err);
+      showResult('Error', 'No se pudo obtener el detalle del pedido. Revisa la consola.');
+    }
+  });
+}
+
+/* Close pedido lightbox */
+if (closeLightboxPedidoBtn) closeLightboxPedidoBtn.addEventListener('click', ()=> {
+  if (lightboxPedido) { lightboxPedido.classList.add('hidden'); lightboxPedido.setAttribute('aria-hidden','true'); }
+});
+if (lightboxPedido) lightboxPedido.addEventListener('click', (e) => { if (e.target === lightboxPedido) { lightboxPedido.classList.add('hidden'); lightboxPedido.setAttribute('aria-hidden','true'); } });
+
+/* Action: notify (accept/reject) */
+async function notifyPedidoAction(action) {
+  const id = lightboxPedido.dataset.currentId;
+  if (!id) { showResult('Error', 'Pedido no identificado'); return; }
+
+  // show spinner overlay
+  showSpinner('Realizando acción, espera...');
+  try {
+    // call backend endpoint prepared to receive notifications
+    // Endpoint used: POST /pedidos/:id/notify  with body { action: 'accept'|'reject' }
+    const res = await fetch(`${API_BASE}/pedidos/${encodeURIComponent(id)}/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action })
+    });
+
+    if (!res.ok) {
+      // try to parse json msg
+      let msg = `Error ${res.status}`;
+      try {
+        const j = await res.json();
+        if (j?.error) msg = j.error;
+        else if (j?.message) msg = j.message;
+      } catch(_) {}
+      hideSpinner();
+      showResult('Error', `La acción falló: ${msg}`);
+      return;
+    }
+
+    // success
+    const data = await res.json().catch(()=>null);
+    hideSpinner();
+    // close lightbox
+    if (lightboxPedido) { lightboxPedido.classList.add('hidden'); lightboxPedido.setAttribute('aria-hidden','true'); }
+    // show confirmation pop
+    showResult('Notificación enviada', data?.message ?? 'Se le avisó al cliente.');
+    // Optionally refresh list
+    cargarPedidos();
+  } catch(err){
+    hideSpinner();
+    console.error('notifyPedidoAction error', err);
+    showResult('Error', 'No se pudo realizar la acción. Revisa la consola.');
+  }
+}
+
+/* wire buttons */
+if (btnRechazarPedido) btnRechazarPedido.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  // confirmation? For now call notify endpoint directly
+  await notifyPedidoAction('reject');
+});
+if (btnAceptarPedido) btnAceptarPedido.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  await notifyPedidoAction('accept');
+});
+
+/* small util */
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ============== LOCKS / STATS (sin cambios funcionales) ============== */
 const PASS_LOCK  = "12345678";
 const PASS_STATS = "12345678";
 
@@ -975,7 +1072,9 @@ function tryUnlock(){
     if(lockOverlay) lockOverlay.style.display = 'none';
     if(appWrapper) appWrapper.style.filter = 'none';
     lockPass.value = '';
+    // cargar datos protegidos
     cargarRecord();
+    cargarPedidos(); // cargar pedidos también al desbloquear
   } else {
     if(lockError) lockError.style.display = 'block';
   }
@@ -989,9 +1088,7 @@ function openStats(){
   if(statsError) statsError.style.display = 'none';
   if(statsPass) { statsPass.value = ''; statsPass.focus(); }
 }
-function closeStats(){
-  if(statsOverlay) statsOverlay.style.display = 'none';
-}
+function closeStats(){ if(statsOverlay) statsOverlay.style.display = 'none'; }
 function loadStatsIfAuthorized(){
   if(!statsPass) return;
   if (statsPass.value === PASS_STATS){
@@ -1010,8 +1107,8 @@ if(statsSubmit) statsSubmit.addEventListener('click', loadStatsIfAuthorized);
 if(statsPass) statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
 if(statsCancel) statsCancel.addEventListener('click', closeStats);
 
-// ================== Inicial ==================
-/* No cargamos recordatorios hasta que el panel esté desbloqueado; el unlock llamará a cargarRecord() */
+/* No cargamos recordatorios/pedidos hasta desbloqueo (tryUnlock los llama) */
+
 </script>
 </body>
 </html>
