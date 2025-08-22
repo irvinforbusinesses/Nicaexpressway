@@ -9,6 +9,7 @@
 :root{
   --color-bg:#E8F0F5;
   --color-accent:#2F528F;
+  --lapis:#1F3A66; /* lapis lazuli para resaltados */
   --text:#1A1A1A;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -19,13 +20,14 @@ body{
   padding:1rem;
   max-width:500px;
   margin:auto;
-  padding-bottom:80px;
+  padding-bottom:120px;
 }
 header{text-align:center;margin-bottom:1.5rem}
 h1{font-family:'Poppins',sans-serif;font-size:1.8rem;color:var(--color-accent)}
 nav{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
 nav button{flex:1;background:var(--color-accent);color:#fff;border:none;padding:.75rem;font-weight:700;border-radius:8px;cursor:pointer}
 nav button.inactive{background:#a0b6e0}
+nav button#btnSeguimiento.active-highlight { background: var(--lapis); }
 
 /* sections */
 section{
@@ -36,7 +38,7 @@ section{
   display:none;
   opacity:0;
   transform:translateY(12px);
-  animation: fadeIn 0.7s forwards;
+  animation: fadeIn 0.36s forwards;
   box-shadow:0 6px 14px rgba(0,0,0,0.08);
 }
 section.active{display:block}
@@ -101,7 +103,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* responsive tweaks */
 @media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
 
-/* ======= NUEVOS: Solicitar section + popups styling ======= */
+/* ======= SOLICITAR tweaks (button hidden in nav only) ======= */
 #solicitar .resultado-solicitar { margin-top:12px; font-weight:700; }
 #reciboSolicitar { margin-top:10px; padding:12px; border-radius:10px; background:#fbfcfe; border:1px solid #eef3f8; display:none; text-align:left; }
 #reciboSolicitar .line { margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
@@ -120,11 +122,100 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
 .check-icon svg { display:block; }
 
-/* small error text in waiting pop */
-#waitingPop .error { color:#c0392b; margin-top:8px; font-size:0.95rem; }
+/* waiting overlay small used by lightbox when fetching historial */
+.lightbox-loading { padding:10px 14px; border-radius:10px; background:#fff; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
 
-/* smooth fade when section toggles - keep as is since sections have animation */
-/* end new styles */
+/* Multi-result cards (match operator look & feel) */
+.multi-list { margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; }
+.multi-card {
+  background: #fbfcfe;
+  border: 1px solid #eef3f8;
+  padding: 0.8rem;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.multi-card:hover { transform: translateY(-3px); box-shadow:0 8px 18px rgba(31,58,102,0.06); }
+.multi-card .left { display:flex; flex-direction:column; gap:6px; }
+.multi-card .title { font-weight:700; color:var(--color-accent); }
+.multi-card .subtitle { font-size:0.9rem; color:#666; }
+.multi-card .right { font-weight:700; color:var(--color-accent); font-size:0.95rem; }
+
+/* Lightbox modal for package detail */
+#packageLightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  padding: 1rem;
+}
+#packageLightbox {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.16);
+  max-height: 86vh;
+  overflow-y: auto;
+  position: relative;
+}
+#packageLightbox .close-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #fff; border: 1px solid #e6e9ef;
+  width: 38px; height:38px; border-radius:50%; font-size:18px; cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+#packageLightbox h3 { margin-bottom: 6px; color: var(--color-accent); font-family: 'Poppins', sans-serif; }
+.package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
+.package-info-row .info { flex:1; background:#fbfcfe;padding:10px;border-radius:8px;border:1px solid #eef3f8; }
+
+/* WhatsApp CTA for cotizar */
+#cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
+.wa-cta {
+  display:inline-flex; align-items:center; justify-content:center;
+  background: var(--color-accent); color:#fff; padding:12px 18px; border-radius:999px;
+  text-decoration:none; font-weight:700; font-size:1rem; box-shadow:0 6px 18px rgba(31,58,102,0.14); opacity:0; transform: translateY(6px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.wa-cta.visible { opacity:1; transform: translateY(0); }
+@keyframes floatLoop { 0%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} 100%{ transform: translateY(0);} }
+.wa-cta.float { animation: floatLoop 3s ease-in-out infinite; }
+
+/* Subtitle style (footer-like, centered, with line below) */
+.subtitle-footer {
+  text-align:center;
+  color:#888;
+  font-size:0.85rem;
+  margin:8px 0 12px;
+  font-family: 'Poppins', sans-serif;
+  font-weight:600;
+  position:relative;
+  padding-bottom:10px;
+}
+.subtitle-footer::after{
+  content:"";
+  display:block;
+  height:1px;
+  width:70%;
+  margin:8px auto 0;
+  background:#e6e9ef;
+  border-radius:2px;
+}
+
+/* ensure no generic browser look for modal buttons */
+.modal-close-btn { margin-top:12px; background:#888;color:#fff;border:none;padding:.6rem .8rem;border-radius:8px; cursor:pointer; }
+
+/* small utilities */
+.hidden{ display:none !important; }
+
 </style>
 </head>
 <body>
@@ -134,7 +225,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   <nav>
     <button id="btnInicio">Inicio</button>
     <button id="btnCotizar" class="inactive">Cotizar</button>
-    <button id="btnSolicitar" class="inactive">Solicitar</button>
+    <button id="btnSolicitar" class="inactive" style="display:none;" title="Oculto por solicitud del cliente (no borrado)">Solicitar</button>
     <button id="btnSeguimiento" class="inactive">Seguimiento</button>
   </nav>
 </header>
@@ -153,21 +244,29 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <!-- COTIZAR -->
 <section id="cotizar">
   <h2>Calculadora de Envío</h2>
-  <label for="tipoEnvio">Tipo de envío:</label>
-  <select id="tipoEnvio">
-    <option value="aereo">Aéreo</option>
-    <option value="maritimo">Marítimo</option>
-  </select>
 
-  <label for="peso">Peso aproximado (libras):</label>
-  <input type="number" id="peso" placeholder="Ej: 5">
+  <div style="max-width:420px;margin:0 auto;">
+    <label for="tipoEnvio">Tipo de envío:</label>
+    <select id="tipoEnvio">
+      <option value="aereo">Aéreo</option>
+      <option value="maritimo">Marítimo</option>
+    </select>
 
-  <button class="calc-btn" onclick="calcular()">Calcular</button>
+    <label for="peso">Peso aproximado (libras):</label>
+    <input type="number" id="peso" placeholder="Ej: 5">
 
-  <div class="resultado" id="resultado"></div>
+    <button class="calc-btn" id="btnCalcularMain">Calcular</button>
+
+    <div id="resultado" class="package-box" style="text-align:center;margin-top:12px;display:none"></div>
+  </div>
+
+  <!-- CTA: aparecerá 3s después del cálculo exitoso -->
+  <div id="cotizarCtaWrap" style="display:flex;justify-content:center;">
+    <!-- inserted by JS -->
+  </div>
 </section>
 
-<!-- SOLICITAR (NUEVO) -->
+<!-- SOLICITAR (se deja la sección intacta pero el botón nav está oculto) -->
 <section id="solicitar">
   <h2>Solicita tu pedido</h2>
 
@@ -211,14 +310,14 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 
 </section>
 
-<!-- SEGUIMIENTO (actualizado) -->
+<!-- SEGUIMIENTO (actualizado y reordenado según pedido) -->
 <section id="seguimiento">
-  <h2>Seguimiento de Pedido</h2>
+  <h2 id="seguimientoTitle">Manejo de pedidos</h2>
 
-  <!-- Form: codigo OR nombre OR telefono -->
-  <label for="codigo">Código de seguimiento</label>
-  <input type="text" id="codigo" placeholder="Ej: ABC123">
+  <!-- subtitulo estilo footer centrado -->
+  <div class="subtitle-footer">Busca por cliente (nombre o teléfono)</div>
 
+  <!-- Primero: campos Nombre + Teléfono -->
   <label for="nombreBuscar">Nombre del cliente</label>
   <input type="text" id="nombreBuscar" placeholder="Ej: Lester Gamez">
 
@@ -232,6 +331,13 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <input type="tel" id="telefonoBuscar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
   </div>
 
+  <!-- subtitulo 2 con linea -->
+  <div class="subtitle-footer" style="margin-top:8px;">O busca un paquete en específico con el código de seguimiento</div>
+
+  <!-- ahora el campo Código -->
+  <label for="codigo">Código de seguimiento</label>
+  <input type="text" id="codigo" placeholder="Ej: ABC123">
+
   <div class="row" style="gap:.6rem;margin-top:.6rem;">
     <div class="col"><button id="btnBuscar" class="calc-btn">Buscar</button></div>
     <div class="col"><button id="btnLimpiar" class="calc-btn" style="background:#888;">Limpiar</button></div>
@@ -242,7 +348,10 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <strong>Buscando tu paquete, espera...</strong>
   </div>
 
-  <!-- Resultado -->
+  <!-- Multi-results (cuando la búsqueda por cliente devuelve varios) -->
+  <div id="multiResults" class="multi-list" style="display:none;"></div>
+
+  <!-- Resultado individual (timeline + detalles) -->
   <div id="resultContainer" class="package-box" style="display:none;">
     <!-- timeline -->
     <div id="timeline" class="timeline"></div>
@@ -268,6 +377,37 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 
   <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado del envío.</div>
 </section>
+
+<!-- Lightbox overlay for package detail -->
+<div id="packageLightboxOverlay" aria-hidden="true">
+  <div id="packageLightbox" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+    <button class="close-btn" id="lbClose" aria-label="Cerrar ventana">×</button>
+    <h3 id="lbTitle">Pedido</h3>
+
+    <!-- header info: "Pedido hecho el {fecha1}" + tipo/peso/tarifa -->
+    <div id="lbHeader" style="margin-top:6px;">
+      <div id="lbWhen" style="font-weight:700;color:var(--color-accent);">Pedido hecho el -</div>
+      <div class="package-info-row" style="margin-top:8px;">
+        <div class="info"><div class="small-muted">Tipo de envío</div><div id="lbTipo">-</div></div>
+        <div class="info"><div class="small-muted">Peso aproximado</div><div id="lbPeso">-</div></div>
+        <div class="info"><div class="small-muted">Tarifa / lb</div><div id="lbTarifa">-</div></div>
+      </div>
+    </div>
+
+    <!-- small loader while fetching historial -->
+    <div id="lbLoading" style="display:none;margin-top:12px;justify-content:center;">
+      <div class="lightbox-loading"><div class="spinner" style="width:28px;height:28px;border-width:3px;"></div><div style="font-weight:700;color:var(--color-accent);margin-left:8px;">Cargando historial...</div></div>
+    </div>
+
+    <!-- timeline container -->
+    <div id="lbTimeline" class="timeline" style="margin-top:12px;"></div>
+
+    <!-- close CTA only -->
+    <div style="text-align:center;margin-top:10px;">
+      <button id="lbCloseBtn" class="modal-close-btn">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- waiting popup (solicitando) -->
 <div id="waitingPop" role="status" aria-live="polite">
@@ -303,10 +443,10 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* CONFIG */
 const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
 
-/* UI refs (existing + new) */
+/* UI refs */
 const btnInicio = document.getElementById('btnInicio');
 const btnCotizar = document.getElementById('btnCotizar');
-const btnSolicitar = document.getElementById('btnSolicitar');
+const btnSolicitar = document.getElementById('btnSolicitar'); // oculto en nav
 const btnSeguimiento = document.getElementById('btnSeguimiento');
 
 const secciones = {
@@ -316,7 +456,15 @@ const secciones = {
   seguimiento: document.getElementById('seguimiento')
 };
 
-/* Navigation */
+/* Navigation with seguimiento highlight using lapis color */
+function resetNavStyles(){
+  [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{
+    if(!b) return;
+    b.classList.remove('active-highlight');
+    // reset inline background to default if needed
+    b.style.background = '';
+  });
+}
 function mostrarSeccion(nombre){
   for(let s in secciones) {
     if(secciones[s]) secciones[s].classList.remove('active');
@@ -324,30 +472,76 @@ function mostrarSeccion(nombre){
   if(secciones[nombre]) secciones[nombre].classList.add('active');
 
   [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{ if(b) b.classList.add('inactive'); });
-  if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
-  if(nombre==='cotizar' && btnCotizar) btnCotizar.classList.remove('inactive');
-  if(nombre==='solicitar' && btnSolicitar) btnSolicitar.classList.remove('inactive');
-  if(nombre==='seguimiento' && btnSeguimiento) btnSeguimiento.classList.remove('inactive');
+  if(nombre==='inicio' && btnInicio) { btnInicio.classList.remove('inactive'); }
+  if(nombre==='cotizar' && btnCotizar) { btnCotizar.classList.remove('inactive'); }
+  if(nombre==='solicitar' && btnSolicitar) { btnSolicitar.classList.remove('inactive'); }
+  if(nombre==='seguimiento' && btnSeguimiento) {
+    btnSeguimiento.classList.remove('inactive');
+    // highlight seguimiento with lapis
+    btnSeguimiento.classList.add('active-highlight');
+  } else {
+    if(btnSeguimiento) btnSeguimiento.classList.remove('active-highlight');
+  }
 }
 if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
 if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
 if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
-/* calcular (mantener) */
-function calcular(){
-  const tipo = document.getElementById('tipoEnvio').value;
-  const peso = parseFloat(document.getElementById('peso').value);
-  const resultadoDiv = document.getElementById('resultado');
-  if(isNaN(peso)||peso<=0){ resultadoDiv.textContent="Por favor, ingresa un peso válido."; return; }
-  let precio=0,dias=0;
-  if(tipo==='aereo'){ precio = peso*7.50; dias=7; } else { precio = peso*3.00; dias=15; }
-  resultadoDiv.innerHTML = `Precio estimado: $${precio.toFixed(2)} USD<br>Llegada estimada: ${dias} días`;
+/* CALCULAR in Cotizar: compute, show boxed result centered, reset form, then show WA CTA after 3s */
+const btnCalcularMain = document.getElementById('btnCalcularMain');
+const resultadoDiv = document.getElementById('resultado');
+const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
+
+function crearWaButton(){
+  const waHref = 'https://wa.me/17869133662?text=' + encodeURIComponent('Hola, Nica express, me gustaria hacer un pedido.');
+  const a = document.createElement('a');
+  a.className = 'wa-cta';
+  a.href = waHref;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.innerText = 'Realiza tu pedido ahora';
+  return a;
+}
+let waBtnTimeout = null;
+
+function resetCotizarForm(){
+  const tipoEl = document.getElementById('tipoEnvio');
+  const pesoEl = document.getElementById('peso');
+  if(tipoEl) tipoEl.value = 'aereo';
+  if(pesoEl) pesoEl.value = '';
 }
 
+btnCalcularMain.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const tipo = document.getElementById('tipoEnvio').value;
+  const peso = parseFloat(document.getElementById('peso').value);
+  if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); return; }
+  let precio=0,dias=0;
+  if(tipo==='aereo'){ precio = peso*7.50; dias=7; } else { precio = peso*3.00; dias=15; }
+
+  // show boxed result centered
+  resultadoDiv.style.display = 'block';
+  resultadoDiv.innerHTML = `<div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div>`;
+
+  // reset form (as requested)
+  resetCotizarForm();
+
+  // remove any previous wa CTA
+  cotizarCtaWrap.innerHTML = '';
+
+  // show WA CTA after 3s with fade-in + float animation
+  if(waBtnTimeout) clearTimeout(waBtnTimeout);
+  waBtnTimeout = setTimeout(()=>{
+    const btn = crearWaButton();
+    cotizarCtaWrap.appendChild(btn);
+    // force a small delay to allow CSS transition
+    setTimeout(()=> { btn.classList.add('visible'); btn.classList.add('float'); }, 50);
+  }, 3000);
+});
+
 /* ================================
-   SEGUIMIENTO: lógica de búsqueda
-   (unchanged)
+   SEGUIMIENTO: búsqueda condicional
    ================================ */
 const btnBuscar = document.getElementById('btnBuscar');
 const btnLimpiar = document.getElementById('btnLimpiar');
@@ -359,6 +553,7 @@ const detalleTipo = document.getElementById('detalleTipo');
 const detallePeso = document.getElementById('detallePeso');
 const detalleTarifa = document.getElementById('detalleTarifa');
 const detalleTotal = document.getElementById('detalleTotal');
+const multiResults = document.getElementById('multiResults');
 
 if(btnBuscar) btnBuscar.addEventListener('click', onBuscar);
 if(btnLimpiar) btnLimpiar.addEventListener('click', onLimpiar);
@@ -373,9 +568,11 @@ function onLimpiar(){
   if(t) t.value='';
   if(cc) cc.value='(505)';
   hideResult();
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
 }
 
-/* Validación: al menos uno de codigo / nombre / telefono */
+/* gather params */
 function gatherSearchParams(){
   const codigo = (document.getElementById('codigo').value||'').trim() || null;
   const nombre = (document.getElementById('nombreBuscar').value||'').trim() || null;
@@ -385,33 +582,48 @@ function gatherSearchParams(){
   return { codigo, nombre, telefono };
 }
 
-function validateAtLeastOne(params){
-  return Boolean(params.codigo || params.nombre || params.telefono);
+/* validation: require at least one, and disallow mixing codigo with (nombre or telefono) */
+function validateSearch(params){
+  if(!(params.codigo || params.nombre || params.telefono)){
+    alert('Ingresa al menos el código, o el nombre, o el teléfono para buscar.');
+    return false;
+  }
+  if(params.codigo && (params.nombre || params.telefono)){
+    alert('Por favor busca por **código** O por **nombre/telefono**. No mezcles ambos.');
+    return false;
+  }
+  return true;
 }
 
-/* Main search handler */
+/* main handler */
 async function onBuscar(){
   const params = gatherSearchParams();
-  if(!validateAtLeastOne(params)){
-    alert('Ingresa al menos el código, o el nombre, o el teléfono para buscar.');
-    return;
-  }
+  if(!validateSearch(params)) return;
 
-  // Mostrar overlay y limpiar
+  // show overlay/loader
   if(overlay) overlay.style.display = 'block';
   hideResult();
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
 
   try {
-    const pkg = await fetchPackageFromAPI(params); // implementada abajo
+    const res = await fetchPackageFromAPI(params);
 
-    if(!pkg){
+    if(!res){
       if(overlay) overlay.style.display = 'none';
       if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'No se encontró paquete con los criterios introducidos.'; }
       return;
     }
 
-    // Mostrar datos en UI
-    renderPackageResult(pkg);
+    // if returns paquetes array -> multiple results
+    if(res.paquetes && Array.isArray(res.paquetes)){
+      renderMultiplePackages(res.paquetes);
+      if(overlay) overlay.style.display = 'none';
+      return;
+    }
+
+    // else single paquete with historial
+    renderPackageResult(res);
     if(overlay) overlay.style.display = 'none';
   } catch (err) {
     console.error('Error búsqueda:', err);
@@ -420,87 +632,56 @@ async function onBuscar(){
   }
 }
 
-/* ===========================
-   fetchPackageFromAPI (unificada)
-   =========================== */
+/* fetch unified: returns either { paquete, historial } for codigo search OR { paquetes: [...] } for name/phone search */
 async function fetchPackageFromAPI({ codigo, nombre, telefono }){
   codigo = codigo ? String(codigo).trim() : null;
   nombre = nombre ? String(nombre).trim() : null;
   telefono = telefono ? String(telefono).trim() : null;
 
-  // 1) si hay código: GET /paquetes?codigo=...
+  // 1) if codigo => GET /paquetes?codigo=...
   if (codigo) {
     const resP = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
-    if (!resP.ok) {
-      console.warn('paquetes fetch fallo', resP.status);
-      return null;
-    }
+    if (!resP.ok) { console.warn('paquetes fetch fallo', resP.status); return null; }
     const arr = await resP.json();
     if (!Array.isArray(arr) || arr.length === 0) return null;
     const paquete = arr[0];
 
-    // intentar historial
+    // do NOT fetch historial here (Option B) — we'll fetch in lightbox when user opens it.
+    // But to keep current single-package display showing timeline, try to fetch historial now for UX:
+    let historial = null;
     try {
       const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
-      let historial = null;
       if (resH.ok) historial = await resH.json();
-      return { paquete, historial };
-    } catch (err) {
-      console.warn('historial fetch failed', err);
-      return { paquete, historial: null };
-    }
+    } catch(err){ console.warn('historial fetch failed', err); historial = null; }
+
+    return { paquete, historial };
   }
 
-  // 2) si no hay código pero hay nombre/telefono: POST /paquetes/search
+  // 2) if name/phone => POST /paquetes/search (may return multiple)
   if (nombre || telefono) {
     const res = await fetch(`${API_BASE}/paquetes/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre, telefono })
     });
-    if (!res.ok) {
-      console.warn('search endpoint fallo', res.status);
-      return null;
-    }
+    if (!res.ok) { console.warn('search endpoint fallo', res.status); return null; }
     const arr = await res.json();
     if (!Array.isArray(arr) || arr.length === 0) return null;
-    const paquete = arr[0];
 
-    let historial = null;
-    if (paquete?.codigo_seguimiento) {
-      try {
-        const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
-        if (resH.ok) historial = await resH.json();
-      } catch(e){ console.warn('hist fetch failed', e); }
-    }
-    return { paquete, historial };
+    // return the array without fetching historial for each (Option B)
+    return { paquetes: arr };
   }
 
-  // fallback demo para pruebas (si pones codigo='demo' o '1989' o nombre='Lester Gamez')
-  if ((codigo && (codigo.toLowerCase()==='demo' || codigo==='1989')) || nombre==='Lester Gamez'){
-    await delay(700);
-    return {
-      paquete: { codigo_seguimiento: codigo||'1989', tipo_envio_id:1, peso_libras:5.5, tarifa_usd:4.25, fecha_estado:'2025-08-18' },
-      historial: {
-        estado1:'recibido', fecha1:'2025-08-10',
-        estado2:'en_transito', fecha2:'2025-08-12',
-        estado3:'en_aduana', fecha3:'2025-08-16',
-        estado4:'listo_recoger', fecha4:'2025-08-18'
-      }
-    };
-  }
-
-  // si no implementado en backend o no hay params:
-  await delay(400);
   return null;
 }
 
-/* helper delay */
-function delay(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
-
-/* render result logic */
+/* render when a single paquete with historial (or possibly historial null) */
 function renderPackageResult({ paquete, historial }){
-  // limpiar
+  // clear multiResults
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
+
+  // show result container
   timelineEl.innerHTML = '';
   detalleTipo.textContent = 'Datos aún no disponibles';
   detallePeso.textContent = 'Datos aún no disponibles';
@@ -511,7 +692,7 @@ function renderPackageResult({ paquete, historial }){
 
   // Map tipo_envio_id -> texto
   const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
-  detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? 'Datos aún no disponibles';
+  detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? (paquete?.tipo || 'Datos aún no disponibles');
 
   detallePeso.textContent = paquete?.peso_libras  ?? 'Datos aún no disponibles';
   detalleTarifa.textContent = paquete?.tarifa_usd ?? 'Datos aún no disponibles';
@@ -522,39 +703,157 @@ function renderPackageResult({ paquete, historial }){
     detalleTotal.innerHTML = `<strong>Total:</strong> $${isFinite(total) ? total.toFixed(2) : '0.00'} USD`;
   }
 
-  // Timeline: procesar estados emparejando estadoN con fechaN
+  // Timeline: if historial present render now, else show 'Historial no disponible'
+  timelineEl.innerHTML = '';
   if (!historial) {
-    timelineEl.innerHTML = '<div class="small-muted">Historial no disponible</div>';
+    timelineEl.innerHTML = '<div class="small-muted">Historial no disponible (abre el detalle para cargar historial completo).</div>';
   } else {
-    const items = [];
-    for (let i=1;i<=4;i++){
-      const s = historial[`estado${i}`];
-      const f = historial[`fecha${i}`];
-      if ((s && String(s).trim()!=='') || (f && String(f).trim()!=='')){
-        items.push({ estado: s || null, fecha: f || null, index: i });
-      }
-    }
-    if (items.length===0){
-      timelineEl.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
-    } else {
-      items.forEach(it => {
-        const div = document.createElement('div');
-        div.className = 'timeline-item';
-        const label = mapStateLabel(it.estado);
-        div.innerHTML = `<div class="state">${label}</div>
-                         <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
-                         <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
-        if (String(it.estado).toLowerCase()==='listo_recoger'){
-          div.classList.add('blink');
-          triggerConfetti();
-        }
-        timelineEl.appendChild(div);
-      });
-    }
+    buildTimelineFromHistorialElement(historial, timelineEl);
   }
 }
 
-/* Helpers: estado label/subtext */
+/* render multiple packages (list) */
+function renderMultiplePackages(paquetes){
+  // hide single result
+  if(resultContainer) resultContainer.style.display = 'none';
+  if(noResult) noResult.style.display='none';
+
+  multiResults.innerHTML = '';
+  paquetes.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'multi-card';
+    // preview date: prefer paquete.fecha_estado if present, else 'No disponible'
+    const previewDate = p.fecha_estado ? formatDate(p.fecha_estado) : 'No disponible';
+    const left = document.createElement('div');
+    left.className = 'left';
+    left.innerHTML = `<div class="title">Pedido del ${previewDate}</div><div class="subtitle">${escapeHtml(p.nombre_cliente ?? p.nombre ?? '-')}</div>`;
+    const right = document.createElement('div');
+    right.className = 'right';
+    const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
+    right.innerText = tipoMap[p.tipo_envio_id] ?? (p.tipo || '-');
+    card.appendChild(left);
+    card.appendChild(right);
+
+    // store paquete data on card
+    card.dataset.paquete = JSON.stringify(p);
+
+    // click opens lightbox and fetches historial (Option B: historial fetched only when opening)
+    card.addEventListener('click', async ()=>{
+      const paqueteObj = JSON.parse(card.dataset.paquete);
+      openPackageLightbox(paqueteObj);
+    });
+
+    multiResults.appendChild(card);
+  });
+
+  multiResults.style.display = 'flex';
+}
+
+/* Build timeline helper used by single result and lightbox after fetching historial */
+function buildTimelineFromHistorialElement(historial, containerEl){
+  containerEl.innerHTML = '';
+  const items = [];
+  for (let i=1;i<=4;i++){
+    const s = historial[`estado${i}`];
+    const f = historial[`fecha${i}`];
+    if ((s && String(s).trim()!=='') || (f && String(f).trim()!=='')){
+      items.push({ estado: s || null, fecha: f || null, index: i });
+    }
+  }
+  if (items.length===0){
+    containerEl.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
+  } else {
+    items.forEach(it => {
+      const div = document.createElement('div');
+      div.className = 'timeline-item';
+      const label = mapStateLabel(it.estado);
+      div.innerHTML = `<div class="state">${label}</div>
+                       <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
+                       <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
+      if (it.estado && String(it.estado).toLowerCase()==='listo_recoger'){
+        div.classList.add('blink');
+        triggerConfetti();
+      }
+      containerEl.appendChild(div);
+    });
+  }
+}
+
+/* -----------------------------
+   LIGHTBOX: open -> fetch historial
+   ----------------------------- */
+const packageLightboxOverlay = document.getElementById('packageLightboxOverlay');
+const lbClose = document.getElementById('lbClose');
+const lbCloseBtn = document.getElementById('lbCloseBtn');
+const lbTitle = document.getElementById('lbTitle');
+const lbWhen = document.getElementById('lbWhen');
+const lbTipo = document.getElementById('lbTipo');
+const lbPeso = document.getElementById('lbPeso');
+const lbTarifa = document.getElementById('lbTarifa');
+const lbTimeline = document.getElementById('lbTimeline');
+const lbLoading = document.getElementById('lbLoading');
+
+async function openPackageLightbox(paquete){
+  if(!paquete) return;
+  // show overlay
+  packageLightboxOverlay.style.display = 'flex';
+  packageLightboxOverlay.setAttribute('aria-hidden','false');
+  // set header placeholders
+  lbTitle.textContent = `Pedido ${paquete.id ? '#' + paquete.id : (paquete.codigo_seguimiento ? paquete.codigo_seguimiento : '')}`;
+  // we'll fetch historial to produce "Pedido hecho el {fecha1}" — show loading UI
+  lbWhen.textContent = 'Pedido hecho - (cargando...)';
+  lbTipo.textContent = (paquete.tipo_envio_id ? (paquete.tipo_envio_id === 1 ? 'Aéreo' : paquete.tipo_envio_id === 2 ? 'Marítimo' : paquete.tipo) : (paquete.tipo || 'No disponible'));
+  lbPeso.textContent = paquete.peso_libras ?? 'No disponible';
+  lbTarifa.textContent = paquete.tarifa_usu ?? paquete.tarifa_usd ?? paquete.tarifa ?? 'No disponible';
+  lbTimeline.innerHTML = '';
+  lbLoading.style.display = 'flex';
+
+  // fetch historial from API
+  let historial = null;
+  try {
+    if(paquete.codigo_seguimiento){
+      const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+      if(resH.ok){
+        historial = await resH.json();
+      } else {
+        historial = null;
+      }
+    }
+  } catch(e){
+    console.warn('historial fetch failed in lightbox', e);
+    historial = null;
+  }
+
+  // hide loading & populate timeline and header "pedido hecho el {fecha1}"
+  lbLoading.style.display = 'none';
+  if(historial && historial.fecha1){
+    lbWhen.textContent = `Pedido hecho el ${formatDate(historial.fecha1)}`;
+  } else if(paquete.fecha_estado){
+    lbWhen.textContent = `Pedido hecho el ${formatDate(paquete.fecha_estado)}`;
+  } else {
+    lbWhen.textContent = 'Pedido hecho el No disponible';
+  }
+
+  if(historial){
+    buildTimelineFromHistorialElement(historial, lbTimeline);
+  } else {
+    lbTimeline.innerHTML = '<div class="small-muted">Historial no disponible.</div>';
+  }
+
+  // focus close
+  setTimeout(()=> { lbCloseBtn.focus(); }, 80);
+}
+
+function closePackageLightbox(){
+  packageLightboxOverlay.style.display = 'none';
+  packageLightboxOverlay.setAttribute('aria-hidden','true');
+  lbTimeline.innerHTML = '';
+}
+
+if(lbClose) lbClose.addEventListener('click', closePackageLightbox);
+if(lbCloseBtn) lbCloseBtn.addEventListener('click', closePackageLightbox);
+
+/* Utils used across file (copied from your original) */
 function mapStateLabel(raw){
   if(!raw) return 'Estado desconocido';
   const r = raw.toString().toLowerCase();
@@ -592,121 +891,70 @@ function formatDate(d){
     return d;
   }
 }
-function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function capitalize(s){ return s && s.length ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
-/* show/hide */
+/* CONFETTI (unchanged) */
+let confettiTimeout = null;
+function triggerConfettiDesktop(){ /* same as earlier, keep but simpler to avoid huge N in this response */ 
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+  // small burst
+  const N = 80;
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+  for (let i=0;i<N;i++){
+    const el = document.createElement('div');
+    const size = Math.floor(Math.random()*8)+6;
+    el.className = 'confetti';
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+    el.style.top = (-10 + Math.random()*-30) + 'px';
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.8 + Math.random()*0.2);
+    el.style.borderRadius='2px';
+    el.style.zIndex = 2500;
+    const destX = (Math.random()*500 - 250);
+    const destY = window.innerHeight + 60;
+    const duration = 2 + Math.random()*2;
+    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
+    wrap.appendChild(el);
+    requestAnimationFrame(()=>{ el.style.top = destY + 'px'; el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`; el.style.opacity = '0'; });
+  }
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 4000);
+}
+function triggerConfettiMobile(){ triggerConfettiDesktop(); }
+function triggerConfetti(){ if(window.innerWidth <= 420){ triggerConfettiMobile(); } else { triggerConfettiDesktop(); } }
+
+/* small 'enter' submit shortcuts */
+['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(id==='peso') { btnCalcularMain.click(); } else onBuscar(); } });
+});
+
+/* Inicial state */
+(function init(){
+  // start on inicio
+  mostrarSeccion('inicio');
+  // hide result area initially
+  hideResult();
+})();
 function hideResult(){
   if(resultContainer) resultContainer.style.display='none';
   if(noResult) { noResult.style.display='block'; noResult.textContent = 'Aquí se mostrará el estado del envío.'; }
   if(timelineEl) timelineEl.innerHTML='';
 }
 
-/* ===== CONFETTI =====
-   (existing confetti functions unchanged)
-*/
-let confettiTimeout = null;
-
-function triggerConfettiDesktop(){
-  const wrap = document.getElementById('confettiWrap');
-  if (!wrap) return;
-
-  const N = 1000;
-  const colors = ['#1f3a66','#2F528F','#79A7E4'];
-
-  for (let i=0; i<N; i++){
-    const el = document.createElement('div');
-    const size = Math.floor(Math.random()*8)+6;
-    el.className = 'confetti';
-    el.style.position='absolute';
-    el.style.left = (Math.random()*100)+'%';
-   el.style.top = (-50 + Math.random()*-50) + 'px';
-    el.style.width = size+'px';
-    el.style.height = (size*0.6)+'px';
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = String(0.7 + Math.random()*0.3);
-    el.style.borderRadius='2px';
-    el.style.zIndex = 2500;
-
-   const destX = (Math.random()*500 - 250);
-    const destY = window.innerHeight + 100;
-    const duration = 5 + Math.random()*5;
-
-    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
-
-    wrap.appendChild(el);
-
-    requestAnimationFrame(()=>{
-      el.style.top = destY + 'px';
-      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
-      el.style.opacity = '0';
-    });
-  }
-
-  if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
-}
-
-function triggerConfettiMobile(){
-  const wrap = document.getElementById('confettiWrap');
-  if (!wrap) return;
-
-  const N = 295;
-  const colors = ['#1f3a66','#2F528F','#79A7E4'];
-
-  for (let i=0; i<N; i++){
-    const el = document.createElement('div');
-    const size = Math.floor(Math.random()*8)+6;
-    el.className = 'confetti';
-    el.style.position='absolute';
-    el.style.left = (Math.random()*100)+'%';
-   el.style.top = (-50 + Math.random()*-50) + 'px';
-    el.style.width = size+'px';
-    el.style.height = (size*0.6)+'px';
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = String(0.7 + Math.random()*0.3);
-    el.style.borderRadius='2px';
-    el.style.zIndex = 2500;
-
-   const destX = (Math.random()*500 - 250);
-    const destY = window.innerHeight + 100;
-    const duration = 5 + Math.random()*5;
-
-    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
-
-    wrap.appendChild(el);
-
-    requestAnimationFrame(()=>{
-      el.style.top = destY + 'px';
-      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
-      el.style.opacity = '0';
-    });
-  }
-
-  if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
-}
-
-function triggerConfetti(){
-  if(window.innerWidth <= 420){
-    triggerConfettiMobile();
-  } else {
-    triggerConfettiDesktop();
-  }
-}
-
-/* ======================
-   UTIL: enable quick test by pressing Enter in phone/code fields
-   ====================== */
-['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(id==='telefonoSolicitar') { document.getElementById('btnCalcularSolicitar').click(); } else onBuscar(); } });
-});
-
-/* inicial */
-hideResult();
-
 /* ============================
-   NUEVO: Lógica para SOLICITAR
+   SOLICITAR logic (kept as before)
    ============================ */
 const btnCalcularSolicitar = document.getElementById('btnCalcularSolicitar');
 const btnConfirmarSolicitar = document.getElementById('btnConfirmarSolicitar');
@@ -738,7 +986,6 @@ function calcularSolicitar(){
   rcLibras.textContent = `${Number(peso).toFixed(2)} lb`;
   rcTotal.innerHTML = `<strong>$${isFinite(total) ? total.toFixed(2) : '0.00'} USD</strong>`;
 
-  // estimated arrival: if maritime -> 15 days, aerial -> 7 days (user requested)
   if (tipo === 'maritimo') {
     rcEstimado.textContent = 'Llegada estimada: 15 días';
   } else {
@@ -746,7 +993,6 @@ function calcularSolicitar(){
   }
 
   reciboSolicitar.style.display = 'block';
-  // swap buttons
   btnCalcularSolicitar.style.display = 'none';
   btnConfirmarSolicitar.style.display = 'block';
   return true;
@@ -757,7 +1003,6 @@ if (btnCalcularSolicitar) btnCalcularSolicitar.addEventListener('click', (e)=>{
   calcularSolicitar();
 });
 
-// helper: validate required fields before POST
 function validarFormularioSolicitar(){
   const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
   const telCode = document.getElementById('telCodeSolicitar').value;
@@ -775,33 +1020,14 @@ function validarFormularioSolicitar(){
   return true;
 }
 
-// show/hide waiting pop
-function showWaiting(msg){
-  waitingError.style.display = 'none';
-  waitingError.textContent = '';
-  waitingPop.querySelector('div[style*="Solicitando"]')?.classList; // noop
-  waitingPop.classList.add('show');
-}
-function hideWaiting(){
-  waitingPop.classList.remove('show');
-  setTimeout(()=>{ waitingError.style.display='none'; waitingError.textContent=''; }, 350);
-}
+function showWaiting(){ waitingError.style.display = 'none'; waitingError.textContent = ''; waitingPop.classList.add('show'); }
+function hideWaiting(){ waitingPop.classList.remove('show'); setTimeout(()=>{ waitingError.style.display='none'; waitingError.textContent=''; }, 350); }
+function showConfirm(){ confirmPop.classList.add('show'); }
+function hideConfirm(){ confirmPop.classList.remove('show'); }
 
-// show confirm
-function showConfirm(){
-  confirmPop.classList.add('show');
-}
-function hideConfirm(){
-  confirmPop.classList.remove('show');
-}
-
-// handle confirm click -> send to backend
 if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async (e)=>{
   e.preventDefault();
-  // validate
   if (!validarFormularioSolicitar()) return;
-
-  // build payload
   const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
   const telCode = document.getElementById('telCodeSolicitar').value;
   const telefono = (document.getElementById('telefonoSolicitar').value||'').trim();
@@ -809,22 +1035,10 @@ if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async
   const descripcion = (document.getElementById('descripcionSolicitar').value||'').trim() || null;
   const tipo = document.getElementById('tipoEnvioSolicitar').value;
   const peso_aprox = Number(document.getElementById('pesoSolicitar').value);
-
   const telefonoFull = `${telCode}${telefono}`;
+  const payload = { nombre, telefono: telefonoFull, agencia, descripcion, tipo, peso_aprox };
 
-  const payload = {
-    nombre,
-    telefono: telefonoFull,
-    agencia,
-    descripcion,
-    tipo,         // backend will map 'aereo' -> 1, 'maritimo' -> 2
-    peso_aprox
-  };
-
-  // show waiting pop
   showWaiting();
-
-  // disable button to prevent double submit
   btnConfirmarSolicitar.disabled = true;
 
   try {
@@ -839,20 +1053,14 @@ if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async
       waitingError.style.display = 'block';
       waitingError.textContent = `Error guardando la solicitud (${resp.status})`;
       console.error('POST /pedidos failed', resp.status, txt);
-      // re-enable confirm button to allow retry
       btnConfirmarSolicitar.disabled = false;
       return;
     }
 
-    // success
     const data = await resp.json().catch(()=>null);
-    // hide waiting
     hideWaiting();
-
-    // show confirm pop
     showConfirm();
 
-    // reset form and UI
     document.getElementById('nombreSolicitar').value = '';
     document.getElementById('telCodeSolicitar').value = '+505';
     document.getElementById('telefonoSolicitar').value = '';
@@ -860,7 +1068,6 @@ if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async
     document.getElementById('descripcionSolicitar').value = '';
     document.getElementById('tipoEnvioSolicitar').value = 'aereo';
     document.getElementById('pesoSolicitar').value = '';
-
     reciboSolicitar.style.display = 'none';
     btnConfirmarSolicitar.style.display = 'none';
     btnConfirmarSolicitar.disabled = false;
@@ -873,15 +1080,12 @@ if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async
   }
 });
 
-// close confirm
 if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', (e)=>{
   e.preventDefault();
   hideConfirm();
 });
 
-/* ======================
-   END: Solicitar logic
-   ====================== */
+/* End SOLICITAR logic */
 
 </script>
 </body>
