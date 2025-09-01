@@ -668,8 +668,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
     <button class="close-lightbox" aria-label="Cerrar recordatorio">&times;</button>
     <h2 id="lbRecordTitulo">Recordatorio</h2>
     <p id="lbRecordDesc">Descripción</p>
-    <small id="lbRecordFecha">Fecha</small>
-    <button class="btn-eliminar">Eliminar recordatorio</button>
+    <small id="lbRecordFecha" style="display: block; margin-bottom: 1rem; text-align: center;">Fecha</small>
+    <button class="btn-eliminar" style="margin: 0 auto; display: block; width: fit-content;">Eliminar recordatorio</button>
   </div>
 </div>
 
@@ -1068,8 +1068,8 @@ async function openRecordLightbox(id) {
 
 if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', () => hideModalByElement(lightboxRecordatorio));
 if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', () => {
-  if (currentRecorditorio && currentRecorditorio.id) {
-    recordatorioIdAEliminar = currentRecorditorio.id;
+  if (currentRecordatorio && currentRecordatorio.id) {
+    recordatorioIdAEliminar = currentRecordatorio.id;
     hideModalByElement(lightboxRecordatorio);
     showModalByElement(popEliminarConfirm);
   }
