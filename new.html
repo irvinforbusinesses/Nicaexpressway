@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Panel del Operador — Manejo de Pedidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #E8F0F5;
+  --color-accent: #2F528F;
+  --color-light: #FFFFFF;
+  --color-gray: #F6F8FB;
+  --color-text-dark: #1A1A1A;
+  --modal-overlay-bg: rgba(0,0,0,0.45);
+  --lapis: #1f3a66; /* color lápiz lazuli para resaltar seguimiento */
+  --danger: #e74c3c;
+  --muted: #666;
+}
+
+/* reset / base */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { height: 100%; }
+
+/* general layout */
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-dark);
+  padding: 1rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+/* header */
+header { text-align: center; margin-bottom: 2rem; }
+h1 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; color: var(--color-accent); }
+
+/* nav buttons */
+nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+nav button{
+  flex: 1 1 22%;
+  min-width: 110px;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 0.6rem 0.5rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: normal;
+  text-align:center;
+  line-height:1.05;
+  font-size: 0.95rem;
+}
+nav button.inactive { background: #a0b6e0; color: #fff; }
+nav button#btnActualizar:hover { background: var(--lapis); }
+nav button#btnActualizar.active-nav { background: var(--lapis); }
+
+/* sections */
+section { background: var(--color-light); padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
+section.active { display: block; }
+
+/* fade animation */
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.section-fade { animation: fadeIn .18s ease both; }
+
+/* form controls */
+label { display: block; margin: 1rem 0 0.5rem; font-weight: 600; }
+input, select, textarea, button { font-family: inherit; font-size: 1rem; }
+input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; }
+input::placeholder { color: #9aa3ad; }
+textarea { resize: vertical; min-height: 56px; }
+
+/* action button shared style (site-styled) */
+button.action-btn, .action-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 10px;
+  width: 100%;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(31,58,102,0.08); }
+.action-btn.secondary {
+  background: #f3f7fb;
+  color: var(--color-text-dark);
+  border: 1px solid #e6eefb;
+}
+
+/* small page buttons */
+.page-btn { background:#fff; border:1px solid #e6eefb; padding:8px 12px; border-radius:8px; cursor:pointer; }
+
+/* recordatorio styles */
+.recordatorio-item {
+  background: var(--color-gray);
+  padding: 0.75rem;
+  border-radius: 16px;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  gap: 8px;
+}
+.recordatorio-info {
+  flex: 1;
+  border-radius: 12px;
+  padding: 0.4rem;
+}
+.recordatorio-info small { display:block; margin-top:8px; color:var(--muted); }
+
+/* past and due styles */
+.recordatorio-item.past { opacity: 0.7; filter: grayscale(.02); border-left: 4px solid rgba(0,0,0,0.05); }
+.recordatorio-item.due-today { border-left: 4px solid var(--danger); background: #fff6f6; }
+
+/* blinking red animation for due today */
+@keyframes parpadeo {
+  0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.12); transform: translateY(0); }
+  50% { box-shadow: 0 0 0 6px rgba(231,76,60,0.06); transform: translateY(-1px); opacity:0.96; }
+  100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.04); transform: translateY(0); }
+}
+.due-today .recordatorio-info { animation: parpadeo 1.2s ease-in-out infinite; }
+
+/* delete button */
+.btnEliminar {
+  background: #f56565;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btnEliminar:hover { background: #ff6b6b; }
+
+/* modal / overlay commons */
+.modal-overlay, .authOverlay, .lightbox {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--modal-overlay-bg);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  padding: 1rem;
+  pointer-events: auto;
+}
+.modal-inner, .authBox, .lightbox-content {
+  background: var(--color-light);
+  padding: 1.25rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+  position: relative;
+  text-align: left;
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+/* manejo larger lightbox */
+.lightbox-manejo .lightbox-inner {
+  background: var(--color-light);
+  padding: 1rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 780px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+  position: relative;
+  text-align: left;
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+/* visible helpers */
+.modal-visible { display: flex !important; animation: fadeIn .16s ease both; }
+.fade-in { animation: fadeIn .16s ease both; }
+
+/* pop result */
+.pop-result .panel { background: var(--color-light); padding: 14px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.2); width: 90%; max-width: 360px; text-align: center; }
+.pop-result .title { font-weight:700; color: var(--color-accent); margin-bottom:8px; }
+
+/* spinner overlay */
+.overlay-spinner { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.28); z-index: 11000; }
+.spinner-box { background: var(--color-light); padding: 16px; border-radius: 12px; text-align:center; box-shadow: 0 6px 20px rgba(0,0,0,0.25); min-width:220px; }
+
+/* lightbox content small */
+.lightbox-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 92%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-align: left;
+  position: relative;
+}
+
+/* close buttons */
+.close-lightbox, .close-lightbox-pedido, .close-lightbox-manejo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--color-light);
+  border: 1px solid #e6e9ef;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 36px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* timeline */
+.timeline{position:relative;padding-left:24px;border-left:2px solid rgba(47,82,143,0.08);margin-bottom:.5rem}
+.timeline-item{position:relative;padding:8px 12px;margin-bottom:.5rem}
+.timeline-item::before{content:"";position:absolute;left:-11px;top:8px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--color-accent)}
+.timeline-item .state{font-weight:700}
+.timeline-item .subtext{font-size:.9rem;color:#555;margin-top:.25rem}
+.timeline-item .fecha{font-size:.85rem;color:#666;margin-top:.25rem}
+
+/* blinking mini */
+.blink { animation: blinkAnim 0.9s step-start 0s infinite; box-shadow:0 0 0 4px rgba(47,82,143,0.06) inset; border-radius:8px; }
+@keyframes blinkAnim { 50% { opacity: 0.25; transform: translateY(-1px); } }
+
+/* confetti container — ensure it's above modals */
+#confettiWrap{pointer-events:none;position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:13050}
+
+/* confetti pieces base */
+.confetti { position:absolute; will-change: transform, top, opacity; }
+
+/* responsive adjustments */
+@media (max-width:420px){
+  nav { gap:8px; }
+  nav button { flex: 1 1 45%; min-width: 120px; font-size: 0.95rem; padding: 0.6rem; }
+  .manejo-right { min-width:64px; font-size:0.9rem; }
+  .lightbox-manejo .lightbox-inner { padding:12px; max-width: 98%; }
+  .modal-overlay .modal-inner, .authOverlay .authBox { max-width: 92%; padding: 12px; }
+  .lightbox-content { max-width: 94%; padding: 14px; }
+}
+
+/* iframe stats */
+#estadisticas-container { margin-top: 0.75rem; width: 100%; }
+#estadisticasFrame { width: 100%; min-height: 72vh; border: 0; border-radius: 12px; background: #fff; }
+
+/* ensure modal inner content doesn't exceed viewport */
+.modal-inner, .authBox, .lightbox-content { max-height: 86vh; overflow-y: auto; }
+
+/* AUTH button styles */
+.btn { border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight:700; }
+.btn.primary { background: var(--color-accent); color: #fff; }
+.btn.primary:hover { background: var(--lapis); }
+.btn.secondary { background: #f3f7fb; color: var(--color-text-dark); border: 1px solid #e6eefb; margin-left: 8px; }
+.btn.secondary:hover { background: #eef3fb; }
+
+/* auth input */
+.authBox input[type="password"] { width: 100%; padding: 0.75rem; font-size: 1rem; border-radius: 8px; border: 1px solid #d0d7ea; margin-top: 8px; }
+.authError { display: none; color: var(--danger); margin-top: 10px; font-weight: 700; }
+
+/* small visual helper */
+.hidden { display: none; }
+
+footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+
+<div id="app" tabindex="-1"><!-- wrapper para inert/blur si hiciera falta -->
+
+<header>
+<h1>Panel del Operador</h1>
+<nav>
+  <button id="btnInicio">Inicio</button>
+  <!-- legacy btnPedidos hidden via CSS; a new button below -->
+  <button id="btnManejo" class="inactive">Manejo de pedidos</button>
+  <button id="btnAgregar" class="inactive">Agregar Paquete</button>
+  <button id="btnActualizar" class="inactive">Actualizar Seguimiento</button>
+  <button id="btnEstadisticas" class="inactive">Estadísticas</button>
+</nav>
+</header>
+
+<!-- Inicio: Recordatorios -->
+<section id="inicio" class="active section-fade">
+<h2>Inicio</h2>
+<div id="listaRecordatorios">
+  <p>No hay recordatorios por el momento.</p>
+</div>
+<button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
+
+<!-- Pop-up Formulario (overlay modal) -->
+<div class="modal-overlay popUp" id="popFormRecord" aria-hidden="true" data-overlay="true">
+  <div class="modal-inner form-modal" role="dialog" aria-modal="true" aria-labelledby="popFormTitle">
+    <h3 id="popFormTitle">Agregar Recordatorio</h3>
+    <form id="formRecord">
+      <label for="tituloRecord">Título del recordatorio</label>
+      <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
+      <label for="descRecord">Descripción</label>
+      <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
+      <label for="fechaRecord">Fecha límite</label>
+      <input type="date" id="fechaRecord" required>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button type="submit" class="action-btn" style="flex:1;">Agregar</button>
+        <button type="button" id="cerrarPopForm" class="action-btn secondary" style="flex:1;">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Agregado (overlay) -->
+<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>Recordatorio agregado</p>
+    <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Eliminar (reutilizable) -->
+<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>¿Desea eliminar este recordatorio?</p>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="btnConfirmEliminar" class="action-btn" style="flex:1;background:var(--danger);">Eliminar</button>
+      <button id="btnCancelarEliminar" class="action-btn secondary" style="flex:1;">Cancelar</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- Legacy Pedidos section kept but not used (can be removed later) -->
+<section id="pedidos" class="section-fade" style="display:none;">
+  <h2>Pedidos</h2>
+  <div id="listaPedidos">
+    <p>Cargando pedidos...</p>
+  </div>
+</section>
+
+<!-- NEW: Manejo de pedidos -->
+<section id="manejo" class="section-fade">
+  <h2>Manejo de pedidos</h2>
+
+  <div style="margin-top:8px;">
+    <label for="manejoSearch">Buscar por nombre o teléfono (opcional)</label>
+    <input id="manejoSearch" placeholder="Ej: Lester Gamez o (505)12345678">
+  </div>
+
+  <div id="listaManejo" class="manejo-list" aria-live="polite">
+    <!-- items inserted here -->
+  </div>
+
+  <div class="pagination" id="manejoPagination" style="display:none;">
+    <button class="page-btn" id="prevPage">Anterior</button>
+    <div id="pageInfo" style="font-size:0.95rem;color:#444;"></div>
+    <button class="page-btn" id="nextPage">Siguiente</button>
+  </div>
+</section>
+
+<!-- Agregar Paquete -->
+<section id="agregar" class="section-fade">
+<h2>Registrar Paquete</h2>
+<form id="formAgregar">
+  <div class="form-group">
+    <label for="nombre">Nombre del cliente</label>
+    <div class="tooltip">Ingresa un nombre y un apellido</div>
+    <input type="text" id="nombre" name="nombre" placeholder="Ej: Lester Gamez" required>
+  </div>
+
+  <!-- Nuevo campo opcional de código de seguimiento -->
+  <div class="form-group">
+    <label for="codigo">Código de seguimiento (opcional, max 10 dígitos)</label>
+    <input type="text" id="codigo" name="codigo" maxlength="10" pattern="\d{0,10}" placeholder="Solo números">
+  </div>
+
+  <div class="form-group">
+    <label for="telefonoDigits">Teléfono</label>
+    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
+    <div class="phone-row">
+      <select id="telCode" name="telCode" required>
+        <option value="(505)">(505)</option>
+        <option value="(1)">(1)</option>
+      </select>
+      <input type="tel" id="telefonoDigits" name="telefonoDigits" placeholder="Ej: 12345678"
+             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)" required>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="tipo">Tipo de envío</label>
+    <select id="tipo" name="tipo" required>
+      <option value="aereo">Aéreo</option>
+      <option value="maritimo">Marítimo</option>
+    </select>
+  </div>
+
+  <div style="margin-top:12px;">
+    <button type="submit" class="action-btn">Registrar Paquete</button>
+  </div>
+</form>
+<div id="mensajeAgregar" class="mensaje" style="display:none;">
+Esta plataforma es de prueba, dog. Acción no disponible por el momento.
+</div>
+</section>
+
+<!-- Actualizar Seguimiento -->
+<section id="actualizar" class="section-fade">
+<h2>Actualizar Estado</h2>
+<form id="formActualizar">
+  <div class="form-group">
+    <label for="nombreSeg">Nombre del cliente</label>
+    <div class="tooltip">Ingresa un nombre y un apellido</div>
+    <input type="text" id="nombreSeg" name="nombreSeg" placeholder="Ej: Lester Gamez">
+  </div>
+
+  <!-- Código se mantiene (la sección "Actualizar" puede pedir código) -->
+ <div class="form-group">
+    <label for="codigoSeg">Código de seguimiento (obligatorio, max 10 dígitos)</label>
+    <input type="text" id="codigoSeg" name="codigoSeg" maxlength="10" pattern="\d{1,10}" placeholder="Solo números" required>
+  </div>
+
+  <div class="form-group">
+    <label for="telefonoSegDigits">Teléfono</label>
+    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
+    <div class="phone-row">
+      <select id="telCodeSeg" name="telCodeSeg">
+        <option value="(505)">(505)</option>
+        <option value="(1)">(1)</option>
+      </select>
+      <input type="tel" id="telefonoSegDigits" name="telefonoSegDigits" placeholder="Ej: 12345678"
+             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="estadoSeg">Estado del paquete</label>
+    <select id="estadoSeg" name="estado">
+      <option value="">-- Seleccione --</option>
+      <option value="recibido">Recibido</option>
+      <option value="en_transito">En tránsito</option>
+      <option value="en_aduana">En Aduana</option>
+      <option value="listo_recoger">Listo Para Recoger</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="pesoSeg">Peso en libras</label>
+    <input type="number" id="pesoSeg" name="pesoSeg" step="0.1" min="0" placeholder="Ej: 1.0">
+  </div>
+  <div class="form-group">
+  <label for="tarifaSeg">Tarifa en USD</label>
+  <input type="number" id="tarifaSeg" name="tarifaSeg" step="0.1" min="0" placeholder="Ej: 1.1">
+</div>
+
+  <div class="form-group">
+    <label for="fechaEstado">Ingrese fecha</label>
+    <input type="date" id="fechaEstado" name="fechaEstado">
+  </div>
+
+  <button type="submit" class="action-btn">Actualizar Estado</button>
+</form>
+<div id="mensajeActualizar" class="mensaje" style="display:none;">
+Esta plataforma es de prueba, dog. Acción no disponible por el momento.
+</div>
+</section>
+
+<!-- ESTADÍSTICAS (Nueva sección) -->
+<section id="estadisticas" class="section-fade">
+  <div id="estadisticas-container">
+    <iframe id="estadisticasFrame" src="" title="Estadísticas"></iframe>
+  </div>
+  <a class="link-btn" href="https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html" target="_blank">Vista Completa</a>
+</section>
+
+<footer>
+&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things
+</footer>
+
+</div><!-- /#app -->
+
+<!-- OVERLAY: LOCK INICIAL (AHORA visible on load) -->
+<div id="lockOverlay" class="authOverlay modal-overlay" style="display:flex;" aria-hidden="false">
+  <div class="authBox">
+    <h2>Acceso al Panel</h2>
+    <!-- autofocus + autocomplete for better UX on mobile -->
+    <input type="password" id="lockPass" placeholder="Contraseña" aria-label="Contraseña de acceso" autocomplete="current-password" />
+    <div style="margin-top:0.6rem;">
+      <button class="btn primary" id="lockSubmit" disabled>Entrar</button>
+    </div>
+    <div class="authError" id="lockError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- OVERLAY: ESTADÍSTICAS (inicialmente hidden) -->
+<div id="statsOverlay" class="authOverlay modal-overlay" style="display:none;" aria-hidden="true">
+  <div class="authBox">
+    <h2>Acceso a Estadísticas</h2>
+    <input type="password" id="statsPass" placeholder="Contraseña" aria-label="Contraseña estadísticas" autocomplete="current-password" />
+    <div style="margin-top:0.6rem;">
+      <button class="btn primary" id="statsSubmit">Acceder</button>
+      <button class="btn secondary" id="statsCancel">Cancelar</button>
+    </div>
+    <div class="authError" id="statsError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- Lightbox Recordatorio (NO se cierra al click en overlay, solo con X) -->
+<div id="lightbox-recordatorio" class="lightbox" style="display:none;" aria-hidden="true">
+  <div class="lightbox-content">
+    <button class="close-lightbox" aria-label="Cerrar recordatorio">&times;</button>
+    <h2>Recordatorio</h2>
+    <p>Versión de prueba, datos no disponibles</p>
+    <button class="btn-eliminar">Eliminar recordatorio</button>
+  </div>
+</div>
+
+<!-- Lightbox Pedido (legacy) -->
+<div id="lightbox-pedido" class="lightbox" style="display:none;" aria-hidden="true">
+  <div class="lightbox-content">
+    <button class="close-lightbox-pedido" aria-label="Cerrar pedido">&times;</button>
+    <h2 id="lbPedidoTitulo">Pedido</h2>
+    <div style="text-align:left;margin-top:8px;">
+      <div style="margin:8px 0;"><strong>Nombre:</strong> <span id="lbNombre">-</span></div>
+      <div style="margin:8px 0;"><strong>Teléfono:</strong> <a id="lbTelefono" class="pedido-phone" target="_blank" rel="noopener">-</a></div>
+      <div style="margin:8px 0;"><strong>Plataforma / Agencia:</strong> <span id="lbAgencia">-</span></div>
+      <div style="margin:8px 0;"><strong>Descripción:</strong> <span id="lbDescripcion">-</span></div>
+      <div style="margin:8px 0;"><strong>Tipo de envío:</strong> <span id="lbTipo">-</span></div>
+      <div style="margin:8px 0 0;"><strong>Peso aproximado:</strong> <span id="lbPeso">-</span></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="btnRechazarPedido" class="btn-eliminar" style="flex:1;">Rechazar pedido</button>
+      <button id="btnAceptarPedido" class="action-btn" style="flex:1;">Aceptar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW: Manejo lightbox (package detail + timeline + update form inside modal) -->
+<div id="lightbox-manejo" class="lightbox-manejo lightbox" style="display:none;" aria-hidden="true">
+  <div class="lightbox-inner">
+    <button class="close-lightbox-manejo" aria-label="Cerrar">&times;</button>
+    <div class="lightbox-header" style="padding-bottom:8px;border-bottom:1px solid #eef3f8;">
+      <h2 id="lmTitle" style="margin:0;color:var(--color-accent);font-family:'Poppins',sans-serif;">Pedido</h2>
+      <div id="lmSubtitle" style="font-size:0.95rem;color:#666;margin-top:6px;">Cargando información...</div>
+    </div>
+
+    <div class="lightbox-body" style="padding-top:12px;">
+      <!-- Loading placeholder -->
+      <div id="lmLoading" style="text-align:center;padding:18px;">
+        <div class="spinner" style="width:40px;height:40px;margin:0 auto 10px;border-width:4px;border-top-color:var(--color-accent);"></div>
+        <div style="color:#444;font-weight:700;">Cargando datos del paquete...</div>
+      </div>
+
+      <!-- Content (hidden until loaded) -->
+      <div id="lmContent" style="display:none;">
+        <div style="display:flex;gap:12px;align-items:center;margin-top:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;" id="lmNombre">-</div>
+            <div style="font-size:0.95rem;color:#666;margin-top:4px;"> <span id="lmPhoneWrap">-</span> </div>
+          </div>
+          <div style="text-align:right;min-width:120px;">
+            <div style="font-weight:700;" id="lmTipo">-</div>
+            <div style="font-size:0.95rem;color:#666;margin-top:6px;" id="lmFechaIngreso">-</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;border-top:1px dashed #eef3f8;padding-top:12px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;">
+              <div class="small-muted">Peso (lbs)</div>
+              <div id="lmPeso">-</div>
+            </div>
+            <div style="flex:1;">
+              <div class="small-muted">Tarifa / lb (USD)</div>
+              <div id="lmTarifa">-</div>
+            </div>
+            <div style="flex:1;">
+              <div class="small-muted">Total</div>
+              <div id="lmTotal">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <h3 style="margin:0 0 8px 0;">Línea de tiempo</h3>
+          <div id="lmTimeline" class="timeline"></div>
+        </div>
+
+        <!-- Update toggle -->
+        <div style="margin-top:12px;">
+          <button id="lmToggleUpdate" class="action-btn" style="background:var(--color-accent);">Actualizar estado</button>
+        </div>
+
+        <!-- Update form (collapsed by default) -->
+        <div id="lmUpdateFormWrap" style="display:none;margin-top:12px;border-top:1px solid #f1f5fb;padding-top:12px;">
+          <form id="lmUpdateForm">
+            <div class="form-group">
+              <label for="lmPesoInput">Peso (lbs)</label>
+              <input type="number" id="lmPesoInput" step="0.1" min="0" placeholder="Ej: 2.5">
+            </div>
+            <div class="form-group">
+              <label for="lmTarifaInput">Tarifa / lb (USD)</label>
+              <input type="number" id="lmTarifaInput" step="0.1" min="0" placeholder="Ej: 4.50">
+            </div>
+            <div class="form-group">
+              <label for="lmEstadoSelect">Estado</label>
+              <select id="lmEstadoSelect">
+                <option value="">-- Seleccione --</option>
+                <option value="recibido">Recibido</option>
+                <option value="en_transito">En tránsito</option>
+                <option value="en_aduana">En aduana</option>
+                <option value="listo_recoger">Listo Para Recoger</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="lmFechaInput">Fecha (requerida si cambia estado)</label>
+              <input type="date" id="lmFechaInput">
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button id="lmSubmitUpdate" class="action-btn" style="flex:1;background:var(--color-accent);">Actualizar estado</button>
+              <button id="lmCancelUpdate" type="button" class="action-btn secondary" style="flex:1;">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Spinner overlay -->
+<div id="overlaySpinner" class="overlay-spinner" aria-hidden="true">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div id="overlaySpinnerText">Realizando operación, espera...</div>
+  </div>
+</div>
+
+<!-- Resultado (overlay que bloquea interacción) -->
+<div id="popResult" class="pop-result" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="panel">
+    <div class="title" id="popResultTitle">Operación</div>
+    <div class="msg" id="popResultMsg">Mensaje</div>
+    <button id="popResultClose" class="btn-close action-btn">Cerrar</button>
+  </div>
+</div>
+
+<!-- confetti wrapper (z-index above modals) -->
+<div id="confettiWrap" aria-hidden="true"></div>
+
+<script>
+/* CONFIG */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // ajusta si tu deploy usa otra URL
+
+/* Helpers DOM */
+function $(id){ return document.getElementById(id); }
+function getValOrNull(id){ const el = $(id); if(!el) return null; const v = (el.value ?? '').toString().trim(); return v === '' ? null : v; }
+function getNumberOrNull(id){ const v = getValOrNull(id); if (v === null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
+
+/* App wrapper and accessibility helpers */
+const appWrapper = $('app');
+
+/* Start with app interactive; we will set inert only when overlays appear */
+try { if (appWrapper) { appWrapper.removeAttribute('inert'); appWrapper.style.filter = ''; } } catch(e){}
+
+/* inert management */
+function setInert(el, inertOn){
+  try {
+    if (!el) return;
+    if (inertOn) el.setAttribute('inert','');
+    else el.removeAttribute('inert');
+  } catch(e) { /* browser may not support inert */ }
+}
+function showModalByElement(el){
+  if(!el) return;
+  el.style.display = 'flex';
+  el.classList.add('modal-visible');
+  el.removeAttribute('aria-hidden');
+  if(appWrapper) setInert(appWrapper, true);
+  document.body.style.overflow = 'hidden';
+  const focusEl = el.querySelector('input, button, [tabindex]:not([tabindex="-1"])');
+  if (focusEl) setTimeout(()=>{ try{ focusEl.focus(); }catch(e){} }, 50);
+}
+function hideModalByElement(el){
+  if(!el) return;
+  if (document.activeElement && el.contains(document.activeElement)) {
+    try { document.activeElement.blur(); } catch(e){}
+  }
+  el.classList.remove('modal-visible');
+  el.style.display = 'none';
+  el.setAttribute('aria-hidden','true');
+  if(appWrapper) setInert(appWrapper, false);
+  document.body.style.overflow = '';
+}
+
+/* close on Escape key globally for overlays (except the locked overlay, keep escape same behavior) */
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // close any modal that has data-overlay="true" and is visible except the lock overlay if it is required
+    const visible = document.querySelectorAll('.modal-visible');
+    visible.forEach(v => {
+      // do not close lockOverlay by Escape (to prevent accidental bypass) — keep original behavior
+      if (v.id === 'lockOverlay') return;
+      hideModalByElement(v);
+    });
+  }
+});
+
+/* Allow clicking on the overlay background to close some popups (but NOT lightbox-recordatorio) */
+document.addEventListener('click', (e) => {
+  const overlay = e.target.closest('.modal-overlay');
+  if (!overlay) return;
+  // only allow closing for popUp (form) and confirmPop overlays
+  if (overlay.id === 'popFormRecord' || overlay.id === 'popConfirm' || overlay.id === 'popEliminarConfirm') {
+    // if click directly on overlay (not inner content)
+    if (e.target === overlay) hideModalByElement(overlay);
+  }
+});
+
+/* NAVEGACIÓN */
+const btnInicio = $('btnInicio');
+const btnManejo = $('btnManejo');
+const btnAgregar = $('btnAgregar');
+const btnActualizar = $('btnActualizar');
+const btnEstadisticas = $('btnEstadisticas');
+
+const secciones = {
+  inicio: $('inicio'),
+  manejo: $('manejo'),
+  agregar: $('agregar'),
+  actualizar: $('actualizar'),
+  estadisticas: $('estadisticas')
+};
+
+function clearNavActive(){
+  [btnInicio, btnManejo, btnAgregar, btnActualizar, btnEstadisticas].forEach(b => { if(b){ b.classList.add('inactive'); b.classList.remove('active-nav'); } });
+}
+function mostrarSeccion(nombre){
+  for(let sec in secciones) if(secciones[sec]) secciones[sec].classList.remove('active');
+  if(secciones[nombre]) secciones[nombre].classList.add('active');
+
+  // fade
+  if(secciones[nombre]) {
+    secciones[nombre].classList.remove('section-fade');
+    void secciones[nombre].offsetWidth;
+    secciones[nombre].classList.add('section-fade');
+  }
+
+  clearNavActive();
+  if(nombre==='inicio' && btnInicio) btnInicio.classList.remove('inactive');
+  if(nombre==='manejo' && btnManejo) { btnManejo.classList.remove('inactive'); btnManejo.classList.add('active-nav'); }
+  if(nombre==='agregar' && btnAgregar) btnAgregar.classList.remove('inactive');
+  if(nombre==='actualizar' && btnActualizar) { btnActualizar.classList.remove('inactive'); btnActualizar.classList.add('active-nav'); }
+  if(nombre==='estadisticas' && btnEstadisticas) btnEstadisticas.classList.remove('inactive');
+}
+if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+if(btnManejo) btnManejo.addEventListener('click',()=>{ mostrarSeccion('manejo'); cargarManejo(); });
+if(btnAgregar) btnAgregar.addEventListener('click',()=>mostrarSeccion('agregar'));
+if(btnActualizar) btnActualizar.addEventListener('click',()=>mostrarSeccion('actualizar'));
+if(btnEstadisticas) btnEstadisticas.addEventListener('click',()=>{ 
+  const so = $('statsOverlay'); if(so) showModalByElement(so);
+});
+
+/* FECHA DEFAULT */
+const fechaEstadoDefault = new Date().toISOString().split('T')[0];
+if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+if ($('fechaRecord')) $('fechaRecord').value = fechaEstadoDefault;
+
+/* Spinner / popResult helpers */
+const overlaySpinner = $('overlaySpinner');
+const popResult = $('popResult');
+const popResultTitle = $('popResultTitle');
+const popResultMsg = $('popResultMsg');
+const popResultClose = $('popResultClose');
+
+function showSpinner(text){
+  if(overlaySpinner){
+    if(text) { const t = $('overlaySpinnerText'); if(t) t.textContent = text; }
+    showModalByElement(overlaySpinner);
+  }
+}
+function hideSpinner(){
+  if(overlaySpinner) hideModalByElement(overlaySpinner);
+}
+function showResult(title, msg){
+  if(popResultTitle) popResultTitle.textContent = title;
+  if(popResultMsg) popResultMsg.textContent = msg;
+  showModalByElement(popResult);
+}
+if(popResultClose) popResultClose.addEventListener('click', ()=>{ hideModalByElement(popResult); });
+
+/* ---------- RECORDATORIOS (lógica mejorada) ---------- */
+const listDiv = $('listaRecordatorios');
+const formR = $('formRecord');
+const popForm = $('popFormRecord');
+const popConfirm = $('popConfirm');
+const popEliminarConfirm = $('popEliminarConfirm');
+const btnAgregarRecord = $('btnAgregarRecord');
+const cerrarPopForm = $('cerrarPopForm');
+const cerrarPopConfirm = $('cerrarPopConfirm');
+const btnConfirmEliminar = $('btnConfirmEliminar');
+const btnCancelarEliminar = $('btnCancelarEliminar');
+const fechaInput = $('fechaRecord');
+let indexEliminar = null;
+
+/* helper: get today in Miami (America/New_York) */
+function getTodayInMiami() {
+  try {
+    const now = new Date();
+    const miamiStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const miamiDate = new Date(miamiStr);
+    return miamiDate.toISOString().split('T')[0];
+  } catch(e) {
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
+if (fechaInput) fechaInput.value = fechaEstadoDefault;
+
+async function cargarRecord(){
+  if (!listDiv) return;
+  listDiv.innerHTML = '<p>Cargando recordatorios...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios`);
+    if (!res.ok) throw new Error(`fetch ${res.status}`);
+    const arr = await res.json();
+    renderRecordList(arr);
+  } catch(err){
+    console.warn('Fallo al cargar recordatorios desde API, usando localStorage', err);
+    const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+    const mapped = arr.map((r, idx) => ({ id: `local-${idx}`, titulo: r.titulo, descripcion: r.desc || r.descripcion, fecha_limite: r.fecha || r.fecha }));
+    renderRecordList(mapped);
+  }
+}
+function renderRecordList(arr){
+  if (!listDiv) return;
+  const hoyMiami = getTodayInMiami();
+  listDiv.innerHTML = '';
+
+  // show ALL reminders (user requested), but visually mark past / due today
+  const todos = Array.isArray(arr) ? arr : [];
+  if (!todos.length){ listDiv.innerHTML = '<p>No hay recordatorios por el momento.</p>'; return; }
+
+  todos.forEach((r, index) => {
+    const div = document.createElement('div');
+    div.classList.add('recordatorio-item');
+    div.dataset.id = r.id ?? `local-${index}`;
+
+    // determine date status (compare ISO yyyy-mm-dd)
+    const fecha = (r.fecha_limite || r.fecha || '').toString().trim();
+    if (fecha) {
+      if (fecha === hoyMiami) div.classList.add('due-today');
+      else if (fecha < hoyMiami) div.classList.add('past');
+    }
+
+    const titulo = r.titulo || '';
+    const desc = r.descripcion || r.desc || '';
+    const fechaSmall = fecha ? `<small>${fecha}</small>` : '';
+
+    div.innerHTML = `
+      <div class="recordatorio-info"><strong>${escapeHtml(titulo)}</strong><br>${escapeHtml(desc)}${fechaSmall}</div>
+      <button class="btnEliminar" data-id="${r.id ?? `local-${index}`}">X</button>`;
+    listDiv.appendChild(div);
+  });
+}
+
+/* open add form */
+if (btnAgregarRecord) btnAgregarRecord.addEventListener('click', ()=>{ if(popForm) showModalByElement(popForm); });
+if (cerrarPopForm) cerrarPopForm.addEventListener('click', ()=>{ if(popForm) hideModalByElement(popForm); });
+
+/* submit add form */
+if (formR) {
+  formR.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titulo = getValOrNull('tituloRecord');
+    const desc = getValOrNull('descRecord');
+    const fecha = getValOrNull('fechaRecord');
+    const payload = { titulo: titulo || null, descripcion: desc || null, fecha_limite: fecha || null };
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/recordatorios`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`POST record ${res.status}`);
+      hideSpinner();
+      if(popForm) hideModalByElement(popForm);
+      showResult('Registro', 'Recordatorio agregado.');
+      await cargarRecord();
+      formR.reset(); if(fechaInput) fechaInput.value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.warn('Agregar record falló, guardando en localStorage', err);
+      const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+      arr.push({ titulo, desc, fecha });
+      localStorage.setItem('recordatorios', JSON.stringify(arr));
+      if(popForm) hideModalByElement(popForm);
+      if(popConfirm) showModalByElement(popConfirm);
+      cargarRecord();
+    }
+  });
+}
+if (cerrarPopConfirm) cerrarPopConfirm.addEventListener('click', ()=>{ if(popConfirm) hideModalByElement(popConfirm); });
+
+/* Delegación recordatorios (abrir/eliminar) */
+const lightbox = $('lightbox-recordatorio');
+const closeBtn = document.querySelector('.close-lightbox');
+const lbDelete = document.querySelector('#lightbox-recordatorio .btn-eliminar');
+let indexSeleccionado = null;
+
+if(listDiv) {
+  listDiv.addEventListener('click', (e) => {
+    const eliminarBtn = e.target.closest('.btnEliminar');
+    if (eliminarBtn) {
+      indexEliminar = eliminarBtn.dataset.id;
+      if(popEliminarConfirm) showModalByElement(popEliminarConfirm);
+      return;
+    }
+
+    const item = e.target.closest('.recordatorio-item');
+    if (item) {
+      indexSeleccionado = item.dataset.id;
+      (async () => {
+        try {
+          if (String(indexSeleccionado).startsWith('local-')) {
+            const arrLocal = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+            const idx = Number(indexSeleccionado.replace('local-',''));
+            const r = arrLocal[idx] || {};
+            fillLightbox(r.titulo, r.desc, r.fecha);
+          } else {
+            const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexSeleccionado)}`);
+            if (!res.ok) throw new Error('no fetch lb');
+            const r = await res.json();
+            fillLightbox(r.titulo || r.titulo, r.descripcion || r.desc, r.fecha_limite || r.fecha);
+          }
+        } catch(err){
+          const title = item.querySelector('.recordatorio-info strong')?.textContent || 'Recordatorio';
+          const small = item.querySelector('.recordatorio-info small')?.textContent || '';
+          const descText = item.querySelector('.recordatorio-info')?.childNodes[2]?.textContent || '';
+          fillLightbox(title, descText, small);
+        }
+        if(lightbox) {
+          // open via helper to ensure focus & scroll locking
+          showModalByElement(lightbox);
+          const cb = lightbox.querySelector('.close-lightbox');
+          if(cb) setTimeout(()=>cb.focus(),50);
+        }
+      })();
+    }
+  });
+}
+
+function fillLightbox(titulo, desc, fecha){
+  if(!lightbox) return;
+  const titleEl = lightbox.querySelector('h2');
+  const pEl = lightbox.querySelector('p');
+  if(titleEl) titleEl.textContent = titulo || 'Recordatorio';
+  if(pEl) pEl.innerHTML = `${desc || ''}${(desc && fecha)?'<br>':''}<small>${fecha || ''}</small>`;
+}
+
+/* Close lightbox via X only (no overlay click) */
+if(closeBtn) closeBtn.addEventListener('click', () => {
+  if(lightbox) {
+    hideModalByElement(lightbox);
+  }
+});
+if(lbDelete) lbDelete.addEventListener('click', () => {
+  if (indexSeleccionado != null) {
+    if(popEliminarConfirm) showModalByElement(popEliminarConfirm);
+    if(lightbox) hideModalByElement(lightbox);
+    indexEliminar = indexSeleccionado;
+  }
+});
+
+/* confirm delete record */
+if (btnConfirmEliminar) {
+  btnConfirmEliminar.addEventListener('click', async () => {
+    if (!indexEliminar) { if(popEliminarConfirm) hideModalByElement(popEliminarConfirm); return; }
+    showSpinner();
+    try {
+      if (String(indexEliminar).startsWith('local-')) {
+        const idx = Number(indexEliminar.replace('local-',''));
+        const arr = JSON.parse(localStorage.getItem('recordatorios')||'[]');
+        arr.splice(idx,1);
+        localStorage.setItem('recordatorios', JSON.stringify(arr));
+        hideSpinner();
+        if(popEliminarConfirm) hideModalByElement(popEliminarConfirm);
+        cargarRecord();
+        showResult('Eliminado', 'Recordatorio eliminado (local).');
+        indexEliminar = null;
+        return;
+      }
+      const res = await fetch(`${API_BASE}/recordatorios/${encodeURIComponent(indexEliminar)}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`Delete failed ${res.status}`);
+      hideSpinner();
+      if(popEliminarConfirm) hideModalByElement(popEliminarConfirm);
+      showResult('Eliminado', 'Recordatorio eliminado.');
+      indexEliminar = null;
+      await cargarRecord();
+    } catch(err){
+      hideSpinner();
+      if(popEliminarConfirm) hideModalByElement(popEliminarConfirm);
+      console.error('Eliminar record error', err);
+      showResult('Error', 'No se pudo eliminar. Intenta más tarde.');
+    }
+  });
+}
+if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', ()=>{ if(popEliminarConfirm) hideModalByElement(popEliminarConfirm); indexEliminar=null; });
+
+/* ---------- AGREGAR Y ACTUALIZAR (con validaciones) ---------- */
+const formAgregar = $('formAgregar');
+const formActualizar = $('formActualizar');
+
+function mapTipoToId(tipoStr){
+  if (tipoStr === '1' || tipoStr === 1) return 1;
+  if (tipoStr === '2' || tipoStr === 2) return 2;
+  return tipoStr === 'aereo' ? 1 : (tipoStr === 'maritimo' ? 2 : null);
+}
+
+/* Agregar paquete */
+if (formAgregar) {
+  formAgregar.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const nombre = getValOrNull('nombre');
+    const codigo = getValOrNull('codigo');
+    const telCode = getValOrNull('telCode') || '';
+    const telefonoDigits = getValOrNull('telefonoDigits') || getValOrNull('telefono');
+    const telefono = telefonoDigits ? `${telCode}${telefonoDigits}` : null;
+
+    // enforce both name and phone required (front)
+    if (!nombre) { showResult('Error','El nombre es obligatorio'); return; }
+    if (!telefonoDigits || !/^\d{8,10}$/.test(telefonoDigits)) { showResult('Error','El teléfono es obligatorio y debe tener 8-10 dígitos'); return; }
+
+    const tipoSel = getValOrNull('tipo');
+    const tipo_envio_id = mapTipoToId(tipoSel);
+
+    const payload = {
+      nombre_cliente: nombre || null,
+      codigo_seguimiento: codigo || null,
+      telefono: telefono || null,
+      tipo_envio_id: tipo_envio_id ?? null,
+    };
+
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/paquetes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        let errText = `Error ${res.status}`;
+        try { const errJson = await res.json(); if(errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
+      hideSpinner();
+      showResult('Operación realizada', 'Paquete registrado correctamente.');
+      formAgregar.reset();
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+    } catch(err){
+      hideSpinner();
+      console.error('Agregar paquete error:', err);
+      showResult('Error', 'No se pudo registrar el paquete. Revisa la consola o intenta más tarde.');
+    }
+  });
+}
+
+/* Actualizar seguimiento (section form) */
+if (formActualizar) {
+  formActualizar.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const identifier = getValOrNull('codigoSeg');
+    if (!identifier) { showResult('Error', 'Debe ingresar el código o ID del paquete.'); return; }
+
+    const pesoRaw = getValOrNull('pesoSeg');
+    const tarifaRaw = getValOrNull('tarifaSeg');
+    const fecha_estado = getValOrNull('fechaEstado') || null;
+    const estado = getValOrNull('estadoSeg') || null;
+
+    const updateObj = {};
+    if (pesoRaw !== null) { const p = Number(pesoRaw); if (!Number.isNaN(p)) updateObj.peso_libras = p; }
+    if (tarifaRaw !== null) { const t = Number(tarifaRaw); if (!Number.isNaN(t)) updateObj.tarifa_usd = t; }
+    if (fecha_estado !== null) updateObj.fecha_estado = fecha_estado;
+    if (estado !== null) updateObj.estado = estado;
+
+    if (Object.keys(updateObj).length === 0){
+      showResult('Aviso', 'No hay campos para actualizar.');
+      return;
+    }
+
+    showSpinner();
+    try {
+      const res = await fetch(`${API_BASE}/paquetes/${encodeURIComponent(identifier)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateObj)
+      });
+      if (!res.ok) {
+        let errText = `Actualizar fallo ${res.status}`;
+        try { const errJson = await res.json(); if (errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
+      const result = await res.json();
+      const data = Array.isArray(result) ? result : (result?.data ?? result);
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        hideSpinner();
+        showResult('No encontrado', 'No se encontró paquete con ese identificador o no se realizaron cambios.');
+        return;
+      }
+      hideSpinner();
+      showResult('Operación realizada', 'Estado del paquete actualizado.');
+      formActualizar.reset();
+      if ($('fechaEstado')) $('fechaEstado').value = fechaEstadoDefault;
+      // refresh manejo list if visible
+      if (secciones.manejo && secciones.manejo.classList.contains('active')) cargarManejo(currentManejoPage);
+    } catch(err){
+      hideSpinner();
+      console.error('Actualizar seguimiento error:', err);
+      showResult('Error', `No fue posible actualizar el paquete. ${err.message || ''}`);
+    }
+  });
+}
+
+/* =============== MANEJO (paquetes + pagination + lightbox) =============== */
+const listaManejo = $('listaManejo');
+const manejoSearch = $('manejoSearch');
+const manejoPagination = $('manejoPagination');
+const prevPageBtn = $('prevPage');
+const nextPageBtn = $('nextPage');
+const pageInfo = $('pageInfo');
+
+let manejoData = []; // full array from API
+let currentManejoPage = 1;
+const PAGE_SIZE = 10;
+
+function tipoTextFromId(id){
+  if (id === 1 || String(id) === '1') return 'Aéreo';
+  if (id === 2 || String(id) === '2') return 'Marítimo';
+  return '-';
+}
+
+/* cargar manejo */
+async function cargarManejo(){
+  if (!listaManejo) return;
+  listaManejo.innerHTML = '<div style="padding:12px;text-align:center;">Cargando paquetes...</div>';
+  manejoPagination.style.display = 'none';
+  try {
+    const res = await fetch(`${API_BASE}/paquetes`);
+    if (!res.ok) throw new Error(`fetch ${res.status}`);
+    const arr = await res.json();
+    manejoData = Array.isArray(arr) ? arr : [];
+    currentManejoPage = 1;
+    renderManejoPage();
+  } catch(err){
+    console.warn('Fallo al cargar paquetes desde API:', err);
+    listaManejo.innerHTML = '<p>No se pudo cargar paquetes. Intenta más tarde.</p>';
+    manejoData = [];
+    manejoPagination.style.display = 'none';
+  }
+}
+
+function filterManejoData(query){
+  if (!query) return manejoData;
+  const q = String(query).trim().toLowerCase();
+  return manejoData.filter(p => {
+    const nombre = (p.nombre_cliente || '').toString().toLowerCase();
+    const telefono = (p.telefono || '').toString().toLowerCase();
+    return nombre.includes(q) || telefono.includes(q) || (p.codigo_seguimiento||'').toString().toLowerCase().includes(q);
+  });
+}
+
+function renderManejoPage(){
+  const q = manejoSearch.value || '';
+  const filtered = filterManejoData(q);
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentManejoPage > totalPages) currentManejoPage = totalPages;
+
+  const start = (currentManejoPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+  listaManejo.innerHTML = '';
+  if (pageItems.length === 0){
+    listaManejo.innerHTML = '<div style="padding:10px;color:#666;text-align:center;">No hay resultados.</div>';
+    manejoPagination.style.display = 'none';
+    return;
+  }
+
+  pageItems.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'manejo-item';
+    // Use fecha_estado as "fecha de ingreso" preview (backend does not have generic 'fecha' column)
+    const fechaIngreso = p.fecha_estado || 'No disponible';
+    const tipo = tipoTextFromId(p.tipo_envio_id ?? p.tipo_envio ?? null);
+    const nombre = p.nombre_cliente || p.nombre || '-';
+    const codigo = p.codigo_seguimiento || '';
+    div.dataset.codigo = codigo;
+    div.dataset.id = p.id ?? '';
+    div.innerHTML = `
+      <div class="manejo-meta">
+        <div style="font-weight:700;">${escapeHtml(nombre)}</div>
+        <small>Pedido del ${escapeHtml(fechaIngreso)}</small>
+      </div>
+      <div class="manejo-right">
+        <div style="font-weight:700;">${escapeHtml(tipo)}</div>
+        <small style="color:#777">Código: ${escapeHtml(codigo || '-')}</small>
+      </div>
+    `;
+    listaManejo.appendChild(div);
+  });
+
+  // pagination
+  if (total > PAGE_SIZE) {
+    manejoPagination.style.display = 'flex';
+    pageInfo.textContent = `Página ${currentManejoPage} de ${totalPages} — ${total} resultados`;
+    prevPageBtn.disabled = currentManejoPage <= 1;
+    nextPageBtn.disabled = currentManejoPage >= totalPages;
+  } else {
+    manejoPagination.style.display = 'none';
+  }
+}
+
+/* pagination handlers */
+if (prevPageBtn) prevPageBtn.addEventListener('click', ()=>{ if(currentManejoPage>1) { currentManejoPage--; renderManejoPage(); }});
+if (nextPageBtn) nextPageBtn.addEventListener('click', ()=>{ currentManejoPage++; renderManejoPage(); });
+
+if (manejoSearch) {
+  manejoSearch.addEventListener('input', ()=>{ currentManejoPage = 1; renderManejoPage(); });
+  manejoSearch.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); currentManejoPage = 1; renderManejoPage(); }});
+}
+
+/* click delegation to open manejo lightbox */
+const lightboxManejo = $('lightbox-manejo');
+const lmTitle = $('lmTitle');
+const lmSubtitle = $('lmSubtitle');
+const lmLoading = $('lmLoading');
+const lmContent = $('lmContent');
+const lmNombre = $('lmNombre');
+const lmPhoneWrap = $('lmPhoneWrap');
+const lmTipo = $('lmTipo');
+const lmFechaIngreso = $('lmFechaIngreso');
+const lmPeso = $('lmPeso');
+const lmTarifa = $('lmTarifa');
+const lmTotal = $('lmTotal');
+const lmTimeline = $('lmTimeline');
+const lmToggleUpdate = $('lmToggleUpdate');
+const lmUpdateFormWrap = $('lmUpdateFormWrap');
+const lmUpdateForm = $('lmUpdateForm');
+const lmPesoInput = $('lmPesoInput');
+const lmTarifaInput = $('lmTarifaInput');
+const lmEstadoSelect = $('lmEstadoSelect');
+const lmFechaInput = $('lmFechaInput');
+const lmSubmitUpdate = $('lmSubmitUpdate');
+const lmCancelUpdate = $('lmCancelUpdate');
+let currentManejoCodigo = null;
+let currentManejoPaquete = null;
+
+// Helper: format date (dd/mm/yyyy)
+function formatDateShort(d){
+  try{
+    const dt = new Date(d);
+    if (isNaN(dt)) {
+      if (typeof d === 'string' && d.includes('-')) {
+        const [y,m,day] = d.split('-');
+        return `${day}/${m}/${y}`;
+      }
+      return d;
+    }
+    return dt.toLocaleDateString('es-ES');
+  }catch(e){ return d; }
+}
+
+// map state
+function mapStateLabel(raw){
+  if(!raw) return 'Estado desconocido';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Recibido';
+    case 'en_transito': return 'En tránsito';
+    case 'en_aduana': return 'En aduana';
+    case 'listo_recoger': return 'Listo Para Recoger';
+    default: return (r.charAt(0).toUpperCase() + r.slice(1)).replace(/_/g,' ');
+  }
+}
+function mapStateSubtext(raw){
+  if(!raw) return '';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Paquete recibido por Nica Express Way';
+    case 'en_transito': return 'Paquete en camino';
+    case 'en_aduana': return 'Paquete en aduanas';
+    case 'listo_recoger': return 'Paquete listo para retirar';
+    default: return '';
+  }
+}
+
+// open handling (delegation)
+if (listaManejo) {
+  listaManejo.addEventListener('click', async (e) => {
+    const item = e.target.closest('.manejo-item');
+    if (!item) return;
+    const codigo = item.dataset.codigo || null;
+    const id = item.dataset.id || null;
+    await openManejoLightbox({ codigo, id });
+  });
+}
+
+async function openManejoLightbox({ codigo, id }){
+  currentManejoCodigo = codigo || null;
+  currentManejoPaquete = null;
+
+  // prepare modal
+  lmTitle.textContent = 'Pedido';
+  lmSubtitle.textContent = 'Cargando información...';
+  lmLoading.style.display = 'block';
+  lmContent.style.display = 'none';
+  lmTimeline.innerHTML = '';
+  lmNombre.textContent = '-';
+  lmPhoneWrap.textContent = '-';
+  lmTipo.textContent = '-';
+  lmFechaIngreso.textContent = '-';
+  lmPeso.textContent = '-';
+  lmTarifa.textContent = '-';
+  lmTotal.textContent = '-';
+
+  // show modal
+  if (lightboxManejo) {
+    showModalByElement(lightboxManejo);
+    const cb = lightboxManejo.querySelector('.close-lightbox-manejo');
+    if (cb) setTimeout(()=>cb.focus(), 50);
+  }
+
+  // fetch package info: prefer codigo query if available
+  try {
+    let paquete = null;
+    if (codigo) {
+      const res = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+      if (res.ok) {
+        const arr = await res.json();
+        if (Array.isArray(arr) && arr.length>0) paquete = arr[0];
+      }
+    }
+    // fallback by id
+    if (!paquete && id) {
+      const res2 = await fetch(`${API_BASE}/paquetes/${encodeURIComponent(id)}`);
+      if (res2.ok) paquete = await res2.json();
+    }
+    // last fallback: try find in manejoData
+    if (!paquete && manejoData && manejoData.length) {
+      paquete = manejoData.find(pp => String(pp.id) === String(id) || (pp.codigo_seguimiento && String(pp.codigo_seguimiento) === String(codigo)));
+    }
+    currentManejoPaquete = paquete || null;
+
+    // now fetch historial only if we have codigo_seguimiento
+    let historial = null;
+    if (paquete && paquete.codigo_seguimiento) {
+      try {
+        const rh = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+        if (rh.ok) historial = await rh.json();
+      } catch(err){ console.warn('hist fetch failed', err); }
+    }
+
+    // render header & main
+    const nombre = paquete?.nombre_cliente || paquete?.nombre || '-';
+    const telefono = paquete?.telefono || '-';
+    const tipo = tipoTextFromId(paquete?.tipo_envio_id ?? paquete?.tipo_envio ?? null);
+    // compute "fecha de primer estado": look for fecha1..fecha4 in historial (first non-null)
+    let fechaPrimer = null;
+    if (historial) {
+      for (let i=1;i<=4;i++){
+        const f = historial[`fecha${i}`];
+        if (f && String(f).trim()!=='') { fechaPrimer = f; break; }
+      }
+    }
+    if (!fechaPrimer) {
+      // fallback to paquete.fecha_estado if exists
+      fechaPrimer = paquete?.fecha_estado || null;
+    }
+
+    // Fill UI
+    lmNombre.textContent = nombre;
+    // phone link
+    const digits = String(telefono || '').replace(/\D/g,'');
+    if (digits.length>0) {
+      lmPhoneWrap.innerHTML = `<a class="pedido-phone" href="https://wa.me/${digits}" target="_blank" rel="noopener">${escapeHtml(telefono)}</a>`;
+    } else {
+      lmPhoneWrap.textContent = telefono || '-';
+    }
+
+    lmTipo.textContent = tipo;
+    lmFechaIngreso.textContent = fechaPrimer ? `Pedido hecho el ${formatDateShort(fechaPrimer)}` : 'Fecha de ingreso: No disponible';
+
+    // tarifa/peso/total
+    if (paquete?.peso_libras != null) lmPeso.textContent = Number(paquete.peso_libras).toFixed(2) + ' lb'; else lmPeso.textContent = 'No disponible, actualizar los datos';
+    if (paquete?.tarifa_usd != null) lmTarifa.textContent = `$${Number(paquete.tarifa_usd).toFixed(2)} USD`; else lmTarifa.textContent = 'No disponible, actualizar los datos';
+    if (paquete?.peso_libras != null && paquete?.tarifa_usd != null) {
+      const total = Number(paquete.peso_libras) * Number(paquete.tarifa_usd);
+      lmTotal.textContent = `$${isFinite(total) ? total.toFixed(2) : '0.00'} USD`;
+    } else lmTotal.textContent = 'No disponible';
+
+    // render timeline
+    lmTimeline.innerHTML = '';
+    if (!historial) {
+      lmTimeline.innerHTML = '<div class="small-muted">Historial no disponible</div>';
+    } else {
+      const items = [];
+      for (let i=1;i<=4;i++){
+        const s = historial[`estado${i}`];
+        const f = historial[`fecha${i}`];
+        if ((s && String(s).trim()!=='') || (f && String(f).trim()!=='')){
+          items.push({ estado: s || null, fecha: f || null, index: i });
+        }
+      }
+      if (items.length===0){
+        lmTimeline.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
+      } else {
+        items.forEach(it => {
+          const div = document.createElement('div');
+          div.className = 'timeline-item';
+          const label = mapStateLabel(it.estado);
+          div.innerHTML = `<div class="state">${label}</div>
+                           <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
+                           <div class="fecha">${it.fecha ? formatDateShort(it.fecha) : ''}</div>`;
+          if (String(it.estado).toLowerCase()==='listo_recoger'){
+            div.classList.add('blink');
+            // confetti should appear above the modal now
+            triggerConfetti();
+          }
+          lmTimeline.appendChild(div);
+        });
+      }
+    }
+
+    // show content
+    lmLoading.style.display = 'none';
+    lmContent.style.display = 'block';
+    lmSubtitle.textContent = paquete?.codigo_seguimiento ? `Código: ${paquete.codigo_seguimiento}` : '';
+
+  } catch(err){
+    console.error('openManejoLightbox error', err);
+    lmLoading.style.display = 'none';
+    lmContent.style.display = 'block';
+    lmTimeline.innerHTML = '<div class="small-muted">No se pudo cargar la información del paquete.</div>';
+    lmSubtitle.textContent = 'Error al cargar';
+  }
+}
+
+/* close manejo modal */
+const closeManejoBtn = document.querySelector('.close-lightbox-manejo');
+if (closeManejoBtn) closeManejoBtn.addEventListener('click', () => {
+  if (lightboxManejo) {
+    hideModalByElement(lightboxManejo);
+    // clear form
+    lmUpdateFormWrap.style.display = 'none';
+    lmUpdateForm.reset();
+  }
+});
+
+/* toggle update form inside lightbox (improved: scroll into view and make inner scrollable) */
+if (lmToggleUpdate) {
+  lmToggleUpdate.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const inner = lightboxManejo?.querySelector('.lightbox-inner') || lightboxManejo;
+    if (!inner) return;
+    if (lmUpdateFormWrap.style.display === 'none' || lmUpdateFormWrap.style.display === '') {
+      lmUpdateFormWrap.style.display = 'block';
+      setTimeout(()=>{ 
+        try{ 
+          // focus first field
+          lmPesoInput.focus();
+        }catch(e){}
+        try{
+          // scroll the inner container so the expanded section is visible
+          const top = lmUpdateFormWrap.getBoundingClientRect().top - inner.getBoundingClientRect().top + inner.scrollTop - 12;
+          inner.scrollTo({ top, behavior: 'smooth' });
+        }catch(e){}
+      }, 120);
+    } else {
+      lmUpdateFormWrap.style.display = 'none';
+      lmUpdateForm.reset();
+    }
+  });
+}
+if (lmCancelUpdate) {
+  lmCancelUpdate.addEventListener('click', (e)=>{
+    e.preventDefault();
+    lmUpdateFormWrap.style.display = 'none';
+    lmUpdateForm.reset();
+  });
+}
+
+/* submit update from lightbox */
+if (lmUpdateForm) {
+  lmUpdateForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if (!currentManejoPaquete) { showResult('Error','Paquete no disponible para actualizar'); return; }
+    const codigo = currentManejoPaquete.codigo_seguimiento || currentManejoPaquete.id;
+    if (!codigo) { showResult('Error','No se encontró identificador para el paquete'); return; }
+
+    const pesoVal = getNumberOrNull('lmPesoInput');
+    const tarifaVal = getNumberOrNull('lmTarifaInput');
+    const estadoVal = (document.getElementById('lmEstadoSelect').value||'').trim() || null;
+    const fechaVal = (document.getElementById('lmFechaInput').value||'').trim() || null;
+
+    // validation: at least one field (peso, tarifa, estado)
+    if (pesoVal === null && tarifaVal === null && !estadoVal) {
+      showResult('Aviso','Ingresa al menos un campo para actualizar (peso, tarifa o estado).');
+      return;
+    }
+    // if estado provided, fecha required
+    if (estadoVal && !fechaVal) {
+      showResult('Aviso','Al cambiar el estado, la fecha es obligatoria.');
+      return;
+    }
+
+    // build update object (don't send empty fields)
+    const updateObj = {};
+    if (pesoVal !== null) updateObj.peso_libras = pesoVal;
+    if (tarifaVal !== null) updateObj.tarifa_usd = tarifaVal;
+    if (fechaVal) updateObj.fecha_estado = fechaVal;
+    if (estadoVal) updateObj.estado = estadoVal;
+
+    // send PUT to backend using codigo (assumes codigo_seguimiento)
+    showSpinner('Actualizando estado...');
+    try {
+      const endpoint = (currentManejoPaquete && currentManejoPaquete.codigo_seguimiento) ? `${API_BASE}/paquetes/${encodeURIComponent(currentManejoPaquete.codigo_seguimiento)}` : `${API_BASE}/paquetes/${encodeURIComponent(codigo)}`;
+      const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(updateObj)
+      });
+      if (!res.ok) {
+        let errText = `Actualizar fallo ${res.status}`;
+        try { const errJson = await res.json(); if (errJson?.error) errText = errJson.error; } catch(_) {}
+        throw new Error(errText);
+      }
+      hideSpinner();
+      lmUpdateFormWrap.style.display = 'none';
+      lmUpdateForm.reset();
+      // reload content
+      if (secciones.manejo && secciones.manejo.classList.contains('active')) await cargarManejo();
+      // reload lightbox data for same codigo
+      if (currentManejoPaquete && currentManejoPaquete.codigo_seguimiento) {
+        await openManejoLightbox({ codigo: currentManejoPaquete.codigo_seguimiento, id: currentManejoPaquete.id });
+      }
+      showResult('Operación realizada', 'Estado actualizado.');
+    } catch(err){
+      hideSpinner();
+      console.error('Error actualizando desde lightbox:', err);
+      showResult('Error','No se pudo actualizar. Revisa la consola.');
+    }
+  });
+}
+
+/* ============== Legacy Pedidos (kept) ============== */
+const listaPedidos = $('listaPedidos');
+const lightboxPedido = $('lightbox-pedido');
+const closeLightboxPedidoBtn = document.querySelector('.close-lightbox-pedido');
+const lbNombre = $('lbNombre'), lbTelefono = $('lbTelefono');
+
+/* ============== LOCKS / STATS (accesibilidad corregida) ============== */
+/* Passwords are loaded from your raw GitHub file. If it fails, fallback to a safe default. */
+let PASS_LOCK = null;
+let PASS_STATS = null;
+const PASS_RAW_URL = 'https://github.com/irvinforbusinesses/pass/raw/3327e0fdecfb8e72fdf220feb548afb6c947584f/passlock.txt';
+
+const lockOverlay  = $('lockOverlay');
+const statsOverlay = $('statsOverlay');
+
+const lockPass   = $('lockPass');
+const lockSubmit = $('lockSubmit');
+const lockError  = $('lockError');
+
+const statsPass    = $('statsPass');
+const statsSubmit  = $('statsSubmit');
+const statsCancel  = $('statsCancel');
+const statsError   = $('statsError');
+
+const statsFrame   = $('estadisticasFrame');
+
+/* load password from repo */
+async function loadPassFromRepo(){
+  try {
+    const r = await fetch(PASS_RAW_URL, { cache: 'no-store' });
+    if (r.ok) {
+      const text = (await r.text()).trim();
+      if (text) {
+        PASS_LOCK = text;
+        PASS_STATS = text;
+      }
+    }
+  } catch(e){
+    console.warn('No se pudo cargar contraseña desde repo', e);
+  } finally {
+    // if still null, fallback to a fallback string (non-empty so UI isn't blocked)
+    if (!PASS_LOCK) PASS_LOCK = '12345678';
+    if (!PASS_STATS) PASS_STATS = PASS_LOCK;
+    // enable lock button once password value is set
+    if (lockSubmit) lockSubmit.disabled = false;
+  }
+}
+loadPassFromRepo();
+
+/* tryUnlock: if success, hide lock overlay and unblur app; else show error.
+   Note: authError elements are hidden by default via CSS; only shown after a real failed attempt.
+*/
+function tryUnlock(){
+  if(!lockPass) return;
+  // if still loading PASS_LOCK, prevent attempt
+  if (!PASS_LOCK) { showSpinner('Verificando...'); setTimeout(()=>hideSpinner(),700); return; }
+  if (lockPass.value === PASS_LOCK){
+    if(lockError) lockError.style.display = 'none';
+    // hide lock overlay properly
+    if(lockOverlay) hideModalByElement(lockOverlay);
+    // load protected content
+    cargarRecord();
+    // load manejo content on unlock
+    cargarManejo();
+    if (lockPass) lockPass.value = '';
+  } else {
+    if(lockError) lockError.style.display = 'block';
+    if (lockPass) lockPass.select();
+  }
+}
+if(lockSubmit) lockSubmit.addEventListener('click', tryUnlock);
+if(lockPass) lockPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
+
+function closeStats(){ if(statsOverlay) hideModalByElement(statsOverlay); }
+function loadStatsIfAuthorized(){
+  if(!statsPass) return;
+  if (!PASS_STATS) { showResult('Aviso', 'Espere un momento...'); return; }
+  if (statsPass.value === PASS_STATS){
+    if(statsError) statsError.style.display = 'none';
+    hideModalByElement(statsOverlay);
+    if (statsFrame && statsFrame.src !== 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html'){
+      statsFrame.src = 'https://irvinforbusinesses.github.io/Nicaexpressway/estadisticas.html';
+    }
+    mostrarSeccion('estadisticas');
+    statsPass.value = '';
+  } else {
+    if(statsError) statsError.style.display = 'block';
+  }
+}
+if(statsSubmit) statsSubmit.addEventListener('click', loadStatsIfAuthorized);
+if(statsPass) statsPass.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') loadStatsIfAuthorized(); });
+if(statsCancel) statsCancel.addEventListener('click', ()=>{ 
+  if (document.activeElement && statsOverlay.contains(document.activeElement)) try { document.activeElement.blur(); } catch(e){}
+  hideModalByElement(statsOverlay); 
+});
+
+/* No cargamos recordatorios/pedidos hasta desbloqueo (tryUnlock los llama) */
+
+/* ========== CONFETTI (reutilizado desde tu código) ========== */
+let confettiTimeout = null;
+
+function triggerConfettiDesktop(){
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+
+  const N = 200;
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+
+  for (let i=0; i<N; i++){
+    const el = document.createElement('div');
+    const size = Math.floor(Math.random()*8)+6;
+    el.className = 'confetti';
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+    el.style.top = (-50 + Math.random()*-50) + 'px';
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.7 + Math.random()*0.3);
+    el.style.borderRadius='2px';
+    // place confetti above modals
+    el.style.zIndex = 13060;
+
+    const destX = (Math.random()*500 - 250);
+    const destY = window.innerHeight + 100;
+    const duration = 5 + Math.random()*5;
+
+    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
+
+    wrap.appendChild(el);
+
+    requestAnimationFrame(()=>{
+      el.style.top = destY + 'px';
+      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
+      el.style.opacity = '0';
+    });
+  }
+
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
+}
+
+/* Small helper to trigger confetti only when appropriate (kept) */
+function triggerConfetti(){
+  // choose mobile vs desktop roughly by width
+  if (window.innerWidth < 520) triggerConfettiMobile();
+  else triggerConfettiDesktop();
+}
+function triggerConfettiMobile(){
+  const wrap = document.getElementById('confettiWrap');
+  if (!wrap) return;
+
+  const N = 100;
+  const colors = ['#1f3a66','#2F528F','#79A7E4'];
+
+  for (let i=0; i<N; i++){
+    const el = document.createElement('div');
+    const size = Math.floor(Math.random()*8)+6;
+    el.className = 'confetti';
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100)+'%';
+    el.style.top = (-50 + Math.random()*-50) + 'px';
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = String(0.7 + Math.random()*0.3);
+    el.style.borderRadius='2px';
+    el.style.zIndex = 13060;
+
+    const destX = (Math.random()*500 - 250);
+    const destY = window.innerHeight + 100;
+    const duration = 5 + Math.random()*5;
+
+    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
+
+    wrap.appendChild(el);
+
+    requestAnimationFrame(()=>{
+      el.style.top = destY + 'px';
+      el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`;
+      el.style.opacity = '0';
+    });
+  }
+
+  if (confettiTimeout) clearTimeout(confettiTimeout);
+  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 11000);
+}
+
+/* Ensure initial lock input is focused (so virtual keyboard opens on mobile when allowed) */
+window.addEventListener('load', ()=> {
+  try {
+    if (lockOverlay && lockOverlay.style.display !== 'none') {
+      setTimeout(()=>{ try { if (lockPass) lockPass.focus(); } catch(e){} }, 120);
+    }
+  } catch(e){}
+});
+
+/* small util */
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* Inicial: si el lockOverlay estaba visible (lo está), no habilitamos interacción del app */
+if (lockOverlay && lockOverlay.style.display !== 'none') {
+  if (appWrapper) setInert(appWrapper, true);
+  document.body.style.overflow = 'hidden';
+}
+
+/* end of script */
+</script>
+</body>
+</html>
