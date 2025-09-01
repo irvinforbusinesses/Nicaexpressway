@@ -721,10 +721,14 @@ const appWrapper = $('app');
 
 function setInert(el, inert){
   if (!el) return;
-  el.setAttribute('inert', inert ? 'true' : 'false');
-  el.style.pointerEvents = inert ? 'none' : '';
-  el.style.opacity = inert ? '0.65' : '';
-  el.style.filter = inert ? 'blur(1.5px)' : '';
+  if (inert) {
+    el.setAttribute('inert', '');
+  } else {
+    el.removeAttribute('inert');
+  }
+  el.style.pointerEvents = inert ? 'none' : 'auto';
+  el.style.opacity = inert ? '0.65' : '1';
+  el.style.filter = inert ? 'blur(1.5px)' : 'none';
   el.tabIndex = inert ? -1 : 0;
 }
 
@@ -1640,6 +1644,7 @@ window.addEventListener('load', async ()=> {
   await loadPasswords();
   try {
     if (lockOverlay && lockOverlay.style.display !== 'none') {
+      setInert(appWrapper, true);
       setTimeout(()=>{ try { if (lockPass) lockPass.focus(); } catch(e){} }, 120);
     }
   } catch(e){}
