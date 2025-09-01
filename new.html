@@ -1475,10 +1475,10 @@ let PASS_STATS = null;
 
 async function loadPasswords() {
   try {
-    const resLock = await fetch('https://github.com/irvinforbusinesses/pass/raw/3327e0fdecfb8e72fdf220feb548afb6c947584f/passlock.txt');
+    const resLock = await fetch('https://raw.githubusercontent.com/irvinforbusinesses/pass/3327e0fdecfb8e72fdf220feb548afb6c947584f/passlock.txt');
     if (resLock.ok) PASS_LOCK = (await resLock.text()).trim();
     // for stats, use separate file but same for now
-    const resStats = await fetch('https://github.com/irvinforbusinesses/pass/raw/3327e0fdecfb8e72fdf220feb548afb6c947584f/passlock.txt');
+    const resStats = await fetch('https://raw.githubusercontent.com/irvinforbusinesses/pass/3327e0fdecfb8e72fdf220feb548afb6c947584f/passlock.txt');
     if (resStats.ok) PASS_STATS = (await resStats.text()).trim();
   } catch (err) {
     console.error('Error loading passwords:', err);
