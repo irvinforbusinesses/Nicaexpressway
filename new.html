@@ -14,6 +14,7 @@
   --color-text-dark: #1A1A1A;
   --modal-overlay-bg: rgba(0,0,0,0.45);
   --lapis: #1f3a66; /* color lápiz lazuli para resaltar seguimiento */
+  --red-delete: #f56565;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -131,6 +132,13 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   backdrop-filter: blur(5px);
   z-index: 10000;
   padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Show with fade */
+.modal-overlay.modal-visible, .authOverlay.modal-visible, .lightbox.modal-visible {
+  opacity: 1;
 }
 
 /* Inner card for modal content */
@@ -181,6 +189,11 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   background: var(--modal-overlay-bg);
   backdrop-filter: blur(3px);
   padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pop-result.modal-visible {
+  opacity: 1;
 }
 .pop-result .panel {
   background: var(--color-light);
@@ -207,6 +220,11 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   background: rgba(0,0,0,0.28);
   z-index: 11000;
   backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.overlay-spinner.modal-visible {
+  opacity: 1;
 }
 .spinner-box {
   background: var(--color-light);
@@ -325,12 +343,10 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
 /* recordatorio highlight for due today */
 .recordatorio-due-today {
   animation: blinkRed 1.2s ease-in-out infinite;
-  border: 2px solid #f56565;
-  box-shadow: 0 0 10px rgba(245,101,101,0.3);
 }
 @keyframes blinkRed {
   0%, 100% { background-color: var(--color-gray); }
-  50% { background-color: rgba(245,101,101,0.2); }
+  50% { background-color: var(--red-delete); opacity: 0.7; }
 }
 
 /* confetti container */
@@ -421,6 +437,30 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 
 /* For recordatorio lightbox desc */
 #lbRecordDesc { white-space: pre-line; word-wrap: break-word; text-align: left; }
+
+/* Loading text style */
+#loadingRecordatorios { text-align: center; color: #666; font-size: 1rem; margin-top: 1rem; }
+
+/* Lightbox recordatorio layout */
+#lightbox-recordatorio .lightbox-content {
+  text-align: left;
+}
+#lightbox-recordatorio .btn-eliminar {
+  margin: 1rem auto 0;
+  display: block;
+  width: fit-content;
+}
+#lightbox-recordatorio .lightbox-due-today {
+  animation: blinkRed 1.2s ease-in-out infinite;
+}
+
+/* General fade for modals */
+.modal-overlay, .authOverlay, .lightbox, .pop-result, .overlay-spinner {
+  transition: opacity 0.3s ease;
+}
+.modal-visible {
+  opacity: 1 !important;
+}
 </style>
 </head>
 <body>
@@ -442,7 +482,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <!-- Inicio: Recordatorios -->
 <section id="inicio" class="active section-fade">
 <h2>Inicio</h2>
-<div id="listaRecordatorios">
+<div id="loadingRecordatorios" style="display: block;">Cargando recordatorios, espera...</div>
+<div id="listaRecordatorios" style="display: none;">
   <p>No hay recordatorios por el momento.</p>
 </div>
 <button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
@@ -596,7 +637,7 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 </div><!-- /#app -->
 
 <!-- OVERLAY: LOCK INICIAL (AHORA visible on load) -->
-<div id="lockOverlay" class="authOverlay modal-overlay" style="display:flex;" aria-hidden="false">
+<div id="lockOverlay" class="authOverlay modal-overlay modal-visible" style="display:flex;" aria-hidden="false">
   <div class="authBox">
     <h2>Acceso al Panel</h2>
     <!-- autofocus + autocomplete for better UX on mobile -->
@@ -627,8 +668,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
     <button class="close-lightbox" aria-label="Cerrar recordatorio">&times;</button>
     <h2 id="lbRecordTitulo">Recordatorio</h2>
     <p id="lbRecordDesc">Descripción</p>
-    <small id="lbRecordFecha">Fecha</small>
-    <button class="btn-eliminar">Eliminar recordatorio</button>
+    <small id="lbRecordFecha" style="display: block; margin-bottom: 1rem; text-align: center;">Fecha</small>
+    <button class="btn-eliminar" style="margin: 0 auto; display: block; width: fit-content;">Eliminar recordatorio</button>
   </div>
 </div>
 
@@ -807,10 +848,14 @@ function showSpinner(msg='Cargando...'){
   if (!spin) return;
   $('spinnerMsg').textContent = msg;
   spin.style.display = 'flex';
+  spin.classList.add('modal-visible');
 }
 function hideSpinner(){
   const spin = $('spinnerOverlay');
-  if (spin) spin.style.display = 'none';
+  if (spin) {
+    spin.classList.remove('modal-visible');
+    spin.style.display = 'none';
+  }
 }
 
 // getNumberOrNull: small util
@@ -884,39 +929,47 @@ const lbRecordFecha = $('lbRecordFecha');
 let recordatorioIdAEliminar = null;
 let currentRecordatorio = null;
 
+const loadingRecordatorios = $('loadingRecordatorios');
+
 async function cargarRecord() {
-  listaRecordatorios.innerHTML = '';
+  loadingRecordatorios.style.display = 'block';
+  listaRecordatorios.style.display = 'none';
   try {
     const res = await fetch(`${API_BASE}/recordatorios`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const recordatorios = await res.json();
+    listaRecordatorios.innerHTML = '';
     if (recordatorios.length === 0) {
       listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
-      return;
+    } else {
+      recordatorios.forEach((rec) => {
+        const div = document.createElement('div');
+        div.className = 'recordatorio-item';
+        div.dataset.id = rec.id;
+        div.innerHTML = `
+          <div class="recordatorio-info">
+            <strong>${escapeHtml(rec.titulo)}</strong><br>
+            <small>${escapeHtml((rec.descripcion || '').slice(0, 50))}${(rec.descripcion || '').length > 50 ? '...' : ''}</small><br>
+            <small>Fecha: ${escapeHtml(rec.fecha_limite)}</small>
+          </div>
+          <button class="btnEliminar">Eliminar</button>
+        `;
+        // check if due today in Miami time
+        const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+        const recDate = new Date(rec.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        if (recDate === todayMiami) {
+          div.classList.add('recordatorio-due-today');
+        }
+        listaRecordatorios.appendChild(div);
+      });
     }
-    recordatorios.forEach((rec) => {
-      const div = document.createElement('div');
-      div.className = 'recordatorio-item';
-      div.dataset.id = rec.id;
-      div.innerHTML = `
-        <div class="recordatorio-info">
-          <strong>${escapeHtml(rec.titulo)}</strong><br>
-          <small>${escapeHtml((rec.descripcion || '').slice(0, 50))}${(rec.descripcion || '').length > 50 ? '...' : ''}</small><br>
-          <small>Fecha: ${escapeHtml(rec.fecha_limite)}</small>
-        </div>
-        <button class="btnEliminar">Eliminar</button>
-      `;
-      // check if due today in Miami time
-      const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-      const recDate = new Date(rec.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      if (recDate === todayMiami) {
-        div.classList.add('recordatorio-due-today');
-      }
-      listaRecordatorios.appendChild(div);
-    });
+    loadingRecordatorios.style.display = 'none';
+    listaRecordatorios.style.display = 'block';
   } catch (err) {
     console.error('Error cargando recordatorios:', err);
     listaRecordatorios.innerHTML = '<p>No se pudieron cargar los recordatorios.</p>';
+    loadingRecordatorios.style.display = 'none';
+    listaRecordatorios.style.display = 'block';
   }
 }
 
@@ -993,9 +1046,17 @@ async function openRecordLightbox(id) {
     const res = await fetch(`${API_BASE}/recordatorios/${id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentRecordatorio = await res.json();
-    lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
-    lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
-    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
+    lbRecordTitulo.textContent = currentRecorditorio.titulo || 'Recordatorio';
+    lbRecordDesc.textContent = currentRecorditorio.descripcion || '';
+    lbRecordFecha.textContent = `Fecha: ${currentRecorditorio.fecha_limite || ''}`;
+    // check if due today for lightbox blink
+    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const recDate = new Date(currentRecorditorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    if (recDate === todayMiami) {
+      lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
+    } else {
+      lightboxRecordatorio.querySelector('.lightbox-content').classList.remove('lightbox-due-today');
+    }
     hideSpinner();
     showModalByElement(lightboxRecordatorio);
   } catch (err) {
@@ -1006,11 +1067,11 @@ async function openRecordLightbox(id) {
 }
 
 if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', () => hideModalByElement(lightboxRecordatorio));
-if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', async () => {
+if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', () => {
   if (currentRecordatorio && currentRecordatorio.id) {
     recordatorioIdAEliminar = currentRecordatorio.id;
-    await btnConfirmEliminar.click(); // reuse delete logic
     hideModalByElement(lightboxRecordatorio);
+    showModalByElement(popEliminarConfirm);
   }
 });
 
