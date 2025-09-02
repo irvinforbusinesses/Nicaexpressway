@@ -146,6 +146,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 6px 24px rgba(0,0,0,0.28);
   position: relative;
   text-align: left;
+  pointer-events: auto !important;
+  z-index: 10001;
 }
 
 /* For manejo (larger lightbox) keep it slightly smaller than before */
@@ -160,6 +162,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 6px 24px rgba(0,0,0,0.28);
   position: relative;
   text-align: left;
+  pointer-events: auto !important;
+  z-index: 10001;
 }
 
 /* reusable visible class with fade animation */
@@ -186,6 +190,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   width: 90%;
   max-width: 360px;
   text-align: center;
+  pointer-events: auto !important;
+  z-index: 12001;
 }
 .pop-result .title { font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
 .pop-result .msg { margin-bottom: 10px; }
@@ -209,6 +215,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   text-align: center;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   min-width: 220px;
+  pointer-events: auto !important;
+  z-index: 11001;
 }
 .spinner {
   width: 40px; height: 40px;
@@ -232,6 +240,8 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   text-align: center;
   position: relative;
+  pointer-events: auto !important;
+  z-index: 10001;
 }
 
 /* styled close X button (circular, top-right) */
@@ -253,7 +263,7 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
 .close-lightbox:hover, .close-lightbox-pedido:hover, .close-lightbox-manejo:hover { transform: translateY(-2px); }
 
 /* Asegura que los párrafos respeten saltos de línea */
-.lightbox-content p { white-space: pre-wrap; word-wrap: break-word; }
+.lightbox-content p { white-space: pre-line; word-wrap: break-word; }
 
 /* Botón eliminar */
 .btn-eliminar { margin-top: 20px; padding: 10px 15px; border: none; background: #e74c3c; color: #fff; border-radius: 8px; cursor: pointer; transition: background 0.2s ease; }
@@ -388,6 +398,29 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   border: none;
   color: white;
 }
+
+/* Style for actualizar estado button in manejo lightbox */
+#lmToggleUpdate {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-accent);
+  color: #fff;
+  text-decoration: none;
+  padding: .56rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 1rem auto 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: transform .12s;
+  white-space: nowrap;
+  width: fit-content;
+}
+#lmToggleUpdate:hover { transform: translateY(-3px); background: #1f3a66; }
+
+/* For recordatorio lightbox desc */
+#lbRecordDesc { white-space: pre-line; word-wrap: break-word; text-align: left; }
 </style>
 </head>
 <body>
@@ -626,8 +659,9 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 <div id="lightbox-recordatorio" class="lightbox" style="display:none;" aria-hidden="true">
   <div class="lightbox-content">
     <button class="close-lightbox" aria-label="Cerrar recordatorio">&times;</button>
-    <h2>Recordatorio</h2>
-    <p>Versión de prueba, datos no disponibles</p>
+    <h2 id="lbRecordTitulo">Recordatorio</h2>
+    <p id="lbRecordDesc">Descripción</p>
+    <small id="lbRecordFecha">Fecha</small>
     <button class="btn-eliminar">Eliminar recordatorio</button>
   </div>
 </div>
@@ -669,7 +703,7 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
       <div style="margin:8px 0;"><strong>Total:</strong> <span id="lmTotal">-</span></div>
       <div style="margin:16px 0 8px;"><strong>Historial:</strong></div>
       <div id="lmTimeline" class="timeline"></div>
-      <a href="#" id="lmToggleUpdate" style="display:block;text-align:center;margin-top:16px;color:var(--color-accent);text-decoration:underline;">Actualizar estado</a>
+      <button id="lmToggleUpdate">Actualizar estado</button>
       <div id="lmUpdateFormWrap" style="display:none;margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
         <form id="lmUpdateForm">
           <label for="lmPesoInput">Peso en libras</label>
@@ -728,7 +762,7 @@ function setInert(el, inert){
   }
   el.style.pointerEvents = inert ? 'none' : 'auto';
   el.style.opacity = inert ? '0.65' : '1';
-  el.style.filter = inert ? 'blur(1.5px)' : 'none';
+  // Removed filter: blur to avoid visual issues
   el.tabIndex = inert ? -1 : 0;
 }
 
@@ -815,6 +849,7 @@ function mostrarSeccion(seccionId) {
     if (btn) btn.classList.toggle('inactive', btn.id !== `btn${seccionId.charAt(0).toUpperCase() + seccionId.slice(1)}`);
   });
   // load data if needed
+  if (seccionId === 'inicio') cargarRecord();
   if (seccionId === 'manejo') cargarManejo();
 }
 
@@ -842,52 +877,73 @@ const btnCancelarEliminar = $('btnCancelarEliminar');
 const lightboxRecordatorio = $('lightbox-recordatorio');
 const closeLightboxBtn = document.querySelector('.close-lightbox');
 const btnEliminarLightbox = lightboxRecordatorio.querySelector('.btn-eliminar');
+const lbRecordTitulo = $('lbRecordTitulo');
+const lbRecordDesc = $('lbRecordDesc');
+const lbRecordFecha = $('lbRecordFecha');
 let recordatorioIdAEliminar = null;
+let currentRecordatorio = null;
 
-function cargarRecord() {
+async function cargarRecord() {
   listaRecordatorios.innerHTML = '';
-  const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
-  if (recordatorios.length === 0) {
-    listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
-    return;
-  }
-  // mostrar todos, sin filtrar por fecha
-  recordatorios.forEach((rec, index) => {
-    const div = document.createElement('div');
-    div.className = 'recordatorio-item';
-    div.dataset.id = index;
-    div.innerHTML = `
-      <div class="recordatorio-info">
-        <strong>${escapeHtml(rec.titulo)}</strong><br>
-        ${escapeHtml(rec.desc)}<br>
-        <small>Fecha: ${escapeHtml(rec.fecha)}</small>
-      </div>
-      <button class="btnEliminar">Eliminar</button>
-    `;
-    // check if due today in Miami time
-    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const recDate = new Date(rec.fecha).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    if (recDate === todayMiami) {
-      div.classList.add('recordatorio-due-today');
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const recordatorios = await res.json();
+    if (recordatorios.length === 0) {
+      listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
+      return;
     }
-    listaRecordatorios.appendChild(div);
-  });
+    recordatorios.forEach((rec) => {
+      const div = document.createElement('div');
+      div.className = 'recordatorio-item';
+      div.dataset.id = rec.id;
+      div.innerHTML = `
+        <div class="recordatorio-info">
+          <strong>${escapeHtml(rec.titulo)}</strong><br>
+          <small>${escapeHtml(rec.desc.slice(0, 50))}${rec.desc.length > 50 ? '...' : ''}</small><br>
+          <small>Fecha: ${escapeHtml(rec.fecha)}</small>
+        </div>
+        <button class="btnEliminar">Eliminar</button>
+      `;
+      // check if due today in Miami time
+      const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const recDate = new Date(rec.fecha).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      if (recDate === todayMiami) {
+        div.classList.add('recordatorio-due-today');
+      }
+      listaRecordatorios.appendChild(div);
+    });
+  } catch (err) {
+    console.error('Error cargando recordatorios:', err);
+    listaRecordatorios.innerHTML = '<p>No se pudieron cargar los recordatorios.</p>';
+  }
 }
 
 // agregar recordatorio
-if (formRecord) formRecord.addEventListener('submit', (e) => {
+if (formRecord) formRecord.addEventListener('submit', async (e) => {
   e.preventDefault();
   const titulo = $('tituloRecord').value.trim();
   const desc = $('descRecord').value.trim();
   const fecha = $('fechaRecord').value;
   if (!titulo || !desc || !fecha) return;
-  const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
-  recordatorios.push({ titulo, desc, fecha });
-  localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-  formRecord.reset();
-  hideModalByElement(popFormRecord);
-  showModalByElement(popConfirm);
-  cargarRecord();
+  showSpinner('Agregando recordatorio...');
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titulo, desc, fecha })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    hideSpinner();
+    formRecord.reset();
+    hideModalByElement(popFormRecord);
+    showModalByElement(popConfirm);
+    cargarRecord();
+  } catch (err) {
+    hideSpinner();
+    console.error('Error agregando recordatorio:', err);
+    showResult('Error', 'No se pudo agregar el recordatorio.');
+  }
 });
 
 // eliminar delegation
@@ -895,7 +951,7 @@ if (listaRecordatorios) listaRecordatorios.addEventListener('click', (e) => {
   if (e.target.classList.contains('btnEliminar')) {
     const item = e.target.closest('.recordatorio-item');
     if (item) {
-      recordatorioIdAEliminar = parseInt(item.dataset.id);
+      recordatorioIdAEliminar = item.dataset.id;
       showModalByElement(popEliminarConfirm);
     }
   } else {
@@ -904,15 +960,24 @@ if (listaRecordatorios) listaRecordatorios.addEventListener('click', (e) => {
   }
 });
 
-if (btnConfirmEliminar) btnConfirmEliminar.addEventListener('click', () => {
+if (btnConfirmEliminar) btnConfirmEliminar.addEventListener('click', async () => {
   if (recordatorioIdAEliminar !== null) {
-    let recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
-    recordatorios = recordatorios.filter((_, i) => i !== recordatorioIdAEliminar);
-    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-    cargarRecord();
-    recordatorioIdAEliminar = null;
+    showSpinner('Eliminando recordatorio...');
+    try {
+      const res = await fetch(`${API_BASE}/recordatorios/${recordatorioIdAEliminar}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      hideSpinner();
+      hideModalByElement(popEliminarConfirm);
+      cargarRecord();
+      recordatorioIdAEliminar = null;
+    } catch (err) {
+      hideSpinner();
+      console.error('Error eliminando recordatorio:', err);
+      showResult('Error', 'No se pudo eliminar el recordatorio.');
+    }
   }
-  hideModalByElement(popEliminarConfirm);
 });
 
 if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', () => {
@@ -920,16 +985,32 @@ if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', () => {
   recordatorioIdAEliminar = null;
 });
 
-// lightbox recordatorio (dummy)
-function openRecordLightbox(id) {
-  // dummy content
-  showModalByElement(lightboxRecordatorio);
+// lightbox recordatorio
+async function openRecordLightbox(id) {
+  showSpinner('Cargando recordatorio...');
+  try {
+    const res = await fetch(`${API_BASE}/recordatorios/${id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    currentRecordatorio = await res.json();
+    lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
+    lbRecordDesc.textContent = currentRecordatorio.desc || '';
+    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha || ''}`;
+    hideSpinner();
+    showModalByElement(lightboxRecordatorio);
+  } catch (err) {
+    hideSpinner();
+    console.error('Error cargando recordatorio:', err);
+    showResult('Error', 'No se pudo cargar el recordatorio.');
+  }
 }
 
 if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', () => hideModalByElement(lightboxRecordatorio));
-if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', () => {
-  // dummy delete
-  hideModalByElement(lightboxRecordatorio);
+if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', async () => {
+  if (currentRecordatorio && currentRecordatorio.id) {
+    recordatorioIdAEliminar = currentRecordatorio.id;
+    await btnConfirmEliminar.click(); // reuse delete logic
+    hideModalByElement(lightboxRecordatorio);
+  }
 });
 
 // handlers
@@ -938,7 +1019,7 @@ if (cerrarPopForm) cerrarPopForm.addEventListener('click', () => hideModalByElem
 if (cerrarPopConfirm) cerrarPopConfirm.addEventListener('click', () => hideModalByElement(popConfirm));
 
 // initial load (but after unlock)
-cargarRecord(); // moved to tryUnlock
+// cargarRecord(); // moved to tryUnlock, but call on section show now
 
 // ============== AGREGAR PAQUETE ==============
 const formAgregar = $('formAgregar');
