@@ -446,40 +446,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   <p>No hay recordatorios por el momento.</p>
 </div>
 <button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
-
-<!-- Pop-up Formulario (overlay modal) -->
-<div class="modal-overlay popUp" id="popFormRecord" aria-hidden="true">
-  <div class="modal-inner form-modal">
-    <h3>Agregar Recordatorio</h3>
-    <form id="formRecord">
-      <label for="tituloRecord">Título del recordatorio</label>
-      <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
-      <label for="descRecord">Descripción</label>
-      <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
-      <label for="fechaRecord">Fecha límite</label>
-      <input type="date" id="fechaRecord" required>
-      <button type="submit" class="action-btn">Agregar</button>
-      <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
-    </form>
-  </div>
-</div>
-
-<!-- Pop-up Confirmación Agregado (overlay) -->
-<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
-  <div class="modal-inner">
-    <p>Recordatorio agregado</p>
-    <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
-  </div>
-</div>
-
-<!-- Pop-up Confirmación Eliminar (reutilizable) -->
-<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
-  <div class="modal-inner">
-    <p>¿Desea eliminar este recordatorio?</p>
-    <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
-    <button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
-  </div>
-</div>
 </section>
 
 <!-- Legacy Pedidos section kept but not used (can be removed later) -->
@@ -748,6 +714,41 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 <!-- CONFETTI WRAP -->
 <div id="confettiWrap"></div>
 
+<!-- Recordatorios modals moved outside #app -->
+<!-- Pop-up Formulario (overlay modal) -->
+<div class="modal-overlay popUp" id="popFormRecord" aria-hidden="true">
+  <div class="modal-inner form-modal">
+    <h3>Agregar Recordatorio</h3>
+    <form id="formRecord">
+      <label for="tituloRecord">Título del recordatorio</label>
+      <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
+      <label for="descRecord">Descripción</label>
+      <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
+      <label for="fechaRecord">Fecha límite</label>
+      <input type="date" id="fechaRecord" required>
+      <button type="submit" class="action-btn">Agregar</button>
+      <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Agregado (overlay) -->
+<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>Recordatorio agregado</p>
+    <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Eliminar (reutilizable) -->
+<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>¿Desea eliminar este recordatorio?</p>
+    <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
+    <button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
+  </div>
+</div>
+
 <script>
 // ============== COMMONS ==============
 const $ = id => document.getElementById(id); // $ shortcut
@@ -900,14 +901,14 @@ async function cargarRecord() {
       div.innerHTML = `
         <div class="recordatorio-info">
           <strong>${escapeHtml(rec.titulo)}</strong><br>
-          <small>${escapeHtml(rec.desc.slice(0, 50))}${rec.desc.length > 50 ? '...' : ''}</small><br>
-          <small>Fecha: ${escapeHtml(rec.fecha)}</small>
+          <small>${escapeHtml((rec.descripcion || '').slice(0, 50))}${(rec.descripcion || '').length > 50 ? '...' : ''}</small><br>
+          <small>Fecha: ${escapeHtml(rec.fecha_limite)}</small>
         </div>
         <button class="btnEliminar">Eliminar</button>
       `;
       // check if due today in Miami time
       const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-      const recDate = new Date(rec.fecha).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const recDate = new Date(rec.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
       if (recDate === todayMiami) {
         div.classList.add('recordatorio-due-today');
       }
@@ -923,15 +924,15 @@ async function cargarRecord() {
 if (formRecord) formRecord.addEventListener('submit', async (e) => {
   e.preventDefault();
   const titulo = $('tituloRecord').value.trim();
-  const desc = $('descRecord').value.trim();
-  const fecha = $('fechaRecord').value;
-  if (!titulo || !desc || !fecha) return;
+  const descripcion = $('descRecord').value.trim();
+  const fecha_limite = $('fechaRecord').value;
+  if (!titulo || !descripcion || !fecha_limite) return;
   showSpinner('Agregando recordatorio...');
   try {
     const res = await fetch(`${API_BASE}/recordatorios`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo, desc, fecha })
+      body: JSON.stringify({ titulo, descripcion, fecha_limite })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     hideSpinner();
@@ -993,8 +994,8 @@ async function openRecordLightbox(id) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentRecordatorio = await res.json();
     lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
-    lbRecordDesc.textContent = currentRecordatorio.desc || '';
-    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha || ''}`;
+    lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
+    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
     hideSpinner();
     showModalByElement(lightboxRecordatorio);
   } catch (err) {
