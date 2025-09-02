@@ -461,6 +461,12 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .modal-visible {
   opacity: 1 !important;
 }
+
+/* Hover effects for buttons and interactive elements */
+button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbox-pedido:hover, .close-lightbox-manejo:hover, .manejo-item:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
 </style>
 </head>
 <body>
@@ -1046,12 +1052,12 @@ async function openRecordLightbox(id) {
     const res = await fetch(`${API_BASE}/recordatorios/${id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentRecordatorio = await res.json();
-    lbRecordTitulo.textContent = currentRecorditorio.titulo || 'Recordatorio';
-    lbRecordDesc.textContent = currentRecorditorio.descripcion || '';
-    lbRecordFecha.textContent = `Fecha: ${currentRecorditorio.fecha_limite || ''}`;
+    lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
+    lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
+    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
     // check if due today for lightbox blink
     const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const recDate = new Date(currentRecorditorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const recDate = new Date(currentRecordatorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
     if (recDate === todayMiami) {
       lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
     } else {
