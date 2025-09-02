@@ -451,11 +451,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   width: fit-content;
 }
 #lightbox-recordatorio .lightbox-due-today {
-  animation: blinkRedBorder 1.2s ease-in-out infinite;
-}
-@keyframes blinkRedBorder {
-  0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-  50% { box-shadow: 0 4px 20px var(--red-delete); }
+  animation: blinkRed 1.2s ease-in-out infinite;
 }
 
 /* General fade for modals */
@@ -704,7 +700,7 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 </div>
 
 <!-- Lightbox Manejo (NEW) -->
-<div id="lightbox-manejo" class="lightbox" style="display:none;" aria-hidden="true">
+<div id="lightbox-manejo" class="lightbox lightbox-manejo" style="display:none;" aria-hidden="true">
   <div class="lightbox-inner">
     <button class="close-lightbox-manejo" aria-label="Cerrar manejo">&times;</button>
     <h2 id="lmTitle">Pedido</h2>
@@ -783,14 +779,16 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 </div>
 
---<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
+<!-- Pop-up Confirmación Agregado (overlay) -->
+<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
   <div class="modal-inner">
     <p>Recordatorio agregado</p>
     <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
   </div>
 </div>
 
---<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
+<!-- Pop-up Confirmación Eliminar (reutilizable) -->
+<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
   <div class="modal-inner">
     <p>¿Desea eliminar este recordatorio?</p>
     <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
@@ -1054,12 +1052,12 @@ async function openRecordLightbox(id) {
     const res = await fetch(`${API_BASE}/recordatorios/${id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentRecordatorio = await res.json();
-    lbRecordTitulo.textContent = currentRecorditorio.titulo || 'Recordatorio';
-    lbRecordDesc.textContent = currentRecorditorio.descripcion || '';
-    lbRecordFecha.textContent = `Fecha: ${currentRecorditorio.fecha_limite || ''}`;
+    lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
+    lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
+    lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
     // check if due today for lightbox blink
     const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const recDate = new Date(currentRecorditorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const recDate = new Date(currentRecordatorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
     if (recDate === todayMiami) {
       lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
     } else {
