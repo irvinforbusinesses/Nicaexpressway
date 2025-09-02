@@ -14,7 +14,6 @@
   --color-text-dark: #1A1A1A;
   --modal-overlay-bg: rgba(0,0,0,0.45);
   --lapis: #1f3a66; /* color lápiz lazuli para resaltar seguimiento */
-  --red-delete: #f56565;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -132,13 +131,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   backdrop-filter: blur(5px);
   z-index: 10000;
   padding: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-/* Show with fade */
-.modal-overlay.modal-visible, .authOverlay.modal-visible, .lightbox.modal-visible {
-  opacity: 1;
 }
 
 /* Inner card for modal content */
@@ -154,8 +146,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 6px 24px rgba(0,0,0,0.28);
   position: relative;
   text-align: left;
-  pointer-events: auto !important;
-  z-index: 10001;
 }
 
 /* For manejo (larger lightbox) keep it slightly smaller than before */
@@ -170,8 +160,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 6px 24px rgba(0,0,0,0.28);
   position: relative;
   text-align: left;
-  pointer-events: auto !important;
-  z-index: 10001;
 }
 
 /* reusable visible class with fade animation */
@@ -189,11 +177,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   background: var(--modal-overlay-bg);
   backdrop-filter: blur(3px);
   padding: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.pop-result.modal-visible {
-  opacity: 1;
 }
 .pop-result .panel {
   background: var(--color-light);
@@ -203,8 +186,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   width: 90%;
   max-width: 360px;
   text-align: center;
-  pointer-events: auto !important;
-  z-index: 12001;
 }
 .pop-result .title { font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
 .pop-result .msg { margin-bottom: 10px; }
@@ -220,11 +201,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   background: rgba(0,0,0,0.28);
   z-index: 11000;
   backdrop-filter: blur(3px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.overlay-spinner.modal-visible {
-  opacity: 1;
 }
 .spinner-box {
   background: var(--color-light);
@@ -233,8 +209,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   text-align: center;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   min-width: 220px;
-  pointer-events: auto !important;
-  z-index: 11001;
 }
 .spinner {
   width: 40px; height: 40px;
@@ -258,8 +232,6 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   text-align: center;
   position: relative;
-  pointer-events: auto !important;
-  z-index: 10001;
 }
 
 /* styled close X button (circular, top-right) */
@@ -281,7 +253,7 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
 .close-lightbox:hover, .close-lightbox-pedido:hover, .close-lightbox-manejo:hover { transform: translateY(-2px); }
 
 /* Asegura que los párrafos respeten saltos de línea */
-.lightbox-content p { white-space: pre-line; word-wrap: break-word; }
+.lightbox-content p { white-space: pre-wrap; word-wrap: break-word; }
 
 /* Botón eliminar */
 .btn-eliminar { margin-top: 20px; padding: 10px 15px; border: none; background: #e74c3c; color: #fff; border-radius: 8px; cursor: pointer; transition: background 0.2s ease; }
@@ -343,10 +315,12 @@ button.action-btn { margin-top: 1rem; background: var(--color-accent); color: wh
 /* recordatorio highlight for due today */
 .recordatorio-due-today {
   animation: blinkRed 1.2s ease-in-out infinite;
+  border: 2px solid #f56565;
+  box-shadow: 0 0 10px rgba(245,101,101,0.3);
 }
 @keyframes blinkRed {
   0%, 100% { background-color: var(--color-gray); }
-  50% { background-color: var(--red-delete); opacity: 0.7; }
+  50% { background-color: rgba(245,101,101,0.2); }
 }
 
 /* confetti container */
@@ -414,53 +388,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   border: none;
   color: white;
 }
-
-/* Style for actualizar estado button in manejo lightbox */
-#lmToggleUpdate {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: var(--color-accent);
-  color: #fff;
-  text-decoration: none;
-  padding: .56rem 1rem;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 1rem;
-  margin: 1rem auto 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  transition: transform .12s;
-  white-space: nowrap;
-  width: fit-content;
-}
-#lmToggleUpdate:hover { transform: translateY(-3px); background: #1f3a66; }
-
-/* For recordatorio lightbox desc */
-#lbRecordDesc { white-space: pre-line; word-wrap: break-word; text-align: left; }
-
-/* Loading text style */
-#loadingRecordatorios { text-align: center; color: #666; font-size: 1rem; margin-top: 1rem; }
-
-/* Lightbox recordatorio layout */
-#lightbox-recordatorio .lightbox-content {
-  text-align: left;
-}
-#lightbox-recordatorio .btn-eliminar {
-  margin: 1rem auto 0;
-  display: block;
-  width: fit-content;
-}
-#lightbox-recordatorio .lightbox-due-today {
-  animation: blinkRed 1.2s ease-in-out infinite;
-}
-
-/* General fade for modals */
-.modal-overlay, .authOverlay, .lightbox, .pop-result, .overlay-spinner {
-  transition: opacity 0.3s ease;
-}
-.modal-visible {
-  opacity: 1 !important;
-}
 </style>
 </head>
 <body>
@@ -482,11 +409,44 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <!-- Inicio: Recordatorios -->
 <section id="inicio" class="active section-fade">
 <h2>Inicio</h2>
-<div id="loadingRecordatorios" style="display: block;">Cargando recordatorios, espera...</div>
-<div id="listaRecordatorios" style="display: none;">
+<div id="listaRecordatorios">
   <p>No hay recordatorios por el momento.</p>
 </div>
 <button id="btnAgregarRecord" class="action-btn">Agregar Recordatorio</button>
+
+<!-- Pop-up Formulario (overlay modal) -->
+<div class="modal-overlay popUp" id="popFormRecord" aria-hidden="true">
+  <div class="modal-inner form-modal">
+    <h3>Agregar Recordatorio</h3>
+    <form id="formRecord">
+      <label for="tituloRecord">Título del recordatorio</label>
+      <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
+      <label for="descRecord">Descripción</label>
+      <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
+      <label for="fechaRecord">Fecha límite</label>
+      <input type="date" id="fechaRecord" required>
+      <button type="submit" class="action-btn">Agregar</button>
+      <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Agregado (overlay) -->
+<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>Recordatorio agregado</p>
+    <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
+  </div>
+</div>
+
+<!-- Pop-up Confirmación Eliminar (reutilizable) -->
+<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
+  <div class="modal-inner">
+    <p>¿Desea eliminar este recordatorio?</p>
+    <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
+    <button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
+  </div>
+</div>
 </section>
 
 <!-- Legacy Pedidos section kept but not used (can be removed later) -->
@@ -666,9 +626,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 <div id="lightbox-recordatorio" class="lightbox" style="display:none;" aria-hidden="true">
   <div class="lightbox-content">
     <button class="close-lightbox" aria-label="Cerrar recordatorio">&times;</button>
-    <h2 id="lbRecordTitulo">Recordatorio</h2>
-    <p id="lbRecordDesc">Descripción</p>
-    <small id="lbRecordFecha">Fecha</small>
+    <h2>Recordatorio</h2>
+    <p>Versión de prueba, datos no disponibles</p>
     <button class="btn-eliminar">Eliminar recordatorio</button>
   </div>
 </div>
@@ -710,7 +669,7 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
       <div style="margin:8px 0;"><strong>Total:</strong> <span id="lmTotal">-</span></div>
       <div style="margin:16px 0 8px;"><strong>Historial:</strong></div>
       <div id="lmTimeline" class="timeline"></div>
-      <button id="lmToggleUpdate">Actualizar estado</button>
+      <a href="#" id="lmToggleUpdate" style="display:block;text-align:center;margin-top:16px;color:var(--color-accent);text-decoration:underline;">Actualizar estado</a>
       <div id="lmUpdateFormWrap" style="display:none;margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
         <form id="lmUpdateForm">
           <label for="lmPesoInput">Peso en libras</label>
@@ -755,41 +714,6 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 <!-- CONFETTI WRAP -->
 <div id="confettiWrap"></div>
 
-<!-- Recordatorios modals moved outside #app -->
-<!-- Pop-up Formulario (overlay modal) -->
-<div class="modal-overlay popUp" id="popFormRecord" aria-hidden="true">
-  <div class="modal-inner form-modal">
-    <h3>Agregar Recordatorio</h3>
-    <form id="formRecord">
-      <label for="tituloRecord">Título del recordatorio</label>
-      <input type="text" id="tituloRecord" placeholder="Ej: Llamada importante" required>
-      <label for="descRecord">Descripción</label>
-      <textarea id="descRecord" rows="2" placeholder="Ej: Llamar a cliente, enviar factura..." required></textarea>
-      <label for="fechaRecord">Fecha límite</label>
-      <input type="date" id="fechaRecord" required>
-      <button type="submit" class="action-btn">Agregar</button>
-      <button type="button" id="cerrarPopForm" class="action-btn" style="background:#888;">Cancelar</button>
-    </form>
-  </div>
-</div>
-
-<!-- Pop-up Confirmación Agregado (overlay) -->
-<div class="modal-overlay confirmPop" id="popConfirm" aria-hidden="true">
-  <div class="modal-inner">
-    <p>Recordatorio agregado</p>
-    <button id="cerrarPopConfirm" class="action-btn">Cerrar</button>
-  </div>
-</div>
-
-<!-- Pop-up Confirmación Eliminar (reutilizable) -->
-<div class="modal-overlay confirmPop" id="popEliminarConfirm" aria-hidden="true">
-  <div class="modal-inner">
-    <p>¿Desea eliminar este recordatorio?</p>
-    <button id="btnConfirmEliminar" class="action-btn" style="background:#f56565;">Eliminar</button>
-    <button id="btnCancelarEliminar" class="action-btn" style="background:#888;">Cancelar</button>
-  </div>
-</div>
-
 <script>
 // ============== COMMONS ==============
 const $ = id => document.getElementById(id); // $ shortcut
@@ -804,7 +728,7 @@ function setInert(el, inert){
   }
   el.style.pointerEvents = inert ? 'none' : 'auto';
   el.style.opacity = inert ? '0.65' : '1';
-  // Removed filter: blur to avoid visual issues
+  el.style.filter = inert ? 'blur(1.5px)' : 'none';
   el.tabIndex = inert ? -1 : 0;
 }
 
@@ -848,14 +772,10 @@ function showSpinner(msg='Cargando...'){
   if (!spin) return;
   $('spinnerMsg').textContent = msg;
   spin.style.display = 'flex';
-  spin.classList.add('modal-visible');
 }
 function hideSpinner(){
   const spin = $('spinnerOverlay');
-  if (spin) {
-    spin.classList.remove('modal-visible');
-    spin.style.display = 'none';
-  }
+  if (spin) spin.style.display = 'none';
 }
 
 // getNumberOrNull: small util
@@ -895,7 +815,6 @@ function mostrarSeccion(seccionId) {
     if (btn) btn.classList.toggle('inactive', btn.id !== `btn${seccionId.charAt(0).toUpperCase() + seccionId.slice(1)}`);
   });
   // load data if needed
-  if (seccionId === 'inicio') cargarRecord();
   if (seccionId === 'manejo') cargarManejo();
 }
 
@@ -923,81 +842,52 @@ const btnCancelarEliminar = $('btnCancelarEliminar');
 const lightboxRecordatorio = $('lightbox-recordatorio');
 const closeLightboxBtn = document.querySelector('.close-lightbox');
 const btnEliminarLightbox = lightboxRecordatorio.querySelector('.btn-eliminar');
-const lbRecordTitulo = $('lbRecordTitulo');
-const lbRecordDesc = $('lbRecordDesc');
-const lbRecordFecha = $('lbRecordFecha');
 let recordatorioIdAEliminar = null;
-let currentRecordatorio = null;
 
-const loadingRecordatorios = $('loadingRecordatorios');
-
-async function cargarRecord() {
-  loadingRecordatorios.style.display = 'block';
-  listaRecordatorios.style.display = 'none';
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const recordatorios = await res.json();
-    listaRecordatorios.innerHTML = '';
-    if (recordatorios.length === 0) {
-      listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
-    } else {
-      recordatorios.forEach((rec) => {
-        const div = document.createElement('div');
-        div.className = 'recordatorio-item';
-        div.dataset.id = rec.id;
-        div.innerHTML = `
-          <div class="recordatorio-info">
-            <strong>${escapeHtml(rec.titulo)}</strong><br>
-            <small>${escapeHtml((rec.descripcion || '').slice(0, 50))}${(rec.descripcion || '').length > 50 ? '...' : ''}</small><br>
-            <small>Fecha: ${escapeHtml(rec.fecha_limite)}</small>
-          </div>
-          <button class="btnEliminar">Eliminar</button>
-        `;
-        // check if due today in Miami time
-        const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-        const recDate = new Date(rec.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        if (recDate === todayMiami) {
-          div.classList.add('recordatorio-due-today');
-        }
-        listaRecordatorios.appendChild(div);
-      });
-    }
-    loadingRecordatorios.style.display = 'none';
-    listaRecordatorios.style.display = 'block';
-  } catch (err) {
-    console.error('Error cargando recordatorios:', err);
-    listaRecordatorios.innerHTML = '<p>No se pudieron cargar los recordatorios.</p>';
-    loadingRecordatorios.style.display = 'none';
-    listaRecordatorios.style.display = 'block';
+function cargarRecord() {
+  listaRecordatorios.innerHTML = '';
+  const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
+  if (recordatorios.length === 0) {
+    listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
+    return;
   }
+  // mostrar todos, sin filtrar por fecha
+  recordatorios.forEach((rec, index) => {
+    const div = document.createElement('div');
+    div.className = 'recordatorio-item';
+    div.dataset.id = index;
+    div.innerHTML = `
+      <div class="recordatorio-info">
+        <strong>${escapeHtml(rec.titulo)}</strong><br>
+        ${escapeHtml(rec.desc)}<br>
+        <small>Fecha: ${escapeHtml(rec.fecha)}</small>
+      </div>
+      <button class="btnEliminar">Eliminar</button>
+    `;
+    // check if due today in Miami time
+    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const recDate = new Date(rec.fecha).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    if (recDate === todayMiami) {
+      div.classList.add('recordatorio-due-today');
+    }
+    listaRecordatorios.appendChild(div);
+  });
 }
 
 // agregar recordatorio
-if (formRecord) formRecord.addEventListener('submit', async (e) => {
+if (formRecord) formRecord.addEventListener('submit', (e) => {
   e.preventDefault();
   const titulo = $('tituloRecord').value.trim();
-  const descripcion = $('descRecord').value.trim();
-  const fecha_limite = $('fechaRecord').value;
-  if (!titulo || !descripcion || !fecha_limite) return;
-  showSpinner('Agregando recordatorio...');
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo, descripcion, fecha_limite })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    hideSpinner();
-    formRecord.reset();
-    hideModalByElement(popFormRecord);
-    showModalByElement(popConfirm);
-    cargarRecord();
-  } catch (err) {
-    hideSpinner();
-    console.error('Error agregando recordatorio:', err);
-    showResult('Error', 'No se pudo agregar el recordatorio.');
-  }
+  const desc = $('descRecord').value.trim();
+  const fecha = $('fechaRecord').value;
+  if (!titulo || !desc || !fecha) return;
+  const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
+  recordatorios.push({ titulo, desc, fecha });
+  localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+  formRecord.reset();
+  hideModalByElement(popFormRecord);
+  showModalByElement(popConfirm);
+  cargarRecord();
 });
 
 // eliminar delegation
@@ -1005,7 +895,7 @@ if (listaRecordatorios) listaRecordatorios.addEventListener('click', (e) => {
   if (e.target.classList.contains('btnEliminar')) {
     const item = e.target.closest('.recordatorio-item');
     if (item) {
-      recordatorioIdAEliminar = item.dataset.id;
+      recordatorioIdAEliminar = parseInt(item.dataset.id);
       showModalByElement(popEliminarConfirm);
     }
   } else {
@@ -1014,24 +904,15 @@ if (listaRecordatorios) listaRecordatorios.addEventListener('click', (e) => {
   }
 });
 
-if (btnConfirmEliminar) btnConfirmEliminar.addEventListener('click', async () => {
+if (btnConfirmEliminar) btnConfirmEliminar.addEventListener('click', () => {
   if (recordatorioIdAEliminar !== null) {
-    showSpinner('Eliminando recordatorio...');
-    try {
-      const res = await fetch(`${API_BASE}/recordatorios/${recordatorioIdAEliminar}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      hideSpinner();
-      hideModalByElement(popEliminarConfirm);
-      cargarRecord();
-      recordatorioIdAEliminar = null;
-    } catch (err) {
-      hideSpinner();
-      console.error('Error eliminando recordatorio:', err);
-      showResult('Error', 'No se pudo eliminar el recordatorio.');
-    }
+    let recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
+    recordatorios = recordatorios.filter((_, i) => i !== recordatorioIdAEliminar);
+    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+    cargarRecord();
+    recordatorioIdAEliminar = null;
   }
+  hideModalByElement(popEliminarConfirm);
 });
 
 if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', () => {
@@ -1039,40 +920,16 @@ if (btnCancelarEliminar) btnCancelarEliminar.addEventListener('click', () => {
   recordatorioIdAEliminar = null;
 });
 
-// lightbox recordatorio
-async function openRecordLightbox(id) {
-  showSpinner('Cargando recordatorio...');
-  try {
-    const res = await fetch(`${API_BASE}/recordatorios/${id}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    currentRecordatorio = await res.json();
-    lbRecordTitulo.textContent = currentRecorditorio.titulo || 'Recordatorio';
-    lbRecordDesc.textContent = currentRecorditorio.descripcion || '';
-    lbRecordFecha.textContent = `Fecha: ${currentRecorditorio.fecha_limite || ''}`;
-    // check if due today for lightbox blink
-    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const recDate = new Date(currentRecorditorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    if (recDate === todayMiami) {
-      lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
-    } else {
-      lightboxRecordatorio.querySelector('.lightbox-content').classList.remove('lightbox-due-today');
-    }
-    hideSpinner();
-    showModalByElement(lightboxRecordatorio);
-  } catch (err) {
-    hideSpinner();
-    console.error('Error cargando recordatorio:', err);
-    showResult('Error', 'No se pudo cargar el recordatorio.');
-  }
+// lightbox recordatorio (dummy)
+function openRecordLightbox(id) {
+  // dummy content
+  showModalByElement(lightboxRecordatorio);
 }
 
 if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', () => hideModalByElement(lightboxRecordatorio));
 if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', () => {
-  if (currentRecorditorio && currentRecorditorio.id) {
-    recordatorioIdAEliminar = currentRecorditorio.id;
-    hideModalByElement(lightboxRecordatorio);
-    showModalByElement(popEliminarConfirm);
-  }
+  // dummy delete
+  hideModalByElement(lightboxRecordatorio);
 });
 
 // handlers
@@ -1081,7 +938,7 @@ if (cerrarPopForm) cerrarPopForm.addEventListener('click', () => hideModalByElem
 if (cerrarPopConfirm) cerrarPopConfirm.addEventListener('click', () => hideModalByElement(popConfirm));
 
 // initial load (but after unlock)
-// cargarRecord(); // moved to tryUnlock, but call on section show now
+cargarRecord(); // moved to tryUnlock
 
 // ============== AGREGAR PAQUETE ==============
 const formAgregar = $('formAgregar');
