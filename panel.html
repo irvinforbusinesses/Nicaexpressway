@@ -796,7 +796,6 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 </div>
 
-
 <script>
 // ============== COMMONS ==============
 const $ = id => document.getElementById(id); // $ shortcut
@@ -915,31 +914,7 @@ if (btnEstadisticas) btnEstadisticas.addEventListener('click', () => {
   // show stats auth
   showModalByElement($('statsOverlay'));
 });
-// normaliza a 'YYYY-MM-DD' en la zona horaria indicada
-function dateYYYYMMDDInTZ(dateInput, tz = 'America/New_York') {
-  try {
-    const d = new Date(dateInput);
-    if (isNaN(d)) return '';
-    const dtf = new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-    const parts = dtf.formatToParts(d).reduce((acc, p) => {
-      if (p.type === 'year') acc.year = p.value;
-      if (p.type === 'month') acc.month = p.value;
-      if (p.type === 'day') acc.day = p.value;
-      return acc;
-    }, {});
-    if (!parts.year || !parts.month || !parts.day) return '';
-    return `${parts.year}-${parts.month}-${parts.day}`;
-  } catch (e) {
-    console.warn('dateYYYYMMDDInTZ error:', e, dateInput);
-    return '';
-  }
-}
-  
+
 // ============== RECORDATORIOS ==============
 const listaRecordatorios = $('listaRecordatorios');
 const btnAgregarRecord = $('btnAgregarRecord');
@@ -951,32 +926,14 @@ const cerrarPopConfirm = $('cerrarPopConfirm');
 const popEliminarConfirm = $('popEliminarConfirm');
 const btnConfirmEliminar = $('btnConfirmEliminar');
 const btnCancelarEliminar = $('btnCancelarEliminar');
-const lightboxRecordatorio = $('lightbox-recordatorio') || null;
-const closeLightboxBtn = document.querySelector('.close-lightbox') || null;
-const btnEliminarLightbox = lightboxRecordatorio ? lightboxRecordatorio.querySelector('.btn-eliminar') : null;
+const lightboxRecordatorio = $('lightbox-recordatorio');
+const closeLightboxBtn = document.querySelector('.close-lightbox');
+const btnEliminarLightbox = lightboxRecordatorio.querySelector('.btn-eliminar');
 const lbRecordTitulo = $('lbRecordTitulo');
 const lbRecordDesc = $('lbRecordDesc');
 const lbRecordFecha = $('lbRecordFecha');
 let recordatorioIdAEliminar = null;
 let currentRecordatorio = null;
-// --- Lightbox recordatorio: handlers de cierre y limpieza ---
-if (closeLightboxBtn) {
-  closeLightboxBtn.addEventListener('click', () => {
-    if (!lightboxRecordatorio) return;
-    hideModalByElement(lightboxRecordatorio);
-    const inner = lightboxRecordatorio.querySelector('.lightbox-content');
-    if (inner) inner.classList.remove('lightbox-due-today');
-    lightboxRecordatorio.classList.remove('lightbox-due-today');
-    currentRecordatorio = null;
-  });
-}
-if (btnEliminarLightbox) {
-  btnEliminarLightbox.addEventListener('click', () => {
-    if (!currentRecordatorio) return;
-    recordatorioIdAEliminar = currentRecordatorio.id ?? null;
-    showModalByElement(popEliminarConfirm);
-  });
-}
 
 const loadingRecordatorios = $('loadingRecordatorios');
 
@@ -988,41 +945,30 @@ async function cargarRecord() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const recordatorios = await res.json();
     listaRecordatorios.innerHTML = '';
-
-    if (!recordatorios || recordatorios.length === 0) {
+    if (recordatorios.length === 0) {
       listaRecordatorios.innerHTML = '<p>No hay recordatorios por el momento.</p>';
     } else {
-      // calculamos once la fecha de "hoy" en Miami en formato YYYY-MM-DD
-      const todayMiami = dateYYYYMMDDInTZ(new Date(), 'America/New_York');
-
       recordatorios.forEach((rec) => {
         const div = document.createElement('div');
         div.className = 'recordatorio-item';
         div.dataset.id = rec.id;
-
-        // generar preview seguro para la descripción
-        const descripcion = rec.descripcion || '';
-        const descPreview = escapeHtml(descripcion.slice(0, 50)) + (descripcion.length > 50 ? '...' : '');
-
         div.innerHTML = `
           <div class="recordatorio-info">
-            <strong>${escapeHtml(rec.titulo || '')}</strong><br>
-            <small>${descPreview}</small><br>
-            <small>Fecha: ${escapeHtml(rec.fecha_limite || '')}</small>
+            <strong>${escapeHtml(rec.titulo)}</strong><br>
+            <small>${escapeHtml((rec.descripcion || '').slice(0, 50))}${(rec.descripcion || '').length > 50 ? '...' : ''}</small><br>
+            <small>Fecha: ${escapeHtml(rec.fecha_limite)}</small>
           </div>
           <button class="btnEliminar">Eliminar</button>
         `;
-
-        // comparar fechas normalizadas en la misma TZ
-        const recDate = dateYYYYMMDDInTZ(rec.fecha_limite, 'America/New_York');
-        if (recDate && recDate === todayMiami) {
+        // check if due today in Miami time
+        const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+        const recDate = new Date(rec.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        if (recDate === todayMiami) {
           div.classList.add('recordatorio-due-today');
         }
-
         listaRecordatorios.appendChild(div);
       });
     }
-
     loadingRecordatorios.style.display = 'none';
     listaRecordatorios.style.display = 'block';
   } catch (err) {
@@ -1106,31 +1052,34 @@ async function openRecordLightbox(id) {
     const res = await fetch(`${API_BASE}/recordatorios/${id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     currentRecordatorio = await res.json();
-
     lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
     lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
     lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
-
-    // comparar en la misma TZ (Miami)
-    const todayMiami = dateYYYYMMDDInTZ(new Date(), 'America/New_York');
-    const recDate = dateYYYYMMDDInTZ(currentRecordatorio.fecha_limite, 'America/New_York');
-    const lightboxContent = lightboxRecordatorio ? lightboxRecordatorio.querySelector('.lightbox-content') : null;
-    if (recDate && recDate === todayMiami) {
-      if (lightboxContent) lightboxContent.classList.add('lightbox-due-today');
-      if (lightboxRecordatorio) lightboxRecordatorio.classList.add('lightbox-due-today');
+    // check if due today for lightbox blink
+    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const recDate = new Date(currentRecordatorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    if (recDate === todayMiami) {
+      lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
     } else {
-      if (lightboxContent) lightboxContent.classList.remove('lightbox-due-today');
-      if (lightboxRecordatorio) lightboxRecordatorio.classList.remove('lightbox-due-today');
+      lightboxRecordatorio.querySelector('.lightbox-content').classList.remove('lightbox-due-today');
     }
-
     hideSpinner();
     showModalByElement(lightboxRecordatorio);
   } catch (err) {
     hideSpinner();
-    console.error('Error abriendo recordatorio:', err);
-    alert('No se pudo cargar el recordatorio. Revisa la consola.');
+    console.error('Error cargando recordatorio:', err);
+    showResult('Error', 'No se pudo cargar el recordatorio.');
   }
 }
+
+if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', () => hideModalByElement(lightboxRecordatorio));
+if (btnEliminarLightbox) btnEliminarLightbox.addEventListener('click', () => {
+  if (currentRecordatorio && currentRecordatorio.id) {
+    recordatorioIdAEliminar = currentRecordatorio.id;
+    hideModalByElement(lightboxRecordatorio);
+    showModalByElement(popEliminarConfirm);
+  }
+});
 
 // handlers
 if (btnAgregarRecord) btnAgregarRecord.addEventListener('click', () => showModalByElement(popFormRecord));
