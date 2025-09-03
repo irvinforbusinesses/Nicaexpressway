@@ -93,8 +93,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   50% { opacity: 0.25; transform: translateY(-1px); }
 }
 
-/* confetti container */
-#confettiWrap{pointer-events:none;position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:2000}
+/* confetti container (z-index aumentado para quedar por encima de modals) */
+#confettiWrap{pointer-events:none;position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:6000}
 
 /* small utility */
 .small-muted{font-size:.9rem;color:#666;margin-top:.25rem}
@@ -183,7 +183,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   display:inline-flex; align-items:center; justify-content:center;
   background: var(--color-accent); color:#fff; padding:12px 18px; border-radius:999px;
   text-decoration:none; font-weight:700; font-size:1rem; box-shadow:0 6px 18px rgba(31,58,102,0.14); opacity:0; transform: translateY(6px);
-  transition: opacity .4s ease, transform .4s ease;
+  transition:opacity .4s ease, transform .4s ease;
 }
 .wa-cta.visible { opacity:1; transform: translateY(0); }
 @keyframes floatLoop { 0%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} 100%{ transform: translateY(0);} }
@@ -216,9 +216,79 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* small utilities */
 .hidden{ display:none !important; }
 
+/* ---- CTA principal (botón "Cotizar" en nav) ---- */
+:root { --lapis: #1F3A66; --lapis-glow: rgba(31,58,102,0.35); --glow-accent: #79A7E4; }
+
+/* estilo destacado permanente para el botón Cotizar */
+#btnCotizar {
+  background: var(--lapis);
+  color: #fff;
+  transform: translateY(-6px); /* "flotando" estático */
+  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08);
+  border-radius: 10px;
+  position: relative;
+  z-index: 5;
+}
+
+/* glowing border line animation en loop (permanente) */
+#btnCotizar::after{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  z-index:-1;
+  border-radius:12px;
+  background: linear-gradient(90deg, rgba(121,167,228,0.12), rgba(31,58,102,0.08));
+  box-shadow: 0 0 18px 4px var(--lapis-glow);
+  animation: glowBorder 2.6s linear infinite;
+  opacity:0.95;
+  pointer-events:none;
+}
+@keyframes glowBorder {
+  0%   { filter: hue-rotate(0deg) saturate(1); transform: translateY(0) scale(1); }
+  50%  { filter: hue-rotate(20deg) saturate(1.08); transform: translateY(-1px) scale(1.01); }
+  100% { filter: hue-rotate(0deg) saturate(1); transform: translateY(0) scale(1); }
+}
+
+/* Hover ligero adicional (UX) */
+#btnCotizar:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 18px 36px rgba(31,58,102,0.16);
+}
+
+/* ---- Confetti wrapper por encima de modales ---- */
+#confettiWrap {
+  pointer-events: none;
+  position: fixed;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  z-index: 6000; /* mayor que modales */
+}
+
+/* small: ensure confetti pieces can't steal pointer events */
+.confetti, #confettiWrap > div { pointer-events: none !important; }
+
+/* Intro overlay / FLIP */
+#introOverlay {
+  position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background: transparent; z-index: 7000; pointer-events:none;
+}
+#introInner { text-align:center; transform-origin:center; }
+#introLogo { width:110px; height:110px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 12px; opacity:0; transform: translateY(6px) scale(.98); transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s; }
+#introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--lapis); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
+#introOverlay.show #introLogo, #introOverlay.show #introTitle { opacity:1; transform: translateY(0) scale(1); }
+
 </style>
 </head>
 <body>
+
+<!-- Intro FLIP overlay (aparece al abrir y anima al header) -->
+<div id="introOverlay" aria-hidden="true">
+  <div id="introInner">
+    <img id="introLogo" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway" />
+    <div id="introTitle">Nica Expressway</div>
+  </div>
+</div>
 
 <header>
   <h1>Nica Expressway</h1>
@@ -260,7 +330,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <div id="resultado" class="package-box" style="text-align:center;margin-top:12px;display:none"></div>
   </div>
 
-  <!-- CTA: aparecerá 3s después del cálculo exitoso -->
+  <!-- CTA: aparecerá 2s después del cálculo exitoso -->
   <div id="cotizarCtaWrap" style="display:flex;justify-content:center;">
     <!-- inserted by JS -->
   </div>
@@ -439,9 +509,70 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   <p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things</p>
 </footer>
 
+<!-- canvas-confetti CDN (necesario antes del script principal) -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
 <script>
 /* CONFIG */
 const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
+
+/* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP) */
+(async function runIntroFLIP(){
+  try {
+    const intro = document.getElementById('introOverlay');
+    if(!intro) return;
+    // show intro
+    intro.classList.add('show');
+    // small delay so user sees center fade (total ~700ms)
+    await new Promise(r=>setTimeout(r,700));
+
+    const introInner = document.getElementById('introInner');
+    const logo = document.getElementById('introLogo');
+    const title = document.getElementById('introTitle');
+    const targetLogo = document.getElementById('logoMain'); // header / inicio logo
+    const targetTitle = document.querySelector('header h1');
+
+    if(!introInner || !targetLogo || !targetTitle) {
+      intro.classList.remove('show');
+      intro.style.display='none';
+      return;
+    }
+
+    // measure first
+    const firstLogoRect = logo.getBoundingClientRect();
+    const firstTitleRect = title.getBoundingClientRect();
+
+    // hide target items momentarily (so they don't overlap during animation)
+    targetLogo.style.visibility = 'hidden';
+    targetTitle.style.visibility = 'hidden';
+
+    const lastLogoRect = targetLogo.getBoundingClientRect();
+    const lastTitleRect = targetTitle.getBoundingClientRect();
+
+    const dxLogo = lastLogoRect.left - firstLogoRect.left;
+    const dyLogo = lastLogoRect.top - firstLogoRect.top;
+
+    introInner.style.transition = 'transform .7s cubic-bezier(.2,.9,.2,1), opacity .5s';
+    introInner.style.transformOrigin = 'left top';
+    introInner.style.transform = `translate(${dxLogo}px, ${dyLogo}px) scale(${lastLogoRect.width/firstLogoRect.width})`;
+
+    requestAnimationFrame(()=> {
+      introInner.style.transform = 'translate(0,0) scale(1)';
+      introInner.style.opacity = '0';
+    });
+
+    setTimeout(()=>{
+      targetLogo.style.visibility = '';
+      targetTitle.style.visibility = '';
+      intro.classList.remove('show');
+      intro.style.display = 'none';
+    }, 760);
+  } catch(e){
+    console.warn('Intro FLIP failed', e);
+    const intro = document.getElementById('introOverlay');
+    if(intro) { intro.classList.remove('show'); intro.style.display='none'; }
+  }
+})();
 
 /* UI refs */
 const btnInicio = document.getElementById('btnInicio');
@@ -488,7 +619,7 @@ if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar')
 if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
-/* CALCULAR in Cotizar: compute, show boxed result centered, reset form, then show WA CTA after 3s */
+/* CALCULAR in Cotizar: compute, show boxed result centered, reset form, then show WA CTA after 2s */
 const btnCalcularMain = document.getElementById('btnCalcularMain');
 const resultadoDiv = document.getElementById('resultado');
 const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
@@ -530,14 +661,14 @@ btnCalcularMain.addEventListener('click', (e)=>{
   // remove any previous wa CTA
   cotizarCtaWrap.innerHTML = '';
 
-  // show WA CTA after 3s with fade-in + float animation
+  // show WA CTA after 2s with fade-in + float animation
   if(waBtnTimeout) clearTimeout(waBtnTimeout);
   waBtnTimeout = setTimeout(()=>{
     const btn = crearWaButton();
     cotizarCtaWrap.appendChild(btn);
     // force a small delay to allow CSS transition
     setTimeout(()=> { btn.classList.add('visible'); btn.classList.add('float'); }, 50);
-  }, 3000);
+  }, 2000);
 });
 
 /* ================================
@@ -900,39 +1031,36 @@ function escapeHtml(str){
     .replace(/>/g, '&gt;');
 }
 
-/* CONFETTI (unchanged) */
-let confettiTimeout = null;
-function triggerConfettiDesktop(){ /* same as earlier, keep but simpler to avoid huge N in this response */ 
-  const wrap = document.getElementById('confettiWrap');
-  if (!wrap) return;
-  // small burst
-  const N = 80;
-  const colors = ['#1f3a66','#2F528F','#79A7E4'];
-  for (let i=0;i<N;i++){
-    const el = document.createElement('div');
-    const size = Math.floor(Math.random()*8)+6;
-    el.className = 'confetti';
-    el.style.position='absolute';
-    el.style.left = (Math.random()*100)+'%';
-    el.style.top = (-10 + Math.random()*-30) + 'px';
-    el.style.width = size+'px';
-    el.style.height = (size*0.6)+'px';
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = String(0.8 + Math.random()*0.2);
-    el.style.borderRadius='2px';
-    el.style.zIndex = 2500;
-    const destX = (Math.random()*500 - 250);
-    const destY = window.innerHeight + 60;
-    const duration = 2 + Math.random()*2;
-    el.style.transition = `transform ${duration}s ease-out, top ${duration}s linear, opacity ${duration}s linear`;
-    wrap.appendChild(el);
-    requestAnimationFrame(()=>{ el.style.top = destY + 'px'; el.style.transform = `translateX(${destX}px) rotate(${Math.random()*360}deg)`; el.style.opacity = '0'; });
+/* ---- Confetti usando canvas-confetti (reemplaza tus funciones anteriores) ---- */
+let confettiClearTimeout = null;
+
+function triggerConfettiOnce(opts = {}) {
+  const defaults = {
+    particleCount: 150,
+    spread: 75,
+    ticks: 200,
+    gravity: 0.7,
+    scalar: 1,
+    origin: { y: 0.08 },
+    colors: ['#1f3a66','#2F528F','#79A7E4']
+  };
+  const cfg = Object.assign({}, defaults, opts);
+
+  if (typeof confetti === 'function') {
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.6), angle: 60, origin: { x: 0.2, y: cfg.origin.y } }));
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.6), angle: 120, origin: { x: 0.8, y: cfg.origin.y } }));
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.9), spread: cfg.spread + 20, origin: cfg.origin }));
+  } else {
+    console.warn('canvas-confetti not loaded');
   }
-  if (confettiTimeout) clearTimeout(confettiTimeout);
-  confettiTimeout = setTimeout(()=>{ wrap.innerHTML=''; }, 4000);
+
+  if (confettiClearTimeout) clearTimeout(confettiClearTimeout);
+  confettiClearTimeout = setTimeout(()=>{ const wrap = document.getElementById('confettiWrap'); if(wrap) wrap.innerHTML=''; }, 5000);
 }
-function triggerConfettiMobile(){ triggerConfettiDesktop(); }
-function triggerConfetti(){ if(window.innerWidth <= 420){ triggerConfettiMobile(); } else { triggerConfettiDesktop(); } }
+
+function triggerConfettiDesktop() { triggerConfettiOnce({ particleCount: 200, gravity: 0.6 }); }
+function triggerConfettiMobile()  { triggerConfettiOnce({ particleCount: 100, gravity: 0.5, scalar: 0.9 }); }
+function triggerConfetti() { if (window.innerWidth <= 420) triggerConfettiMobile(); else triggerConfettiDesktop(); }
 
 /* small 'enter' submit shortcuts */
 ['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
