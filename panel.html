@@ -797,6 +797,10 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 </div>
 
 <script>
+  // FORZAR API_BASE al inicio (asegúrate de que esté definido antes de cualquier uso)
+const API_BASE = 'https://nicaexpressway.onrender.com';
+console.log('[INIT] API_BASE =', API_BASE);
+
 // ============== COMMONS ==============
 const $ = id => document.getElementById(id); // $ shortcut
 const appWrapper = $('app');
@@ -939,9 +943,9 @@ const cerrarPopConfirm = $('cerrarPopConfirm');
 const popEliminarConfirm = $('popEliminarConfirm');
 const btnConfirmEliminar = $('btnConfirmEliminar');
 const btnCancelarEliminar = $('btnCancelarEliminar');
-const lightboxRecordatorio = $('lightbox-recordatorio');
-const closeLightboxBtn = document.querySelector('.close-lightbox');
-const btnEliminarLightbox = lightboxRecordatorio.querySelector('.btn-eliminar');
+const lightboxRecordatorio = $('lightbox-recordatorio') || null;
+const closeLightboxBtn = document.querySelector('.close-lightbox') || null;
+const btnEliminarLightbox = lightboxRecordatorio ? lightboxRecordatorio.querySelector('.btn-eliminar') : null;
 const lbRecordTitulo = $('lbRecordTitulo');
 const lbRecordDesc = $('lbRecordDesc');
 const lbRecordFecha = $('lbRecordFecha');
@@ -1204,7 +1208,6 @@ if (formActualizar) formActualizar.addEventListener('submit', async (e) => {
 });
 
 // ============== MANEJO DE PEDIDOS ==============
-const API_BASE = 'https://nicaexpressway.onrender.com'; // assume this is defined
 const PAGE_SIZE = 10;
 let manejoData = [];
 let currentManejoPage = 1;
