@@ -796,11 +796,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
   </div>
 </div>
 
-<script>
-  // FORZAR API_BASE al inicio (asegúrate de que esté definido antes de cualquier uso)
-const API_BASE = 'https://nicaexpressway.onrender.com';
-console.log('[INIT] API_BASE =', API_BASE);
 
+<script>
 // ============== COMMONS ==============
 const $ = id => document.getElementById(id); // $ shortcut
 const appWrapper = $('app');
@@ -921,11 +918,22 @@ if (btnEstadisticas) btnEstadisticas.addEventListener('click', () => {
 // normaliza a 'YYYY-MM-DD' en la zona horaria indicada
 function dateYYYYMMDDInTZ(dateInput, tz = 'America/New_York') {
   try {
-    // acepta Date, timestamp o string ISO
     const d = new Date(dateInput);
     if (isNaN(d)) return '';
-    // 'en-CA' produce YYYY-MM-DD en la mayoría de navegadores
-    return d.toLocaleDateString('en-CA', { timeZone: tz });
+    const dtf = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts = dtf.formatToParts(d).reduce((acc, p) => {
+      if (p.type === 'year') acc.year = p.value;
+      if (p.type === 'month') acc.month = p.value;
+      if (p.type === 'day') acc.day = p.value;
+      return acc;
+    }, {});
+    if (!parts.year || !parts.month || !parts.day) return '';
+    return `${parts.year}-${parts.month}-${parts.day}`;
   } catch (e) {
     console.warn('dateYYYYMMDDInTZ error:', e, dateInput);
     return '';
@@ -951,6 +959,24 @@ const lbRecordDesc = $('lbRecordDesc');
 const lbRecordFecha = $('lbRecordFecha');
 let recordatorioIdAEliminar = null;
 let currentRecordatorio = null;
+// --- Lightbox recordatorio: handlers de cierre y limpieza ---
+if (closeLightboxBtn) {
+  closeLightboxBtn.addEventListener('click', () => {
+    if (!lightboxRecordatorio) return;
+    hideModalByElement(lightboxRecordatorio);
+    const inner = lightboxRecordatorio.querySelector('.lightbox-content');
+    if (inner) inner.classList.remove('lightbox-due-today');
+    lightboxRecordatorio.classList.remove('lightbox-due-today');
+    currentRecordatorio = null;
+  });
+}
+if (btnEliminarLightbox) {
+  btnEliminarLightbox.addEventListener('click', () => {
+    if (!currentRecordatorio) return;
+    recordatorioIdAEliminar = currentRecordatorio.id ?? null;
+    showModalByElement(popEliminarConfirm);
+  });
+}
 
 const loadingRecordatorios = $('loadingRecordatorios');
 
@@ -1088,14 +1114,13 @@ async function openRecordLightbox(id) {
     // comparar en la misma TZ (Miami)
     const todayMiami = dateYYYYMMDDInTZ(new Date(), 'America/New_York');
     const recDate = dateYYYYMMDDInTZ(currentRecordatorio.fecha_limite, 'America/New_York');
-
-    const lightboxContent = lightboxRecordatorio.querySelector('.lightbox-content');
-    if (lightboxContent) {
-      if (recDate && recDate === todayMiami) {
-        lightboxContent.classList.add('lightbox-due-today');
-      } else {
-        lightboxContent.classList.remove('lightbox-due-today');
-      }
+    const lightboxContent = lightboxRecordatorio ? lightboxRecordatorio.querySelector('.lightbox-content') : null;
+    if (recDate && recDate === todayMiami) {
+      if (lightboxContent) lightboxContent.classList.add('lightbox-due-today');
+      if (lightboxRecordatorio) lightboxRecordatorio.classList.add('lightbox-due-today');
+    } else {
+      if (lightboxContent) lightboxContent.classList.remove('lightbox-due-today');
+      if (lightboxRecordatorio) lightboxRecordatorio.classList.remove('lightbox-due-today');
     }
 
     hideSpinner();
@@ -1208,6 +1233,7 @@ if (formActualizar) formActualizar.addEventListener('submit', async (e) => {
 });
 
 // ============== MANEJO DE PEDIDOS ==============
+const API_BASE = 'https://nicaexpressway.onrender.com'; // assume this is defined
 const PAGE_SIZE = 10;
 let manejoData = [];
 let currentManejoPage = 1;
