@@ -299,6 +299,59 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   * { transition: none !important; animation: none !important; }
   #introOverlay { transition: none; }
 }
+  /* ---------------------------
+   OVERRIDES: colores de nav
+   Pegar al final del <style>
+   --------------------------- */
+
+:root{
+  /* color inactivo compartido (usa el mismo en otros botones inactivos) */
+  --nav-inactive: #a0b6e0;
+
+  /* color para secciones activas (ej. Seguimiento) */
+  --section-active-color: #6B7A90;
+}
+
+/* Aseguramos que los botones inactivos usen la variable central */
+nav button.inactive {
+  background: var(--nav-inactive) !important;
+  color: #fff !important;
+}
+
+/* Botón de la sección (Seguimiento) cuando está activo */
+nav button#btnSeguimiento.active-highlight {
+  background: var(--section-active-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(106,122,136,0.12);
+  transition: background .18s ease, transform .12s ease;
+}
+nav button#btnSeguimiento.active-highlight:hover {
+  transform: translateY(-2px);
+  filter: brightness(0.96);
+}
+
+/* Alineamos el estado inicial del botón "Cotizar" con los inactivos */
+#btnCotizar {
+  background: var(--nav-inactive) !important; /* igual que inactivos */
+  color: #fff !important;
+  opacity: 1 !important;    /* visible desde el inicio */
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+  border-radius: 10px;
+  transition: opacity .45s ease, transform .45s ease, background .28s ease, box-shadow .28s ease;
+}
+
+/* Cuando JS añade .show-cotizar, mantenemos el estilo único (lapis + glow) */
+#btnCotizar.show-cotizar {
+  background: var(--lapis) !important; /* color lapis definido en :root original */
+  transform: translateY(-6px) !important;
+  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08) !important;
+}
+
+/* Si necesitas que otros botones de sección usen la misma variable, usa:
+   nav button#btnOtraSeccion.active-highlight { background: var(--section-active-color); }
+*/
+
 </style>
 </head>
 <body>
