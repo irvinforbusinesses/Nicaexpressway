@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
@@ -38,7 +38,7 @@ section{
   display:none;
   opacity:0;
   transform:translateY(12px);
-  animation: fadeIn 0.36s forwards;
+  animation: fadeIn 0.72s forwards; /* <- duración doblada (antes 0.36s) */
   box-shadow:0 6px 14px rgba(0,0,0,0.08);
 }
 section.active{display:block}
@@ -103,29 +103,24 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* responsive tweaks */
 @media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
 
-/* ======= SOLICITAR tweaks (button hidden in nav only) ======= */
 #solicitar .resultado-solicitar { margin-top:12px; font-weight:700; }
 #reciboSolicitar { margin-top:10px; padding:12px; border-radius:10px; background:#fbfcfe; border:1px solid #eef3f8; display:none; text-align:left; }
 #reciboSolicitar .line { margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
 #reciboSolicitar .estimado { text-align:center; margin-top:8px; font-weight:600; color:#444; }
 
-/* waiting overlay / popup (solicitando...) */
 #waitingPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
 #waitingPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
 .waiting-circle { width:76px; height:76px; border-radius:999px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; background: rgba(47,82,143,0.06); }
 .spinner { width:36px; height:36px; border-radius:50%; border:4px solid rgba(47,82,143,0.18); border-top-color: var(--color-accent); animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* confirm pop (check) */
 #confirmPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
 #confirmPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
 .check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
 .check-icon svg { display:block; }
 
-/* waiting overlay small used by lightbox when fetching historial */
 .lightbox-loading { padding:10px 14px; border-radius:10px; background:#fff; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
 
-/* Multi-result cards (match operator look & feel) */
 .multi-list { margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; }
 .multi-card {
   background: #fbfcfe;
@@ -144,7 +139,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .multi-card .subtitle { font-size:0.9rem; color:#666; }
 .multi-card .right { font-weight:700; color:var(--color-accent); font-size:0.95rem; }
 
-/* Lightbox modal for package detail */
 #packageLightboxOverlay {
   position: fixed;
   inset: 0;
@@ -177,7 +171,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
 .package-info-row .info { flex:1; background:#fbfcfe;padding:10px;border-radius:8px;border:1px solid #eef3f8; }
 
-/* WhatsApp CTA for cotizar */
 #cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
 .wa-cta {
   display:inline-flex; align-items:center; justify-content:center;
@@ -189,7 +182,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 @keyframes floatLoop { 0%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} 100%{ transform: translateY(0);} }
 .wa-cta.float { animation: floatLoop 3s ease-in-out infinite; }
 
-/* Subtitle style (footer-like, centered, with line below) */
 .subtitle-footer {
   text-align:center;
   color:#888;
@@ -210,45 +202,40 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   border-radius:2px;
 }
 
-/* ensure no generic browser look for modal buttons */
 .modal-close-btn { margin-top:12px; background:#888;color:#fff;border:none;padding:.6rem .8rem;border-radius:8px; cursor:pointer; }
 
-/* small utilities */
 .hidden{ display:none !important; }
 
 /* ---- CTA principal (botón "Cotizar" en nav) ---- */
-:root { --lapis: #1F3A66; --lapis-glow: rgba(31,58,102,0.35); --glow-accent: #79A7E4; }
-
-/* estilo destacado permanente para el botón Cotizar */
-/* initial state hidden; will be shown via JS after 2s */
+/* Initially show like other nav buttons; later the .show-cotizar class upgrades it */
 #btnCotizar {
-  background: var(--lapis);
+  background: var(--color-accent); /* same as other nav buttons at start */
   color: #fff;
-  /* start hidden for intro reveal */
-  opacity: 0;
+  opacity: 1;
   transform: translateY(0);
-  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08);
+  box-shadow: none;
   border-radius: 10px;
   position: relative;
   z-index: 5;
-  transition: opacity .9s ease, transform .9s ease;
+  transition: opacity .9s ease, transform .9s ease, box-shadow .4s ease, background .3s ease;
 }
 
-/* shown state after timer */
+/* shown/unique state after timer */
 #btnCotizar.show-cotizar {
-  opacity: 1;
-  transform: translateY(-6px); /* "flotando" estático */
+  background: var(--lapis);
+  transform: translateY(-6px); /* "flotando" */
+  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08);
 }
 
-/* glowing border line animation en loop (permanente) */
-#btnCotizar::after{
+/* glowing border line animation moved to the "shown" state so it triggers after the timeout */
+#btnCotizar.show-cotizar::after{
   content:'';
   position:absolute;
   inset:-2px;
   z-index:-1;
   border-radius:12px;
   background: linear-gradient(90deg, rgba(121,167,228,0.12), rgba(31,58,102,0.08));
-  box-shadow: 0 0 18px 4px var(--lapis-glow);
+  box-shadow: 0 0 18px 4px rgba(31,58,102,0.35);
   animation: glowBorder 2.6s linear infinite;
   opacity:0.95;
   pointer-events:none;
@@ -258,8 +245,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   50%  { filter: hue-rotate(20deg) saturate(1.08); transform: translateY(-1px) scale(1.01); }
   100% { filter: hue-rotate(0deg) saturate(1); transform: translateY(0) scale(1); }
 }
-
-/* Hover ligero adicional (UX) */
 #btnCotizar:hover {
   transform: translateY(-8px) scale(1.01);
   box-shadow: 0 18px 36px rgba(31,58,102,0.16);
@@ -274,18 +259,18 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   overflow: hidden;
   z-index: 6000; /* mayor que modales */
 }
-
-/* small: ensure confetti pieces can't steal pointer events */
 .confetti, #confettiWrap > div { pointer-events: none !important; }
 
 /* Intro overlay / FLIP */
 #introOverlay {
   position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
-  /* use page general background so overlay blends with page (not white inner container) */
   background: var(--color-bg);
   z-index: 7000;
-  pointer-events:none;
+  pointer-events:auto;
+  opacity:1;
+  transition: opacity .6s ease;
 }
+#introOverlay.hide { opacity:0; pointer-events:none; } /* fade out */
 #introInner { text-align:center; transform-origin:center; transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s; }
 #introLogo { width:110px; height:110px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 12px; opacity:0; transform: translateY(6px) scale(.98); transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s; }
 #introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--lapis); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
@@ -308,6 +293,12 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 
 /* keep existing rules intact */
+
+/* prefers-reduced-motion: respect user preference and reduce non-essential motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  #introOverlay { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -414,10 +405,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 <section id="seguimiento">
   <h2 id="seguimientoTitle">Manejo de pedidos</h2>
 
-  <!-- subtitulo estilo footer centrado -->
   <div class="subtitle-footer">Busca por cliente (nombre o teléfono)</div>
 
-  <!-- Primero: campos Nombre + Teléfono -->
   <label for="nombreBuscar">Nombre del cliente</label>
   <input type="text" id="nombreBuscar" placeholder="Ej: Lester Gamez">
 
@@ -431,10 +420,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <input type="tel" id="telefonoBuscar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
   </div>
 
-  <!-- subtitulo 2 con linea -->
   <div class="subtitle-footer" style="margin-top:8px;">O busca un paquete en específico con el código de seguimiento</div>
 
-  <!-- ahora el campo Código -->
   <label for="codigo">Código de seguimiento</label>
   <input type="text" id="codigo" placeholder="Ej: ABC123">
 
@@ -443,20 +430,15 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <div class="col"><button id="btnLimpiar" class="calc-btn" style="background:#888;">Limpiar</button></div>
   </div>
 
-  <!-- Loader / overlay pequeño -->
   <div id="searchOverlay" style="display:none;margin-top:1rem;padding:.9rem;border-radius:8px;background:#f3f7fb;text-align:center;">
     <strong>Buscando tu paquete, espera...</strong>
   </div>
 
-  <!-- Multi-results (cuando la búsqueda por cliente devuelve varios) -->
   <div id="multiResults" class="multi-list" style="display:none;"></div>
 
-  <!-- Resultado individual (timeline + detalles) -->
   <div id="resultContainer" class="package-box" style="display:none;">
-    <!-- timeline -->
     <div id="timeline" class="timeline"></div>
 
-    <!-- datos principales -->
     <div id="packageDetails" class="details-row" style="margin-top:1rem">
       <div>
         <div class="small-muted">Tipo de envío</div>
@@ -484,7 +466,6 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
     <button class="close-btn" id="lbClose" aria-label="Cerrar ventana">×</button>
     <h3 id="lbTitle">Pedido</h3>
 
-    <!-- header info: "Pedido hecho el {fecha1}" + tipo/peso/tarifa -->
     <div id="lbHeader" style="margin-top:6px;">
       <div id="lbWhen" style="font-weight:700;color:var(--color-accent);">Pedido hecho el -</div>
       <div class="package-info-row" style="margin-top:8px;">
@@ -494,15 +475,12 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
       </div>
     </div>
 
-    <!-- small loader while fetching historial -->
     <div id="lbLoading" style="display:none;margin-top:12px;justify-content:center;">
       <div class="lightbox-loading"><div class="spinner" style="width:28px;height:28px;border-width:3px;"></div><div style="font-weight:700;color:var(--color-accent);margin-left:8px;">Cargando historial...</div></div>
     </div>
 
-    <!-- timeline container -->
     <div id="lbTimeline" class="timeline" style="margin-top:12px;"></div>
 
-    <!-- close CTA only -->
     <div style="text-align:center;margin-top:10px;">
       <button id="lbCloseBtn" class="modal-close-btn">Cerrar</button>
     </div>
@@ -548,8 +526,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
 
 /* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP)
    Behavior tuned per request:
-   - intro overlay uses page background so it doesn't look like white container
-   - total visible sequence ≈ 2000ms
+   - intro overlay will fade out (opacity) and only be removed from the flow after the transition ends
 */
 (async function runIntroFLIP(){
   try {
@@ -559,7 +536,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     // show intro (logo + title fade-in)
     intro.classList.add('show');
 
-    // wait initial visible time (approx 800ms)
+    // visible time before FLIP starts (kept ~2000ms total visible)
     await new Promise(r=>setTimeout(r, 2000));
 
     const logo = document.getElementById('introLogo');
@@ -568,8 +545,10 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     const targetTitle = document.querySelector('header h1');
 
     if(!logo || !targetLogo || !title || !targetTitle) {
-      // fallback hide after 2s total
-      setTimeout(()=>{ intro.classList.remove('show'); intro.style.display='none'; }, 1200);
+      // fallback: fade out gracefully
+      intro.classList.add('hide');
+      // remove from DOM after transition ends
+      setTimeout(()=>{ intro.style.display='none'; intro.classList.remove('show','hide'); }, 700);
       return;
     }
 
@@ -586,20 +565,19 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
 
     // prepare FLIP transform: translate the introInner towards the target
     const inner = document.getElementById('introInner');
-    inner.style.transition = 'transform 2s cubic-bezier(.2,.9,.2,1), opacity 1s';
-    // set initial transform to identity (already)
-    // animate to target (we apply negative translation to move it to target position)
-    // compute transform to move from first to last: translate(dx,dy) scale(scale)
-    // Because CSS transform order, we use translate + scale visually
+    inner.style.transition = 'transform 1s cubic-bezier(.2,.9,.2,1), opacity .6s';
     inner.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
     inner.style.opacity = '0';
 
-    // after animation completes (approx 900ms), restore targets and hide intro overlay
+    // after animation completes hide overlay with fade (so background disappears smoothly)
     setTimeout(()=>{
+      // fade out overlay
+      intro.classList.add('hide');
+      // reveal target elements
       targetLogo.style.visibility = '';
       targetTitle.style.visibility = '';
-      intro.classList.remove('show');
-      intro.style.display = 'none';
+      // remove overlay entirely after the opacity transition completes
+      setTimeout(()=>{ intro.style.display='none'; intro.classList.remove('show','hide'); inner.style.transform=''; inner.style.opacity=''; }, 700);
     }, 1000);
 
   } catch (e) {
@@ -652,13 +630,16 @@ if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar')
 if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
-/* Show "Cotizar" nav CTA after 2s on page load with fade-in 0.9s */
+/* Reveal logic for btnCotizar:
+   - now the button is visible from the start and styled like other nav buttons
+   - after a timeout we add .show-cotizar to activate the unique Lapid/Glow style
+*/
 (function revealCotizarCTA(){
   try {
-    // ensure hidden initially (CSS already sets opacity:0)
+    // delay before applying the special style (kept 5000ms as original timing)
     setTimeout(()=> {
       if (btnCotizar) btnCotizar.classList.add('show-cotizar');
-    }, 5000); // 2s after page start
+    }, 5000);
   } catch(e){}
 })();
 
@@ -710,7 +691,6 @@ btnCalcularMain.addEventListener('click', (e)=>{
   // simulate processing: 2000ms spinner then show result with fade
   setTimeout(()=> {
     resultadoDiv.innerHTML = `<div class="result-fade" id="resultadoInner"><div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div></div>`;
-    // force reflow then animate fade
     const inner = document.getElementById('resultadoInner');
     if (inner) requestAnimationFrame(()=> inner.classList.add('visible'));
   }, 2000);
@@ -952,9 +932,7 @@ function buildTimelineFromHistorialElement(historial, containerEl){
   }
 }
 
-/* -----------------------------
-   LIGHTBOX: open -> fetch historial
-   ----------------------------- */
+/* LIGHTBOX: open -> fetch historial */
 const packageLightboxOverlay = document.getElementById('packageLightboxOverlay');
 const lbClose = document.getElementById('lbClose');
 const lbCloseBtn = document.getElementById('lbCloseBtn');
@@ -968,10 +946,8 @@ const lbLoading = document.getElementById('lbLoading');
 
 async function openPackageLightbox(paquete){
   if(!paquete) return;
-  // show overlay
   packageLightboxOverlay.style.display = 'flex';
   packageLightboxOverlay.setAttribute('aria-hidden','false');
-  // set header placeholders
   lbTitle.textContent = `Pedido ${paquete.id ? '#' + paquete.id : (paquete.codigo_seguimiento ? paquete.codigo_seguimiento : '')}`;
   lbWhen.textContent = 'Pedido hecho - (cargando...)';
   lbTipo.textContent = (paquete.tipo_envio_id ? (paquete.tipo_envio_id === 1 ? 'Aéreo' : paquete.tipo_envio_id === 2 ? 'Marítimo' : paquete.tipo) : (paquete.tipo || 'No disponible'));
@@ -980,7 +956,6 @@ async function openPackageLightbox(paquete){
   lbTimeline.innerHTML = '';
   lbLoading.style.display = 'flex';
 
-  // fetch historial
   let historial = null;
   try {
     if(paquete.codigo_seguimiento){
@@ -1011,7 +986,6 @@ async function openPackageLightbox(paquete){
     lbTimeline.innerHTML = '<div class="small-muted">Historial no disponible.</div>';
   }
 
-  // focus close
   setTimeout(()=> { if (lbCloseBtn) lbCloseBtn.focus(); }, 80);
 }
 
@@ -1071,12 +1045,8 @@ function escapeHtml(str){
     .replace(/>/g, '&gt;');
 }
 
-/* ---- Confetti usando canvas-confetti (adaptado) ----
-   - zIndex explicitly set so confetti renders above modals/lightboxes
-   - settings tuned for a pleasant, "Google-like" celebratory burst (moderate particleCount, spread, gravity)
-*/
+/* Confetti adapted */
 let confettiClearTimeout = null;
-
 function triggerConfettiOnce(opts = {}) {
   const defaults = {
     particleCount: 180,
@@ -1091,11 +1061,8 @@ function triggerConfettiOnce(opts = {}) {
   const cfg = Object.assign({}, defaults, opts);
 
   if (typeof confetti === 'function') {
-    // left burst
     confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 60, origin: { x: 0.2, y: cfg.origin.y }, zIndex: cfg.zIndex }));
-    // right burst
     confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 120, origin: { x: 0.8, y: cfg.origin.y }, zIndex: cfg.zIndex }));
-    // center burst
     confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.95), spread: cfg.spread + 20, origin: cfg.origin, zIndex: cfg.zIndex }));
   } else {
     console.warn('canvas-confetti not loaded');
@@ -1109,13 +1076,11 @@ function triggerConfettiDesktop() { triggerConfettiOnce({ particleCount: 220, gr
 function triggerConfettiMobile()  { triggerConfettiOnce({ particleCount: 110, gravity: 0.5, scalar: 0.9 }); }
 function triggerConfetti() { if (window.innerWidth <= 420) triggerConfettiMobile(); else triggerConfettiDesktop(); }
 
-/* small 'enter' submit shortcuts */
 ['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(id==='peso') { btnCalcularMain.click(); } else onBuscar(); } });
 });
 
-/* Inicial state */
 (function init(){
   mostrarSeccion('inicio');
   hideResult();
@@ -1126,9 +1091,7 @@ function hideResult(){
   if(timelineEl) timelineEl.innerHTML='';
 }
 
-/* ============================
-   SOLICITAR logic (kept as before)
-   ============================ */
+/* SOLICITAR logic unchanged (kept as before) */
 const btnCalcularSolicitar = document.getElementById('btnCalcularSolicitar');
 const btnConfirmarSolicitar = document.getElementById('btnConfirmarSolicitar');
 const reciboSolicitar = document.getElementById('reciboSolicitar');
