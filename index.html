@@ -746,7 +746,7 @@ function crearWaButton(){
   a.href = waHref;
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
-  a.innerText = 'Click aquí para realizar tu pedido ahora!';
+  a.innerText = 'Click aquí para realizar tu pedido!';
   return a;
 }
 let waBtnTimeout = null;
@@ -1103,7 +1103,7 @@ function mapStateSubtext(raw){
   if(!raw) return '';
   const r = raw.toString().toLowerCase();
   switch(r){
-    case 'recibido': return 'Paquete recibido por Nica Express Way en Estados Unidos';
+    case 'recibido': return 'Paquete recibido por Nica ExpressWay en Estados Unidos';
     case 'en_transito': return 'Paquete en camino a Nicaragua';
     case 'en_aduana': return 'Paquete en aduanas, será recibido por la agencia pronto';
     case 'listo_recoger': return 'Paquete listo para retirar!';
