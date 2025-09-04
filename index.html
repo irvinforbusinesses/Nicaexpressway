@@ -560,7 +560,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     intro.classList.add('show');
 
     // wait initial visible time (approx 800ms)
-    await new Promise(r=>setTimeout(r, 800));
+    await new Promise(r=>setTimeout(r, 2000));
 
     const logo = document.getElementById('introLogo');
     const title = document.getElementById('introTitle');
@@ -586,7 +586,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
 
     // prepare FLIP transform: translate the introInner towards the target
     const inner = document.getElementById('introInner');
-    inner.style.transition = 'transform .9s cubic-bezier(.2,.9,.2,1), opacity .5s';
+    inner.style.transition = 'transform 2s cubic-bezier(.2,.9,.2,1), opacity 1s';
     // set initial transform to identity (already)
     // animate to target (we apply negative translation to move it to target position)
     // compute transform to move from first to last: translate(dx,dy) scale(scale)
@@ -600,7 +600,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
       targetTitle.style.visibility = '';
       intro.classList.remove('show');
       intro.style.display = 'none';
-    }, 950);
+    }, 2000);
 
   } catch (e) {
     console.warn('Intro FLIP failed', e);
@@ -658,7 +658,7 @@ if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('s
     // ensure hidden initially (CSS already sets opacity:0)
     setTimeout(()=> {
       if (btnCotizar) btnCotizar.classList.add('show-cotizar');
-    }, 2000); // 2s after page start
+    }, 5000); // 2s after page start
   } catch(e){}
 })();
 
@@ -724,7 +724,7 @@ btnCalcularMain.addEventListener('click', (e)=>{
     const btn = crearWaButton();
     cotizarCtaWrap.appendChild(btn);
     setTimeout(()=> { btn.classList.add('visible'); btn.classList.add('float'); }, 50);
-  }, 2000);
+  }, 4000);
 });
 
 /* ================================
