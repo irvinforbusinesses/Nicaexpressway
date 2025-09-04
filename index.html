@@ -220,14 +220,24 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 :root { --lapis: #1F3A66; --lapis-glow: rgba(31,58,102,0.35); --glow-accent: #79A7E4; }
 
 /* estilo destacado permanente para el botón Cotizar */
+/* initial state hidden; will be shown via JS after 2s */
 #btnCotizar {
   background: var(--lapis);
   color: #fff;
-  transform: translateY(-6px); /* "flotando" estático */
+  /* start hidden for intro reveal */
+  opacity: 0;
+  transform: translateY(0);
   box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08);
   border-radius: 10px;
   position: relative;
   z-index: 5;
+  transition: opacity .9s ease, transform .9s ease;
+}
+
+/* shown state after timer */
+#btnCotizar.show-cotizar {
+  opacity: 1;
+  transform: translateY(-6px); /* "flotando" estático */
 }
 
 /* glowing border line animation en loop (permanente) */
@@ -271,13 +281,33 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* Intro overlay / FLIP */
 #introOverlay {
   position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
-  background: transparent; z-index: 7000; pointer-events:none;
+  /* use page general background so overlay blends with page (not white inner container) */
+  background: var(--color-bg);
+  z-index: 7000;
+  pointer-events:none;
 }
-#introInner { text-align:center; transform-origin:center; }
+#introInner { text-align:center; transform-origin:center; transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s; }
 #introLogo { width:110px; height:110px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 12px; opacity:0; transform: translateY(6px) scale(.98); transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s; }
 #introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--lapis); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
 #introOverlay.show #introLogo, #introOverlay.show #introTitle { opacity:1; transform: translateY(0) scale(1); }
 
+/* result fade-in after spinner */
+.result-fade {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.result-fade.visible { opacity:1; transform: translateY(0); }
+
+/* mini spinner inside resultado box */
+.mini-spinner {
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;
+}
+.mini-spinner .spinner-small {
+  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--lapis);animation:spin 1s linear infinite;
+}
+
+/* keep existing rules intact */
 </style>
 </head>
 <body>
@@ -516,58 +546,63 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* CONFIG */
 const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
 
-/* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP) */
+/* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP)
+   Behavior tuned per request:
+   - intro overlay uses page background so it doesn't look like white container
+   - total visible sequence ≈ 2000ms
+*/
 (async function runIntroFLIP(){
   try {
     const intro = document.getElementById('introOverlay');
     if(!intro) return;
-    // show intro
+    intro.style.display = 'flex';
+    // show intro (logo + title fade-in)
     intro.classList.add('show');
-    // small delay so user sees center fade (total ~700ms)
-    await new Promise(r=>setTimeout(r,700));
 
-    const introInner = document.getElementById('introInner');
+    // wait initial visible time (approx 800ms)
+    await new Promise(r=>setTimeout(r, 800));
+
     const logo = document.getElementById('introLogo');
     const title = document.getElementById('introTitle');
     const targetLogo = document.getElementById('logoMain'); // header / inicio logo
     const targetTitle = document.querySelector('header h1');
 
-    if(!introInner || !targetLogo || !targetTitle) {
-      intro.classList.remove('show');
-      intro.style.display='none';
+    if(!logo || !targetLogo || !title || !targetTitle) {
+      // fallback hide after 2s total
+      setTimeout(()=>{ intro.classList.remove('show'); intro.style.display='none'; }, 1200);
       return;
     }
 
-    // measure first
-    const firstLogoRect = logo.getBoundingClientRect();
-    const firstTitleRect = title.getBoundingClientRect();
-
-    // hide target items momentarily (so they don't overlap during animation)
+    // hide target items momentarily so FLIP doesn't overlap visually
     targetLogo.style.visibility = 'hidden';
     targetTitle.style.visibility = 'hidden';
 
+    // measure positions
+    const firstLogoRect = logo.getBoundingClientRect();
     const lastLogoRect = targetLogo.getBoundingClientRect();
-    const lastTitleRect = targetTitle.getBoundingClientRect();
+    const dx = lastLogoRect.left - firstLogoRect.left;
+    const dy = lastLogoRect.top - firstLogoRect.top;
+    const scale = lastLogoRect.width / firstLogoRect.width;
 
-    const dxLogo = lastLogoRect.left - firstLogoRect.left;
-    const dyLogo = lastLogoRect.top - firstLogoRect.top;
+    // prepare FLIP transform: translate the introInner towards the target
+    const inner = document.getElementById('introInner');
+    inner.style.transition = 'transform .9s cubic-bezier(.2,.9,.2,1), opacity .5s';
+    // set initial transform to identity (already)
+    // animate to target (we apply negative translation to move it to target position)
+    // compute transform to move from first to last: translate(dx,dy) scale(scale)
+    // Because CSS transform order, we use translate + scale visually
+    inner.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    inner.style.opacity = '0';
 
-    introInner.style.transition = 'transform .7s cubic-bezier(.2,.9,.2,1), opacity .5s';
-    introInner.style.transformOrigin = 'left top';
-    introInner.style.transform = `translate(${dxLogo}px, ${dyLogo}px) scale(${lastLogoRect.width/firstLogoRect.width})`;
-
-    requestAnimationFrame(()=> {
-      introInner.style.transform = 'translate(0,0) scale(1)';
-      introInner.style.opacity = '0';
-    });
-
+    // after animation completes (approx 900ms), restore targets and hide intro overlay
     setTimeout(()=>{
       targetLogo.style.visibility = '';
       targetTitle.style.visibility = '';
       intro.classList.remove('show');
       intro.style.display = 'none';
-    }, 760);
-  } catch(e){
+    }, 950);
+
+  } catch (e) {
     console.warn('Intro FLIP failed', e);
     const intro = document.getElementById('introOverlay');
     if(intro) { intro.classList.remove('show'); intro.style.display='none'; }
@@ -592,7 +627,6 @@ function resetNavStyles(){
   [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{
     if(!b) return;
     b.classList.remove('active-highlight');
-    // reset inline background to default if needed
     b.style.background = '';
   });
 }
@@ -608,7 +642,6 @@ function mostrarSeccion(nombre){
   if(nombre==='solicitar' && btnSolicitar) { btnSolicitar.classList.remove('inactive'); }
   if(nombre==='seguimiento' && btnSeguimiento) {
     btnSeguimiento.classList.remove('inactive');
-    // highlight seguimiento with lapis
     btnSeguimiento.classList.add('active-highlight');
   } else {
     if(btnSeguimiento) btnSeguimiento.classList.remove('active-highlight');
@@ -619,7 +652,19 @@ if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar')
 if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
-/* CALCULAR in Cotizar: compute, show boxed result centered, reset form, then show WA CTA after 2s */
+/* Show "Cotizar" nav CTA after 2s on page load with fade-in 0.9s */
+(function revealCotizarCTA(){
+  try {
+    // ensure hidden initially (CSS already sets opacity:0)
+    setTimeout(()=> {
+      if (btnCotizar) btnCotizar.classList.add('show-cotizar');
+    }, 2000); // 2s after page start
+  } catch(e){}
+})();
+
+/* CALCULAR in Cotizar: compute, show spinner (2s) then fade-in result;
+   WA CTA appears 2s after calculation (matching request).
+*/
 const btnCalcularMain = document.getElementById('btnCalcularMain');
 const resultadoDiv = document.getElementById('resultado');
 const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
@@ -651,28 +696,40 @@ btnCalcularMain.addEventListener('click', (e)=>{
   let precio=0,dias=0;
   if(tipo==='aereo'){ precio = peso*7.50; dias=7; } else { precio = peso*3.00; dias=15; }
 
-  // show boxed result centered
+  // show resultado container immediately with spinner
   resultadoDiv.style.display = 'block';
-  resultadoDiv.innerHTML = `<div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div>`;
+  resultadoDiv.innerHTML = `
+    <div class="mini-spinner" aria-hidden="true">
+      <div class="spinner-small" role="img" aria-hidden="true"></div>
+      <div style="font-weight:700;color:var(--color-accent)">Calculando precio...</div>
+    </div>
+  `;
+  // remove any previous wa CTA
+  cotizarCtaWrap.innerHTML = '';
+
+  // simulate processing: 2000ms spinner then show result with fade
+  setTimeout(()=> {
+    resultadoDiv.innerHTML = `<div class="result-fade" id="resultadoInner"><div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div></div>`;
+    // force reflow then animate fade
+    const inner = document.getElementById('resultadoInner');
+    if (inner) requestAnimationFrame(()=> inner.classList.add('visible'));
+  }, 2000);
 
   // reset form (as requested)
   resetCotizarForm();
-
-  // remove any previous wa CTA
-  cotizarCtaWrap.innerHTML = '';
 
   // show WA CTA after 2s with fade-in + float animation
   if(waBtnTimeout) clearTimeout(waBtnTimeout);
   waBtnTimeout = setTimeout(()=>{
     const btn = crearWaButton();
     cotizarCtaWrap.appendChild(btn);
-    // force a small delay to allow CSS transition
     setTimeout(()=> { btn.classList.add('visible'); btn.classList.add('float'); }, 50);
   }, 2000);
 });
 
 /* ================================
    SEGUIMIENTO: búsqueda condicional
+   (unchanged logic except small helpers)
    ================================ */
 const btnBuscar = document.getElementById('btnBuscar');
 const btnLimpiar = document.getElementById('btnLimpiar');
@@ -763,13 +820,12 @@ async function onBuscar(){
   }
 }
 
-/* fetch unified: returns either { paquete, historial } for codigo search OR { paquetes: [...] } for name/phone search */
+/* fetch unified: */
 async function fetchPackageFromAPI({ codigo, nombre, telefono }){
   codigo = codigo ? String(codigo).trim() : null;
   nombre = nombre ? String(nombre).trim() : null;
   telefono = telefono ? String(telefono).trim() : null;
 
-  // 1) if codigo => GET /paquetes?codigo=...
   if (codigo) {
     const resP = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
     if (!resP.ok) { console.warn('paquetes fetch fallo', resP.status); return null; }
@@ -777,8 +833,6 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
     if (!Array.isArray(arr) || arr.length === 0) return null;
     const paquete = arr[0];
 
-    // do NOT fetch historial here (Option B) — we'll fetch in lightbox when user opens it.
-    // But to keep current single-package display showing timeline, try to fetch historial now for UX:
     let historial = null;
     try {
       const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
@@ -788,7 +842,6 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
     return { paquete, historial };
   }
 
-  // 2) if name/phone => POST /paquetes/search (may return multiple)
   if (nombre || telefono) {
     const res = await fetch(`${API_BASE}/paquetes/search`, {
       method: 'POST',
@@ -798,8 +851,6 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
     if (!res.ok) { console.warn('search endpoint fallo', res.status); return null; }
     const arr = await res.json();
     if (!Array.isArray(arr) || arr.length === 0) return null;
-
-    // return the array without fetching historial for each (Option B)
     return { paquetes: arr };
   }
 
@@ -808,11 +859,9 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
 
 /* render when a single paquete with historial (or possibly historial null) */
 function renderPackageResult({ paquete, historial }){
-  // clear multiResults
   multiResults.style.display = 'none';
   multiResults.innerHTML = '';
 
-  // show result container
   timelineEl.innerHTML = '';
   detalleTipo.textContent = 'Datos aún no disponibles';
   detallePeso.textContent = 'Datos aún no disponibles';
@@ -821,20 +870,17 @@ function renderPackageResult({ paquete, historial }){
   if(noResult) noResult.style.display='none';
   if(resultContainer) resultContainer.style.display='block';
 
-  // Map tipo_envio_id -> texto
   const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
   detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? (paquete?.tipo || 'Datos aún no disponibles');
 
   detallePeso.textContent = paquete?.peso_libras  ?? 'Datos aún no disponibles';
   detalleTarifa.textContent = paquete?.tarifa_usd ?? 'Datos aún no disponibles';
 
-  // Total
   if (paquete?.peso_libras != null && paquete?.tarifa_usd != null){
     const total = Number(paquete.peso_libras) * Number(paquete.tarifa_usd);
     detalleTotal.innerHTML = `<strong>Total:</strong> $${isFinite(total) ? total.toFixed(2) : '0.00'} USD`;
   }
 
-  // Timeline: if historial present render now, else show 'Historial no disponible'
   timelineEl.innerHTML = '';
   if (!historial) {
     timelineEl.innerHTML = '<div class="small-muted">Historial no disponible (abre el detalle para cargar historial completo).</div>';
@@ -845,7 +891,6 @@ function renderPackageResult({ paquete, historial }){
 
 /* render multiple packages (list) */
 function renderMultiplePackages(paquetes){
-  // hide single result
   if(resultContainer) resultContainer.style.display = 'none';
   if(noResult) noResult.style.display='none';
 
@@ -853,7 +898,6 @@ function renderMultiplePackages(paquetes){
   paquetes.forEach(p => {
     const card = document.createElement('div');
     card.className = 'multi-card';
-    // preview date: prefer paquete.fecha_estado if present, else 'No disponible'
     const previewDate = p.fecha_estado ? formatDate(p.fecha_estado) : 'No disponible';
     const left = document.createElement('div');
     left.className = 'left';
@@ -865,10 +909,7 @@ function renderMultiplePackages(paquetes){
     card.appendChild(left);
     card.appendChild(right);
 
-    // store paquete data on card
     card.dataset.paquete = JSON.stringify(p);
-
-    // click opens lightbox and fetches historial (Option B: historial fetched only when opening)
     card.addEventListener('click', async ()=>{
       const paqueteObj = JSON.parse(card.dataset.paquete);
       openPackageLightbox(paqueteObj);
@@ -903,6 +944,7 @@ function buildTimelineFromHistorialElement(historial, containerEl){
                        <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
       if (it.estado && String(it.estado).toLowerCase()==='listo_recoger'){
         div.classList.add('blink');
+        // confetti when ready to pick
         triggerConfetti();
       }
       containerEl.appendChild(div);
@@ -931,7 +973,6 @@ async function openPackageLightbox(paquete){
   packageLightboxOverlay.setAttribute('aria-hidden','false');
   // set header placeholders
   lbTitle.textContent = `Pedido ${paquete.id ? '#' + paquete.id : (paquete.codigo_seguimiento ? paquete.codigo_seguimiento : '')}`;
-  // we'll fetch historial to produce "Pedido hecho el {fecha1}" — show loading UI
   lbWhen.textContent = 'Pedido hecho - (cargando...)';
   lbTipo.textContent = (paquete.tipo_envio_id ? (paquete.tipo_envio_id === 1 ? 'Aéreo' : paquete.tipo_envio_id === 2 ? 'Marítimo' : paquete.tipo) : (paquete.tipo || 'No disponible'));
   lbPeso.textContent = paquete.peso_libras ?? 'No disponible';
@@ -939,7 +980,7 @@ async function openPackageLightbox(paquete){
   lbTimeline.innerHTML = '';
   lbLoading.style.display = 'flex';
 
-  // fetch historial from API
+  // fetch historial
   let historial = null;
   try {
     if(paquete.codigo_seguimiento){
@@ -955,7 +996,6 @@ async function openPackageLightbox(paquete){
     historial = null;
   }
 
-  // hide loading & populate timeline and header "pedido hecho el {fecha1}"
   lbLoading.style.display = 'none';
   if(historial && historial.fecha1){
     lbWhen.textContent = `Pedido hecho el ${formatDate(historial.fecha1)}`;
@@ -972,7 +1012,7 @@ async function openPackageLightbox(paquete){
   }
 
   // focus close
-  setTimeout(()=> { lbCloseBtn.focus(); }, 80);
+  setTimeout(()=> { if (lbCloseBtn) lbCloseBtn.focus(); }, 80);
 }
 
 function closePackageLightbox(){
@@ -984,7 +1024,7 @@ function closePackageLightbox(){
 if(lbClose) lbClose.addEventListener('click', closePackageLightbox);
 if(lbCloseBtn) lbCloseBtn.addEventListener('click', closePackageLightbox);
 
-/* Utils used across file (copied from your original) */
+/* Utils used across file */
 function mapStateLabel(raw){
   if(!raw) return 'Estado desconocido';
   const r = raw.toString().toLowerCase();
@@ -1031,25 +1071,32 @@ function escapeHtml(str){
     .replace(/>/g, '&gt;');
 }
 
-/* ---- Confetti usando canvas-confetti (reemplaza tus funciones anteriores) ---- */
+/* ---- Confetti usando canvas-confetti (adaptado) ----
+   - zIndex explicitly set so confetti renders above modals/lightboxes
+   - settings tuned for a pleasant, "Google-like" celebratory burst (moderate particleCount, spread, gravity)
+*/
 let confettiClearTimeout = null;
 
 function triggerConfettiOnce(opts = {}) {
   const defaults = {
-    particleCount: 150,
-    spread: 75,
+    particleCount: 180,
+    spread: 80,
     ticks: 200,
-    gravity: 0.7,
+    gravity: 0.6,
     scalar: 1,
     origin: { y: 0.08 },
-    colors: ['#1f3a66','#2F528F','#79A7E4']
+    colors: ['#1f3a66','#2F528F','#79A7E4'],
+    zIndex: 6001
   };
   const cfg = Object.assign({}, defaults, opts);
 
   if (typeof confetti === 'function') {
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.6), angle: 60, origin: { x: 0.2, y: cfg.origin.y } }));
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.6), angle: 120, origin: { x: 0.8, y: cfg.origin.y } }));
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.9), spread: cfg.spread + 20, origin: cfg.origin }));
+    // left burst
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 60, origin: { x: 0.2, y: cfg.origin.y }, zIndex: cfg.zIndex }));
+    // right burst
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 120, origin: { x: 0.8, y: cfg.origin.y }, zIndex: cfg.zIndex }));
+    // center burst
+    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.95), spread: cfg.spread + 20, origin: cfg.origin, zIndex: cfg.zIndex }));
   } else {
     console.warn('canvas-confetti not loaded');
   }
@@ -1058,8 +1105,8 @@ function triggerConfettiOnce(opts = {}) {
   confettiClearTimeout = setTimeout(()=>{ const wrap = document.getElementById('confettiWrap'); if(wrap) wrap.innerHTML=''; }, 5000);
 }
 
-function triggerConfettiDesktop() { triggerConfettiOnce({ particleCount: 200, gravity: 0.6 }); }
-function triggerConfettiMobile()  { triggerConfettiOnce({ particleCount: 100, gravity: 0.5, scalar: 0.9 }); }
+function triggerConfettiDesktop() { triggerConfettiOnce({ particleCount: 220, gravity: 0.6 }); }
+function triggerConfettiMobile()  { triggerConfettiOnce({ particleCount: 110, gravity: 0.5, scalar: 0.9 }); }
 function triggerConfetti() { if (window.innerWidth <= 420) triggerConfettiMobile(); else triggerConfettiDesktop(); }
 
 /* small 'enter' submit shortcuts */
@@ -1070,9 +1117,7 @@ function triggerConfetti() { if (window.innerWidth <= 420) triggerConfettiMobile
 
 /* Inicial state */
 (function init(){
-  // start on inicio
   mostrarSeccion('inicio');
-  // hide result area initially
   hideResult();
 })();
 function hideResult(){
