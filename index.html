@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Seguimiento y Cotización</title>
+<title>Nica ExpressWay</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <!-- FAVICONS: pegar dentro de <head> -->
+<link rel="icon" type="image/png" sizes="16x16" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="icon" type="image/png" sizes="32x32" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="apple-touch-icon" sizes="180x180" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<meta name="theme-color" content="#E8F0F5">
+  <!-- Open Graph / Social preview (poner dentro de <head>) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Nica ExpressWay" />
+<meta property="og:description" content="Gestiona tus envíos desde USA a Nicaragua: cotiza, solicita y sigue tu paquete de forma sencilla." />
+<meta property="og:image" content="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" />
 <style>
 :root{
   --color-bg:#E8F0F5;
@@ -351,6 +361,33 @@ nav button#btnSeguimiento.active-highlight:hover {
 /* Si necesitas que otros botones de sección usen la misma variable, usa:
    nav button#btnOtraSeccion.active-highlight { background: var(--section-active-color); }
 */
+/* ---------------------------
+   Corregir: aplicar color activo
+   a cualquier botón que no sea .inactive
+   pero EXCLUIR #btnCotizar (tiene su propio estilo)
+   Pegar al final del <style>
+   --------------------------- */
+
+:root{ --section-active-color: #6B7A90; } /* ya definido, por seguridad */
+
+nav button:not(.inactive):not(#btnCotizar) {
+  background: var(--section-active-color) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(106,122,136,0.12);
+  transition: background .18s ease, transform .12s ease;
+}
+
+nav button:not(.inactive):not(#btnCotizar):hover {
+  transform: translateY(-2px);
+  filter: brightness(0.96);
+}
+
+/* Mantener la excepción: cuando JS añade .show-cotizar, ese estilo sigue ganando */
+#btnCotizar.show-cotizar {
+  background: var(--lapis) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08) !important;
+}
 
 </style>
 </head>
@@ -360,12 +397,12 @@ nav button#btnSeguimiento.active-highlight:hover {
 <div id="introOverlay" aria-hidden="true">
   <div id="introInner">
     <img id="introLogo" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway" />
-    <div id="introTitle">Nica Expressway</div>
+    <div id="introTitle">Nica ExpressWay</div>
   </div>
 </div>
 
 <header>
-  <h1>Nica Expressway</h1>
+  <h1>Nica ExpressWay</h1>
   <nav>
     <button id="btnInicio">Inicio</button>
     <button id="btnCotizar" class="inactive">Cotizar</button>
@@ -377,7 +414,7 @@ nav button#btnSeguimiento.active-highlight:hover {
 <!-- INICIO -->
 <section id="inicio" class="active">
   <img id="logoMain" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway">
-  <p style="margin-bottom:1.25rem;">Conéctate con nosotros en nuestras redes y mantente al día con tus envíos</p>
+  <p style="margin-bottom:1.25rem;">Conéctate con nosotros en nuestras redes y mantente al día con nuestras ofertas y anuncios.</p>
   <div class="linktree-buttons">
     <a class="link-btn" href="https://www.instagram.com/nicaexpressway/" target="_blank">Instagram</a>
     <a class="link-btn" href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank">Facebook</a>
@@ -387,7 +424,7 @@ nav button#btnSeguimiento.active-highlight:hover {
 
 <!-- COTIZAR -->
 <section id="cotizar">
-  <h2>Calculadora de Envío</h2>
+  <h2>Cotiza el precio aproximado de tus pedidos.</h2>
 
   <div style="max-width:420px;margin:0 auto;">
     <label for="tipoEnvio">Tipo de envío:</label>
@@ -456,11 +493,11 @@ nav button#btnSeguimiento.active-highlight:hover {
 
 <!-- SEGUIMIENTO (actualizado y reordenado según pedido) -->
 <section id="seguimiento">
-  <h2 id="seguimientoTitle">Manejo de pedidos</h2>
+  <h2 id="seguimientoTitle">Maneja tus pedidos</h2>
 
-  <div class="subtitle-footer">Busca por cliente (nombre o teléfono)</div>
+  <div class="subtitle-footer">Busca por tu nombre o teléfono.</div>
 
-  <label for="nombreBuscar">Nombre del cliente</label>
+  <label for="nombreBuscar">Nombre y Apellido</label>
   <input type="text" id="nombreBuscar" placeholder="Ej: Lester Gamez">
 
   <label for="telefonoBuscar">Teléfono (8-10 dígitos)</label>
@@ -468,14 +505,13 @@ nav button#btnSeguimiento.active-highlight:hover {
     <select id="telCodeBuscar">
       <option value="(505)">Nicaragua (505)</option>
       <option value="(1)">USA (1)</option>
-      <option value="(52)">Mexico (52)</option>
     </select>
     <input type="tel" id="telefonoBuscar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
   </div>
 
-  <div class="subtitle-footer" style="margin-top:8px;">O busca un paquete en específico con el código de seguimiento</div>
+  <div class="subtitle-footer" style="margin-top:8px;">O busca un paquete en específico con su código </div>
 
-  <label for="codigo">Código de seguimiento</label>
+  <label for="codigo">Tu código de seguimiento</label>
   <input type="text" id="codigo" placeholder="Ej: ABC123">
 
   <div class="row" style="gap:.6rem;margin-top:.6rem;">
@@ -502,7 +538,7 @@ nav button#btnSeguimiento.active-highlight:hover {
         <div id="detallePeso">-</div>
       </div>
       <div>
-        <div class="small-muted">Tarifa / lb (USD)</div>
+        <div class="small-muted">Tarifa por libra (USD)</div>
         <div id="detalleTarifa">USD-</div>
       </div>
     </div>
@@ -510,7 +546,7 @@ nav button#btnSeguimiento.active-highlight:hover {
     <div style="margin-top:.8rem" id="detalleTotal"><strong>Total:</strong> -</div>
   </div>
 
-  <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado del envío.</div>
+  <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado de tu envío.</div>
 </section>
 
 <!-- Lightbox overlay for package detail -->
@@ -524,7 +560,7 @@ nav button#btnSeguimiento.active-highlight:hover {
       <div class="package-info-row" style="margin-top:8px;">
         <div class="info"><div class="small-muted">Tipo de envío</div><div id="lbTipo">-</div></div>
         <div class="info"><div class="small-muted">Peso aproximado</div><div id="lbPeso">-</div></div>
-        <div class="info"><div class="small-muted">Tarifa / lb</div><div id="lbTarifa">-</div></div>
+        <div class="info"><div class="small-muted">Tarifa por libra</div><div id="lbTarifa">-</div></div>
       </div>
     </div>
 
@@ -567,7 +603,7 @@ nav button#btnSeguimiento.active-highlight:hover {
 <div id="confettiWrap" aria-hidden="true"></div>
 
 <footer>
-  <p>&copy; 2025. Irvin Prado. Ascende Superius - Seek Higher Things</p>
+  <p>&copy; 2025. Irvin Prado. Ascende Superius - Busca cosas superiores.</p>
 </footer>
 
 <!-- canvas-confetti CDN (necesario antes del script principal) -->
@@ -704,13 +740,13 @@ const resultadoDiv = document.getElementById('resultado');
 const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
 
 function crearWaButton(){
-  const waHref = 'https://wa.me/17869133662?text=' + encodeURIComponent('Hola, Nica express, me gustaria hacer un pedido.');
+  const waHref = 'https://wa.me/17869133662?text=' + encodeURIComponent('Hola, Nica expressWay, me gustaria hacer un pedido.');
   const a = document.createElement('a');
   a.className = 'wa-cta';
   a.href = waHref;
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
-  a.innerText = 'Realiza tu pedido ahora';
+  a.innerText = 'Click aquí para realizar tu pedido ahora!';
   return a;
 }
 let waBtnTimeout = null;
@@ -728,7 +764,7 @@ btnCalcularMain.addEventListener('click', (e)=>{
   const peso = parseFloat(document.getElementById('peso').value);
   if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); return; }
   let precio=0,dias=0;
-  if(tipo==='aereo'){ precio = peso*7.50; dias=7; } else { precio = peso*3.00; dias=15; }
+  if(tipo==='aereo'){ precio = peso*7.50; dias=5; } else { precio = peso*3.00; dias=15; }
 
   // show resultado container immediately with spinner
   resultadoDiv.style.display = 'block';
