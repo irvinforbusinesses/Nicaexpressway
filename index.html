@@ -23,11 +23,12 @@
   --text:#1A1A1A;
 
   /* botón CTA único (color seleccionado por estudio de contraste / atención periférica) */
-  --cta-color: #FF6B4A; /* coral cálido: destaca frente a azules/grises */
+  --cta-color: #FF6B4A;       /* coral cálido: destaca frente a azules/grises */
+  --cta-color-active: #FF7A35;/* tono más anaranjado para estado activo/press */
 
   /* overrides nav */
   --nav-inactive: #a0b6e0;
-  --section-active-color: #6B7A90;
+  --section-active-color: var(--nav-inactive); /* las secciones activas usarán mismo color inactivo */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -43,8 +44,13 @@ header{text-align:center;margin-bottom:1.5rem}
 h1{font-family:'Poppins',sans-serif;font-size:1.8rem;color:var(--color-accent)}
 nav{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
 nav button{flex:1;background:var(--color-accent);color:#fff;border:none;padding:.75rem;font-weight:700;border-radius:8px;cursor:pointer}
-nav button.inactive{background:var(--nav-inactive)}
-nav button#btnSeguimiento.active-highlight { background: var(--section-active-color); }
+
+/* Inactivo: matchea la variable central y añade sombra ligera */
+nav button.inactive{
+  background:var(--nav-inactive);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+  color:#fff;
+}
 
 /* sections */
 section{
@@ -226,24 +232,24 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .hidden{ display:none !important; }
 
 /* ---- CTA principal (botón "Cotizar" en nav) ---- */
-/* Initially show like other nav buttons; later the .show-cotizar class upgrades it */
+/* Starts equal to other inactives */
 #btnCotizar {
   background: var(--nav-inactive); /* arranca igual que inactivos */
   color: #fff;
   opacity: 1;
   transform: translateY(0);
-  box-shadow: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16); /* coincide con inactive shadow */
   border-radius: 10px;
   position: relative;
   z-index: 5;
-  transition: opacity .9s ease, transform .9s ease, box-shadow .4s ease, background .3s ease;
+  transition: opacity .28s ease, transform .28s ease, box-shadow .24s ease, background .24s ease;
 }
 
 /* shown/unique state after timer (CTA color definido por investigación de colorimetría) */
 #btnCotizar.show-cotizar {
   background: var(--cta-color);
   transform: translateY(-6px); /* "flotando" */
-  box-shadow: 0 16px 40px rgba(255,107,74,0.16), 0 8px 20px rgba(255,107,74,0.08);
+  box-shadow: 0 16px 40px rgba(255,107,74,0.20), 0 8px 20px rgba(255,107,74,0.10);
 }
 #btnCotizar.show-cotizar::after{
   content:'';
@@ -258,10 +264,21 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   pointer-events:none;
 }
 
+/* Hover / active tone for the CTA (slightly different orange to indicate press) */
+#btnCotizar.show-cotizar:hover,
+#btnCotizar.show-cotizar:focus {
+  background: var(--cta-color-active);
+  box-shadow: 0 20px 48px rgba(255,122,53,0.22), 0 10px 26px rgba(255,122,53,0.10);
+}
+#btnCotizar.show-cotizar:active {
+  transform: translateY(-4px) scale(.998);
+  background: color-mix(in srgb, var(--cta-color-active) 85%, black 10%); /* sutilmente más oscuro al presionar */
+  box-shadow: 0 14px 34px rgba(255,122,53,0.20);
+}
+
 /* Hover ligero adicional (UX) */
 #btnCotizar:hover {
   transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 22px 46px rgba(255,107,74,0.18);
 }
 
 /* ---- Confetti wrapper por encima de modales ---- */
@@ -300,7 +317,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .result-fade.visible { opacity:1; transform: translateY(0); }
 
 /* mini spinner inside resultado box
-   2) spinner color uses var(--color-accent) to match title
+   spinner color uses var(--color-accent) to match title
 */
 .mini-spinner {
   display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;
@@ -319,36 +336,34 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 
 /* ---------------------------
    OVERRIDES: colores de nav
+   - secciones activas usarán el mismo background que inactivo
+   - pero con sombra más pronunciada para "ponerse" visualmente
    --------------------------- */
 
-/* Aseguramos que los botones inactivos usen la variable central */
+/* Aseguramos que los botones inactivos usen la variable central (añadimos más sombra) */
 nav button.inactive {
   background: var(--nav-inactive) !important;
   color: #fff !important;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16) !important;
 }
 
-/* Botón de la sección (Seguimiento) cuando está activo */
-nav button#btnSeguimiento.active-highlight {
-  background: var(--section-active-color) !important;
-  color: #ffffff !important;
-  box-shadow: 0 8px 20px rgba(106,122,136,0.12);
-  transition: background .18s ease, transform .12s ease;
-}
-nav button#btnSeguimiento.active-highlight:hover {
-  transform: translateY(-2px);
-  filter: brightness(0.96);
-}
-
-/* Apliquemos el color activo a cualquier botón que no sea .inactive (excepto #btnCotizar) */
+/* Botón de la sección cuando está activo: mismo background que inactivo + sombra elevada */
 nav button:not(.inactive):not(#btnCotizar) {
-  background: var(--section-active-color) !important;
+  background: var(--nav-inactive) !important; /* igual que inactivo */
   color: #fff !important;
-  box-shadow: 0 8px 20px rgba(106,122,136,0.12);
-  transition: background .18s ease, transform .12s ease;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.26) !important; /* sombra más visible */
+  transition: background .18s ease, transform .12s ease, box-shadow .18s ease;
 }
 nav button:not(.inactive):not(#btnCotizar):hover {
   transform: translateY(-2px);
-  filter: brightness(0.96);
+  filter: brightness(0.98);
+}
+
+/* Mantener la excepción: cuando JS añade .show-cotizar, ese estilo sigue ganando */
+#btnCotizar.show-cotizar {
+  background: var(--cta-color) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 16px 40px rgba(255,107,74,0.20) !important;
 }
 
 /* 4) Center seguimiento title */
@@ -359,6 +374,7 @@ nav button:not(.inactive):not(#btnCotizar):hover {
 
 /* end overrides */
 </style>
+
 </head>
 <body>
 
