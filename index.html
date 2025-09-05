@@ -18,9 +18,16 @@
 <style>
 :root{
   --color-bg:#E8F0F5;
-  --color-accent:#2F528F;
-  --lapis:#06B6D4; /* lapis lazuli para resaltados */
+  --color-accent:#2F528F; /* header / títulos */
+  --lapis:#06B6D4; /* color auxiliar */
   --text:#1A1A1A;
+
+  /* botón CTA único (color seleccionado por estudio de contraste / atención periférica) */
+  --cta-color: #FF6B4A; /* coral cálido: destaca frente a azules/grises */
+
+  /* overrides nav */
+  --nav-inactive: #a0b6e0;
+  --section-active-color: #6B7A90;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -36,8 +43,8 @@ header{text-align:center;margin-bottom:1.5rem}
 h1{font-family:'Poppins',sans-serif;font-size:1.8rem;color:var(--color-accent)}
 nav{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
 nav button{flex:1;background:var(--color-accent);color:#fff;border:none;padding:.75rem;font-weight:700;border-radius:8px;cursor:pointer}
-nav button.inactive{background:#a0b6e0}
-nav button#btnSeguimiento.active-highlight { background: var(--lapis); }
+nav button.inactive{background:var(--nav-inactive)}
+nav button#btnSeguimiento.active-highlight { background: var(--section-active-color); }
 
 /* sections */
 section{
@@ -48,7 +55,7 @@ section{
   display:none;
   opacity:0;
   transform:translateY(12px);
-  animation: fadeIn 0.72s forwards; /* <- duración doblada (antes 0.36s) */
+  animation: fadeIn 0.72s forwards; /* duración doblada */
   box-shadow:0 6px 14px rgba(0,0,0,0.08);
 }
 section.active{display:block}
@@ -113,17 +120,15 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* responsive tweaks */
 @media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
 
-#solicitar .resultado-solicitar { margin-top:12px; font-weight:700; }
-#reciboSolicitar { margin-top:10px; padding:12px; border-radius:10px; background:#fbfcfe; border:1px solid #eef3f8; display:none; text-align:left; }
-#reciboSolicitar .line { margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
-#reciboSolicitar .estimado { text-align:center; margin-top:8px; font-weight:600; color:#444; }
-
+/* waiting / spinners */
 #waitingPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
 #waitingPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
 .waiting-circle { width:76px; height:76px; border-radius:999px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; background: rgba(47,82,143,0.06); }
+/* spinner uses color of title (var(--color-accent)) */
 .spinner { width:36px; height:36px; border-radius:50%; border:4px solid rgba(47,82,143,0.18); border-top-color: var(--color-accent); animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* confirm pop (kept) */
 #confirmPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
 #confirmPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
 .check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
@@ -131,6 +136,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 
 .lightbox-loading { padding:10px 14px; border-radius:10px; background:#fff; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
 
+/* multi-cards */
 .multi-list { margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; }
 .multi-card {
   background: #fbfcfe;
@@ -149,6 +155,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .multi-card .subtitle { font-size:0.9rem; color:#666; }
 .multi-card .right { font-weight:700; color:var(--color-accent); font-size:0.95rem; }
 
+/* lightbox */
 #packageLightboxOverlay {
   position: fixed;
   inset: 0;
@@ -181,6 +188,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
 .package-info-row .info { flex:1; background:#fbfcfe;padding:10px;border-radius:8px;border:1px solid #eef3f8; }
 
+/* CTA "Cotizar" initial state and special CTA color applied later */
 #cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
 .wa-cta {
   display:inline-flex; align-items:center; justify-content:center;
@@ -192,6 +200,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 @keyframes floatLoop { 0%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} 100%{ transform: translateY(0);} }
 .wa-cta.float { animation: floatLoop 3s ease-in-out infinite; }
 
+/* subtitle footer */
 .subtitle-footer {
   text-align:center;
   color:#888;
@@ -219,7 +228,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 /* ---- CTA principal (botón "Cotizar" en nav) ---- */
 /* Initially show like other nav buttons; later the .show-cotizar class upgrades it */
 #btnCotizar {
-  background: var(--color-accent); /* same as other nav buttons at start */
+  background: var(--nav-inactive); /* arranca igual que inactivos */
   color: #fff;
   opacity: 1;
   transform: translateY(0);
@@ -230,34 +239,29 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   transition: opacity .9s ease, transform .9s ease, box-shadow .4s ease, background .3s ease;
 }
 
-/* shown/unique state after timer */
+/* shown/unique state after timer (CTA color definido por investigación de colorimetría) */
 #btnCotizar.show-cotizar {
-  background: var(--lapis);
+  background: var(--cta-color);
   transform: translateY(-6px); /* "flotando" */
-  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08);
+  box-shadow: 0 16px 40px rgba(255,107,74,0.16), 0 8px 20px rgba(255,107,74,0.08);
 }
-
-/* glowing border line animation moved to the "shown" state so it triggers after the timeout */
 #btnCotizar.show-cotizar::after{
   content:'';
   position:absolute;
   inset:-2px;
   z-index:-1;
   border-radius:12px;
-  background: linear-gradient(90deg, rgba(121,167,228,0.12), rgba(31,58,102,0.08));
-  box-shadow: 0 0 18px 4px rgba(31,58,102,0.35);
+  background: linear-gradient(90deg, rgba(255,107,74,0.14), rgba(255,107,74,0.06));
+  box-shadow: 0 0 26px 6px rgba(255,107,74,0.12);
   animation: glowBorder 2.6s linear infinite;
   opacity:0.95;
   pointer-events:none;
 }
-@keyframes glowBorder {
-  0%   { filter: hue-rotate(0deg) saturate(1); transform: translateY(0) scale(1); }
-  50%  { filter: hue-rotate(20deg) saturate(1.08); transform: translateY(-1px) scale(1.01); }
-  100% { filter: hue-rotate(0deg) saturate(1); transform: translateY(0) scale(1); }
-}
+
+/* Hover ligero adicional (UX) */
 #btnCotizar:hover {
   transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 18px 36px rgba(31,58,102,0.16);
+  box-shadow: 0 22px 46px rgba(255,107,74,0.18);
 }
 
 /* ---- Confetti wrapper por encima de modales ---- */
@@ -283,7 +287,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 #introOverlay.hide { opacity:0; pointer-events:none; } /* fade out */
 #introInner { text-align:center; transform-origin:center; transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s; }
 #introLogo { width:110px; height:110px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 12px; opacity:0; transform: translateY(6px) scale(.98); transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s; }
-#introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--lapis); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
+/* 1) intro title color = same as main header title color */
+#introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--color-accent); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
 #introOverlay.show #introLogo, #introOverlay.show #introTitle { opacity:1; transform: translateY(0) scale(1); }
 
 /* result fade-in after spinner */
@@ -294,33 +299,27 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 .result-fade.visible { opacity:1; transform: translateY(0); }
 
-/* mini spinner inside resultado box */
+/* mini spinner inside resultado box
+   2) spinner color uses var(--color-accent) to match title
+*/
 .mini-spinner {
   display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;
 }
 .mini-spinner .spinner-small {
-  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--lapis);animation:spin 1s linear infinite;
+  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--color-accent);animation:spin 1s linear infinite;
 }
 
 /* keep existing rules intact */
 
-/* prefers-reduced-motion: respect user preference and reduce non-essential motion */
+/* prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   #introOverlay { transition: none; }
 }
-  /* ---------------------------
+
+/* ---------------------------
    OVERRIDES: colores de nav
-   Pegar al final del <style>
    --------------------------- */
-
-:root{
-  /* color inactivo compartido (usa el mismo en otros botones inactivos) */
-  --nav-inactive: #a0b6e0;
-
-  /* color para secciones activas (ej. Seguimiento) */
-  --section-active-color: #6B7A90;
-}
 
 /* Aseguramos que los botones inactivos usen la variable central */
 nav button.inactive {
@@ -340,55 +339,25 @@ nav button#btnSeguimiento.active-highlight:hover {
   filter: brightness(0.96);
 }
 
-/* Alineamos el estado inicial del botón "Cotizar" con los inactivos */
-#btnCotizar {
-  background: var(--nav-inactive) !important; /* igual que inactivos */
-  color: #fff !important;
-  opacity: 1 !important;    /* visible desde el inicio */
-  transform: translateY(0) !important;
-  box-shadow: none !important;
-  border-radius: 10px;
-  transition: opacity .45s ease, transform .45s ease, background .28s ease, box-shadow .28s ease;
-}
-
-/* Cuando JS añade .show-cotizar, mantenemos el estilo único (lapis + glow) */
-#btnCotizar.show-cotizar {
-  background: var(--lapis) !important; /* color lapis definido en :root original */
-  transform: translateY(-6px) !important;
-  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08) !important;
-}
-
-/* Si necesitas que otros botones de sección usen la misma variable, usa:
-   nav button#btnOtraSeccion.active-highlight { background: var(--section-active-color); }
-*/
-/* ---------------------------
-   Corregir: aplicar color activo
-   a cualquier botón que no sea .inactive
-   pero EXCLUIR #btnCotizar (tiene su propio estilo)
-   Pegar al final del <style>
-   --------------------------- */
-
-:root{ --section-active-color: #6B7A90; } /* ya definido, por seguridad */
-
+/* Apliquemos el color activo a cualquier botón que no sea .inactive (excepto #btnCotizar) */
 nav button:not(.inactive):not(#btnCotizar) {
   background: var(--section-active-color) !important;
   color: #fff !important;
   box-shadow: 0 8px 20px rgba(106,122,136,0.12);
   transition: background .18s ease, transform .12s ease;
 }
-
 nav button:not(.inactive):not(#btnCotizar):hover {
   transform: translateY(-2px);
   filter: brightness(0.96);
 }
 
-/* Mantener la excepción: cuando JS añade .show-cotizar, ese estilo sigue ganando */
-#btnCotizar.show-cotizar {
-  background: var(--lapis) !important;
-  transform: translateY(-6px) !important;
-  box-shadow: 0 12px 30px rgba(31,58,102,0.12), 0 6px 12px rgba(31,58,102,0.08) !important;
+/* 4) Center seguimiento title */
+#seguimientoTitle {
+  text-align: center;
+  margin-bottom: 0.6rem;
 }
 
+/* end overrides */
 </style>
 </head>
 <body>
@@ -434,14 +403,14 @@ nav button:not(.inactive):not(#btnCotizar):hover {
     </select>
 
     <label for="peso">Peso aproximado (libras):</label>
-    <input type="number" id="peso" placeholder="Ej: 5">
+    <input type="number" id="peso" placeholder="Ej: 5" inputmode="numeric" />
 
     <button class="calc-btn" id="btnCalcularMain">Calcular</button>
 
     <div id="resultado" class="package-box" style="text-align:center;margin-top:12px;display:none"></div>
   </div>
 
-  <!-- CTA: aparecerá 2s después del cálculo exitoso -->
+  <!-- CTA: aparecerá después del cálculo exitoso -->
   <div id="cotizarCtaWrap" style="display:flex;justify-content:center;">
     <!-- inserted by JS -->
   </div>
@@ -565,7 +534,7 @@ nav button:not(.inactive):not(#btnCotizar):hover {
     </div>
 
     <div id="lbLoading" style="display:none;margin-top:12px;justify-content:center;">
-      <div class="lightbox-loading"><div class="spinner" style="width:28px;height:28px;border-width:3px;"></div><div style="font-weight:700;color:var(--color-accent);margin-left:8px;">Cargando historial...</div></div>
+      <div class="lightbox-loading"><div class="spinner" style="width:28px;height:28px;border-width:3px;border-top-color:var(--color-accent);"></div><div style="font-weight:700;color:var(--color-accent);margin-left:8px;">Cargando historial...</div></div>
     </div>
 
     <div id="lbTimeline" class="timeline" style="margin-top:12px;"></div>
@@ -625,7 +594,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     // show intro (logo + title fade-in)
     intro.classList.add('show');
 
-    // visible time before FLIP starts (kept ~2000ms total visible)
+    // visible time before FLIP starts (~2000ms)
     await new Promise(r=>setTimeout(r, 2000));
 
     const logo = document.getElementById('introLogo');
@@ -636,7 +605,6 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     if(!logo || !targetLogo || !title || !targetTitle) {
       // fallback: fade out gracefully
       intro.classList.add('hide');
-      // remove from DOM after transition ends
       setTimeout(()=>{ intro.style.display='none'; intro.classList.remove('show','hide'); }, 700);
       return;
     }
@@ -720,21 +688,18 @@ if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solic
 if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
 
 /* Reveal logic for btnCotizar:
-   - now the button is visible from the start and styled like other nav buttons
-   - after a timeout we add .show-cotizar to activate the unique Lapid/Glow style
+   - button visible from start styled like others
+   - after timeout we add .show-cotizar to activate the unique CTA coral color
 */
 (function revealCotizarCTA(){
   try {
-    // delay before applying the special style (kept 5000ms as original timing)
     setTimeout(()=> {
       if (btnCotizar) btnCotizar.classList.add('show-cotizar');
     }, 5000);
   } catch(e){}
 })();
 
-/* CALCULAR in Cotizar: compute, show spinner (2s) then fade-in result;
-   WA CTA appears 2s after calculation (matching request).
-*/
+/* CALCULAR in Cotizar */
 const btnCalcularMain = document.getElementById('btnCalcularMain');
 const resultadoDiv = document.getElementById('resultado');
 const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
@@ -761,10 +726,14 @@ function resetCotizarForm(){
 btnCalcularMain.addEventListener('click', (e)=>{
   e.preventDefault();
   const tipo = document.getElementById('tipoEnvio').value;
-  const peso = parseFloat(document.getElementById('peso').value);
-  if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); return; }
+  const pesoEl = document.getElementById('peso');
+  const peso = parseFloat(pesoEl.value);
+  if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); pesoEl.blur(); return; }
   let precio=0,dias=0;
   if(tipo==='aereo'){ precio = peso*7.50; dias=5; } else { precio = peso*3.00; dias=15; }
+
+  // remove focus so mobile keyboard hides
+  if (pesoEl) pesoEl.blur();
 
   // show resultado container immediately with spinner
   resultadoDiv.style.display = 'block';
@@ -784,7 +753,7 @@ btnCalcularMain.addEventListener('click', (e)=>{
     if (inner) requestAnimationFrame(()=> inner.classList.add('visible'));
   }, 2000);
 
-  // reset form (as requested)
+  // reset form
   resetCotizarForm();
 
   // show WA CTA after 2s with fade-in + float animation
@@ -798,7 +767,6 @@ btnCalcularMain.addEventListener('click', (e)=>{
 
 /* ================================
    SEGUIMIENTO: búsqueda condicional
-   (unchanged logic except small helpers)
    ================================ */
 const btnBuscar = document.getElementById('btnBuscar');
 const btnLimpiar = document.getElementById('btnLimpiar');
@@ -839,7 +807,7 @@ function gatherSearchParams(){
   return { codigo, nombre, telefono };
 }
 
-/* validation: require at least one, and disallow mixing codigo with (nombre or telefono) */
+/* validation */
 function validateSearch(params){
   if(!(params.codigo || params.nombre || params.telefono)){
     alert('Ingresa al menos el código, o el nombre, o el teléfono para buscar.');
@@ -857,6 +825,9 @@ async function onBuscar(){
   const params = gatherSearchParams();
   if(!validateSearch(params)) return;
 
+  // blur focused inputs so keyboard hides on mobile
+  (document.activeElement instanceof HTMLElement) && document.activeElement.blur();
+
   // show overlay/loader
   if(overlay) overlay.style.display = 'block';
   hideResult();
@@ -872,14 +843,12 @@ async function onBuscar(){
       return;
     }
 
-    // if returns paquetes array -> multiple results
     if(res.paquetes && Array.isArray(res.paquetes)){
       renderMultiplePackages(res.paquetes);
       if(overlay) overlay.style.display = 'none';
       return;
     }
 
-    // else single paquete with historial
     renderPackageResult(res);
     if(overlay) overlay.style.display = 'none';
   } catch (err) {
@@ -926,7 +895,7 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
   return null;
 }
 
-/* render when a single paquete with historial (or possibly historial null) */
+/* render single paquete */
 function renderPackageResult({ paquete, historial }){
   multiResults.style.display = 'none';
   multiResults.innerHTML = '';
@@ -990,7 +959,9 @@ function renderMultiplePackages(paquetes){
   multiResults.style.display = 'flex';
 }
 
-/* Build timeline helper used by single result and lightbox after fetching historial */
+/* Build timeline helper used by single result and lightbox after fetching historial
+   5 & 6) When 'listo_recoger' detected, trigger confetti and pass the element to perceive direction
+*/
 function buildTimelineFromHistorialElement(historial, containerEl){
   containerEl.innerHTML = '';
   const items = [];
@@ -1013,8 +984,8 @@ function buildTimelineFromHistorialElement(historial, containerEl){
                        <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
       if (it.estado && String(it.estado).toLowerCase()==='listo_recoger'){
         div.classList.add('blink');
-        // confetti when ready to pick
-        triggerConfetti();
+        // confetti when ready to pick — pass element so confetti "origin" is perceptible
+        triggerConfetti(div);
       }
       containerEl.appendChild(div);
     });
@@ -1134,69 +1105,176 @@ function escapeHtml(str){
     .replace(/>/g, '&gt;');
 }
 
-/* Confetti adapted */
+/* =========================
+   CONFETTI (mejorada)
+   - ráfagas direccionales
+   - acepta un elemento origen para que el usuario perciba el lado del disparo
+   - parámetros adaptados a mobile/desktop
+   - secuencia en ráfagas (para no saturar)
+   ========================= */
 let confettiClearTimeout = null;
 
 function triggerConfettiOnce(opts = {}) {
   const defaults = {
-    particleCount: 250,
-    spread: 100,
-    ticks: 500,         // mayor duración, cruzan toda la pantalla
-    gravity: 0.35,      // caen más lento, salen por abajo
+    particleCount: 260,
+    spread: 110,
+    ticks: 520,
+    gravity: 0.32,
+    startVelocity: 30,
+    decay: 0.9,
+    drift: 0.4,
     scalar: 1,
-    origin: { y: 0.05 },
+    origin: { y: 0.08 },
     colors: ['#1f3a66','#2F528F','#79A7E4'],
+    shapes: ['square','circle'],
     zIndex: 6001
   };
   const cfg = Object.assign({}, defaults, opts);
 
+  // cap particleCount to a reasonable max to avoid browser stalls
+  const maxAllowed = (window.innerWidth <= 420) ? 320 : 700;
+  cfg.particleCount = Math.min(cfg.particleCount, maxAllowed);
+
   if (typeof confetti === 'function') {
-    // izquierda
-    confetti(Object.assign({}, cfg, { 
-      particleCount: Math.floor(cfg.particleCount * 0.5), 
-      angle: 60, 
-      origin: { x: 0.2, y: cfg.origin.y } 
-    }));
-    // derecha
-    confetti(Object.assign({}, cfg, { 
-      particleCount: Math.floor(cfg.particleCount * 0.5), 
-      angle: 120, 
-      origin: { x: 0.8, y: cfg.origin.y } 
-    }));
-    // centro
-    confetti(Object.assign({}, cfg, { 
-      particleCount: Math.floor(cfg.particleCount * 0.8), 
-      spread: cfg.spread + 40, 
-      origin: cfg.origin 
-    }));
+    // shoot in 3 small bursts (spaced) for visual richness and perf
+    const shootBurst = (override) => {
+      confetti(Object.assign({}, cfg, override));
+    };
+
+    // Primary burst (center-wide)
+    shootBurst({
+      particleCount: Math.floor(cfg.particleCount * 0.45),
+      spread: cfg.spread + 30,
+      origin: cfg.origin,
+      ticks: cfg.ticks,
+      gravity: cfg.gravity,
+      startVelocity: cfg.startVelocity,
+      decay: cfg.decay,
+      drift: cfg.drift,
+      scalar: cfg.scalar,
+      shapes: cfg.shapes,
+      colors: cfg.colors
+    });
+
+    // Secondary directional bursts (left and right), delayed slightly so user perceives direction
+    setTimeout(() => {
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.28),
+        angle: 60,
+        spread: Math.max(40, cfg.spread - 20),
+        origin: { x: 0.12, y: cfg.origin.y },
+        ticks: Math.floor(cfg.ticks * 0.95),
+        gravity: cfg.gravity * 0.98,
+        drift: cfg.drift * 1.2
+      });
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.28),
+        angle: 120,
+        spread: Math.max(40, cfg.spread - 20),
+        origin: { x: 0.88, y: cfg.origin.y },
+        ticks: Math.floor(cfg.ticks * 0.95),
+        gravity: cfg.gravity * 0.98,
+        drift: -cfg.drift * 1.2
+      });
+    }, 180);
+
+    // small finishing shimmer in center
+    setTimeout(() => {
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.12),
+        spread: 40,
+        origin: { x: 0.5, y: cfg.origin.y + 0.02 },
+        startVelocity: Math.max(10, cfg.startVelocity * 0.6),
+        ticks: Math.floor(cfg.ticks * 0.8),
+        gravity: cfg.gravity * 0.9
+      });
+    }, 360);
   } else {
     console.warn('canvas-confetti not loaded');
   }
 
   if (confettiClearTimeout) clearTimeout(confettiClearTimeout);
-  // limpiar después de 8s, suficiente para que salgan de la pantalla
-  confettiClearTimeout = setTimeout(() => { 
-    const wrap = document.getElementById('confettiWrap'); 
-    if (wrap) wrap.innerHTML=''; 
-  }, 8000);
+  // clear canvas after enough time for particles to fall off-screen
+  confettiClearTimeout = setTimeout(() => {
+    const wrap = document.getElementById('confettiWrap');
+    if (wrap) wrap.innerHTML = '';
+  }, 9000);
 }
 
-function triggerConfettiDesktop() { 
-  triggerConfettiOnce({ particleCount: 300, ticks: 550, gravity: 0.32, scalar: 1.1 }); 
-}
-function triggerConfettiMobile()  { 
-  triggerConfettiOnce({ particleCount: 150, ticks: 500, gravity: 0.34, scalar: 0.95 }); 
-}
-function triggerConfetti() { 
-  if (window.innerWidth <= 420) triggerConfettiMobile(); 
-  else triggerConfettiDesktop(); 
+/* helper that chooses parameters based on screen and element origin
+   if el is provided, the burst will emphasize the side where el is located
+*/
+function triggerConfetti(el) {
+  // if el is an Event or undefined, handle gracefully
+  let side = 'center';
+  try {
+    if (el && el.getBoundingClientRect) {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      side = (cx < window.innerWidth / 2) ? 'left' : 'right';
+    }
+  } catch(e){
+    side = 'center';
+  }
+
+  if (window.innerWidth <= 420) {
+    // mobile
+    if (side === 'left') {
+      triggerConfettiOnce({ particleCount: 220, origin: { y: 0.06 }, gravity: 0.34 });
+    } else if (side === 'right') {
+      triggerConfettiOnce({ particleCount: 220, origin: { y: 0.06 }, gravity: 0.34 });
+    } else {
+      triggerConfettiOnce({ particleCount: 200, origin: { y: 0.06 }, gravity: 0.34 });
+    }
+  } else {
+    // desktop
+    if (side === 'left') {
+      triggerConfettiOnce({ particleCount: 420, origin: { y: 0.04 } });
+    } else if (side === 'right') {
+      triggerConfettiOnce({ particleCount: 420, origin: { y: 0.04 } });
+    } else {
+      triggerConfettiOnce({ particleCount: 360, origin: { y: 0.04 } });
+    }
+  }
 }
 
+/* =========================
+   Keydown / Enter handlers that close mobile keyboard
+   - All inputs that used to handle Enter now blur themselves after action
+   ========================= */
 ['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
   const el = document.getElementById(id);
-  if(el) el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(id==='peso') { btnCalcularMain.click(); } else onBuscar(); } });
+  if(!el) return;
+  el.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      if(id==='peso'){
+        // simulate click on calcular, then blur the input so keyboard hides
+        btnCalcularMain.click();
+        try { el.blur(); } catch(_) {}
+      } else {
+        onBuscar();
+        try { el.blur(); } catch(_) {}
+      }
+    }
+  });
 });
 
+/* also add explicit "submit-like" handling for mobile keyboards:
+   If user presses 'Done' or uses any IME action, make sure blur occurs.
+*/
+['peso','codigo','nombreBuscar','telefonoBuscar','telefonoSolicitar'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', ()=> {
+    // no-op but keeps element referenced; could be extended
+  });
+  el.addEventListener('blur', ()=> {
+    // ensure no focused element steals focus
+  });
+});
+
+/* Inicial state */
 (function init(){
   mostrarSeccion('inicio');
   hideResult();
