@@ -740,7 +740,7 @@ const resultadoDiv = document.getElementById('resultado');
 const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
 
 function crearWaButton(){
-  const waHref = 'https://wa.me/17869133662?text=' + encodeURIComponent('Hola, Nica expressWay, me gustaria hacer un pedido.');
+  const waHref = 'https://wa.me/17869133662?text=' + encodeURIComponent('Hola, Nica ExpressWay, me gustaria hacer un pedido.');
   const a = document.createElement('a');
   a.className = 'wa-cta';
   a.href = waHref;
@@ -1136,34 +1136,61 @@ function escapeHtml(str){
 
 /* Confetti adapted */
 let confettiClearTimeout = null;
+
 function triggerConfettiOnce(opts = {}) {
   const defaults = {
-    particleCount: 180,
-    spread: 80,
-    ticks: 200,
-    gravity: 0.6,
+    particleCount: 250,
+    spread: 100,
+    ticks: 500,         // mayor duración, cruzan toda la pantalla
+    gravity: 0.35,      // caen más lento, salen por abajo
     scalar: 1,
-    origin: { y: 0.08 },
+    origin: { y: 0.05 },
     colors: ['#1f3a66','#2F528F','#79A7E4'],
     zIndex: 6001
   };
   const cfg = Object.assign({}, defaults, opts);
 
   if (typeof confetti === 'function') {
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 60, origin: { x: 0.2, y: cfg.origin.y }, zIndex: cfg.zIndex }));
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.55), angle: 120, origin: { x: 0.8, y: cfg.origin.y }, zIndex: cfg.zIndex }));
-    confetti(Object.assign({}, cfg, { particleCount: Math.floor(cfg.particleCount * 0.95), spread: cfg.spread + 20, origin: cfg.origin, zIndex: cfg.zIndex }));
+    // izquierda
+    confetti(Object.assign({}, cfg, { 
+      particleCount: Math.floor(cfg.particleCount * 0.5), 
+      angle: 60, 
+      origin: { x: 0.2, y: cfg.origin.y } 
+    }));
+    // derecha
+    confetti(Object.assign({}, cfg, { 
+      particleCount: Math.floor(cfg.particleCount * 0.5), 
+      angle: 120, 
+      origin: { x: 0.8, y: cfg.origin.y } 
+    }));
+    // centro
+    confetti(Object.assign({}, cfg, { 
+      particleCount: Math.floor(cfg.particleCount * 0.8), 
+      spread: cfg.spread + 40, 
+      origin: cfg.origin 
+    }));
   } else {
     console.warn('canvas-confetti not loaded');
   }
 
   if (confettiClearTimeout) clearTimeout(confettiClearTimeout);
-  confettiClearTimeout = setTimeout(()=>{ const wrap = document.getElementById('confettiWrap'); if(wrap) wrap.innerHTML=''; }, 5000);
+  // limpiar después de 8s, suficiente para que salgan de la pantalla
+  confettiClearTimeout = setTimeout(() => { 
+    const wrap = document.getElementById('confettiWrap'); 
+    if (wrap) wrap.innerHTML=''; 
+  }, 8000);
 }
 
-function triggerConfettiDesktop() { triggerConfettiOnce({ particleCount: 220, gravity: 0.6 }); }
-function triggerConfettiMobile()  { triggerConfettiOnce({ particleCount: 110, gravity: 0.5, scalar: 0.9 }); }
-function triggerConfetti() { if (window.innerWidth <= 420) triggerConfettiMobile(); else triggerConfettiDesktop(); }
+function triggerConfettiDesktop() { 
+  triggerConfettiOnce({ particleCount: 300, ticks: 550, gravity: 0.32, scalar: 1.1 }); 
+}
+function triggerConfettiMobile()  { 
+  triggerConfettiOnce({ particleCount: 150, ticks: 500, gravity: 0.34, scalar: 0.95 }); 
+}
+function triggerConfetti() { 
+  if (window.innerWidth <= 420) triggerConfettiMobile(); 
+  else triggerConfettiDesktop(); 
+}
 
 ['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
   const el = document.getElementById(id);
