@@ -13,7 +13,7 @@
   <!-- Open Graph / Social preview (poner dentro de <head>) -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Nica ExpressWay" />
-<meta property="og:description" content="Gestiona tus envíos desde USA a Nicaragua: cotiza, solicita y sigue tu paquete de forma sencilla." />
+<meta property="og:description" content="Gestiona tus envíos desde USA a Nicaragua: cotiza, solicita y rastrea tu paquete de forma sencilla." />
 <meta property="og:image" content="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" />
 <style>
 :root{
@@ -458,7 +458,7 @@ nav button#btnCotizar:hover { transform: translateY(-4px); }
 <!-- INICIO -->
 <section id="inicio" class="active">
   <img id="logoMain" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway">
-  <p style="margin-bottom:1.25rem;">Conéctate con nosotros en nuestras redes y mantente al día con nuestras ofertas y anuncios.</p>
+  <p style="margin-bottom:1.25rem;">Conéctate con nosotros y mantente al día con nuestras ofertas y anuncios.</p>
   <div class="linktree-buttons">
     <a class="link-btn" href="https://www.instagram.com/nicaexpressway/" target="_blank">Instagram</a>
     <a class="link-btn" href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank">Facebook</a>
@@ -468,10 +468,10 @@ nav button#btnCotizar:hover { transform: translateY(-4px); }
 
 <!-- COTIZAR -->
 <section id="cotizar">
-  <h2>Cotiza el precio aproximado de tus pedidos.</h2>
+  <h2>Cotiza tus pedidos.</h2>
 
   <div style="max-width:420px;margin:0 auto;">
-    <label for="tipoEnvio">Tipo de envío:</label>
+    <label for="tipoEnvio">Selecciona el tipo de envío:</label>
     <select id="tipoEnvio">
       <option value="aereo">Aéreo</option>
       <option value="maritimo">Marítimo</option>
@@ -1165,10 +1165,10 @@ function mapStateSubtext(raw){
   if(!raw) return '';
   const r = raw.toString().toLowerCase();
   switch(r){
-    case 'recibido': return 'Paquete recibido por Nica ExpressWay en Estados Unidos';
-    case 'en_transito': return 'Paquete en camino a Nicaragua';
-    case 'en_aduana': return 'Paquete en aduanas, será recibido por la agencia pronto';
-    case 'listo_recoger': return 'Paquete listo para retirar!';
+    case 'recibido': return 'Tu paquete fue recibido por Nica ExpressWay en Estados Unidos';
+    case 'en_transito': return 'Tu paquete está camino a Nicaragua';
+    case 'en_aduana': return 'Tu paquete está en aduanas, será recibido por nuestra agencia pronto';
+    case 'listo_recoger': return 'Tu paquete ya listo para retirar!';
     default: return '';
   }
 }
