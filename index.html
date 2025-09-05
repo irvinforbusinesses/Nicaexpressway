@@ -28,7 +28,7 @@
 
   /* overrides nav */
   --nav-inactive: #a0b6e0;
-  --section-active-color: var(--nav-inactive); /* las secciones activas usarán mismo color inactivo */
+  --section-active-color: var(--nav-inactive); /* asegurar consistencia */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -54,7 +54,7 @@ nav button.inactive{
 
 /* sections */
 section{
-  background:#FFFFFF;
+  background:#WHITE;
   padding:1.5rem;
   border-radius:12px;
   margin-top:1rem;
@@ -347,7 +347,7 @@ nav button.inactive {
   box-shadow: 0 6px 14px rgba(0,0,0,0.16) !important;
 }
 
-/* Botón de la sección cuando está activo: mismo background que inactivo + sombra elevada */
+/* Botón de la sección cuando está activo: usamos EL MISMO color grisado que inactivo + sombra elevada */
 nav button:not(.inactive):not(#btnCotizar) {
   background: var(--nav-inactive) !important; /* igual que inactivo */
   color: #fff !important;
@@ -357,6 +357,17 @@ nav button:not(.inactive):not(#btnCotizar) {
 nav button:not(.inactive):not(#btnCotizar):hover {
   transform: translateY(-2px);
   filter: brightness(0.98);
+}
+
+/* Aseguramos que la clase específica de seguimiento también use el grisado (no sobrescriba) */
+nav button#btnSeguimiento.active-highlight {
+  background: var(--nav-inactive) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.26) !important;
+  transition: background .18s ease, transform .12s ease;
+}
+nav button#btnSeguimiento.active-highlight:hover {
+  transform: translateY(-2px);
 }
 
 /* Mantener la excepción: cuando JS añade .show-cotizar, ese estilo sigue ganando */
@@ -374,7 +385,6 @@ nav button:not(.inactive):not(#btnCotizar):hover {
 
 /* end overrides */
 </style>
-
 </head>
 <body>
 
@@ -855,7 +865,7 @@ async function onBuscar(){
 
     if(!res){
       if(overlay) overlay.style.display = 'none';
-      if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'No se encontró paquete con los criterios introducidos.'; }
+      if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'No se encontró paquete con los detalles otorgados, verifica la información.'; }
       return;
     }
 
@@ -870,7 +880,7 @@ async function onBuscar(){
   } catch (err) {
     console.error('Error búsqueda:', err);
     if(overlay) overlay.style.display = 'none';
-    if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'Ocurrió un error buscando el paquete. Revisa la consola.'; }
+    if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'Ocurrió un error buscando el paquete. Refresca la página y re-intenta.'; }
   }
 }
 
