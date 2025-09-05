@@ -22,14 +22,20 @@
   --lapis:#06B6D4; /* color auxiliar */
   --text:#1A1A1A;
 
-  /* botón CTA único (color seleccionado por estudio de contraste / atención periférica) */
-  --cta-color: #FF6B4A;       /* coral cálido: destaca frente a azules/grises */
-  --cta-color-active: #FF7A35;/* tono más anaranjado para estado activo/press */
+  /* CTA / naranja */
+  --cta-color: #FF6B4A;        /* saturado (estilo único cuando .show-cotizar) */
+  --cta-color-active: #FF7A35; /* tono presionado */
+  --cta-active-light: #FFD8B0; /* naranja claro cuando la sección Cotizar está activa (no .inactive) */
 
-  /* overrides nav */
-  --nav-inactive: #a0b6e0;
-  --section-active-color: var(--nav-inactive); /* asegurar consistencia */
+  /* nav / secciones */
+  --nav-inactive: #a0b6e0;        /* tono gris-azulado inactivo */
+  --section-active-color: #6B7A90; /* azul grisáceo para botones activos (Inicio/Seguimiento) */
+
+  /* Sub-containers (ahora igual que search overlay: un gris muy suave) */
+  --sub-bg: #f3f7fb; /* <-- cambiado: coincide con "Buscando tu paquete, espera..." */
 }
+
+/* Reset */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:"Inter",sans-serif;
@@ -54,7 +60,7 @@ nav button.inactive{
 
 /* sections */
 section{
-  background:#WHITE;
+  background:#FFFFFF;
   padding:1.5rem;
   border-radius:12px;
   margin-top:1rem;
@@ -92,11 +98,25 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .phone-row select{width:35%;padding:.6rem;border-radius:8px}
 .phone-row input{flex:1}
 
-/* resultado package box */
-.package-box{margin-top:1rem;padding:1rem;border-radius:10px;background:#fbfcfe;border:1px solid #eef3f8}
+/* === SUB-CONTAINERS (RESULTADOS) - ahora usan el mismo color que el overlay de búsqueda === */
+.package-box{
+  margin-top:1rem;
+  padding:1rem;
+  border-radius:10px;
+  background: var(--sub-bg); /* ahora coincide con el "Buscando tu paquete" (#f3f7fb) */
+  border:1px solid rgba(16,24,40,0.04);
+}
 .package-title{font-weight:700;margin-bottom:.5rem;color:var(--color-accent)}
 .details-row{display:flex;justify-content:space-between;gap:.5rem;margin-top:.4rem;font-size:.95rem}
 .details-row div{flex:1;text-align:left}
+
+/* mini-spinner / resultado spinner: usar mismo fondo para consistencia */
+.mini-spinner {
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:8px;background:var(--sub-bg);border:1px solid rgba(16,24,40,0.04);
+}
+.mini-spinner .spinner-small {
+  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--color-accent);animation:spin 1s linear infinite;
+}
 
 /* timeline */
 .timeline{position:relative;padding-left:24px;border-left:2px solid rgba(47,82,143,0.08);margin-bottom:.5rem}
@@ -140,7 +160,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 .check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
 .check-icon svg { display:block; }
 
-.lightbox-loading { padding:10px 14px; border-radius:10px; background:#fff; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
+.lightbox-loading { padding:10px 14px; border-radius:10px; background:var(--sub-bg); box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
 
 /* multi-cards */
 .multi-list { margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; }
@@ -192,7 +212,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 #packageLightbox h3 { margin-bottom: 6px; color: var(--color-accent); font-family: 'Poppins', sans-serif; }
 .package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
-.package-info-row .info { flex:1; background:#fbfcfe;padding:10px;border-radius:8px;border:1px solid #eef3f8; }
+.package-info-row .info { flex:1; background: var(--sub-bg); padding:10px;border-radius:8px;border:1px solid rgba(16,24,40,0.04); }
 
 /* CTA "Cotizar" initial state and special CTA color applied later */
 #cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
@@ -212,7 +232,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   color:#888;
   font-size:0.85rem;
   margin:8px 0 12px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins',sans-serif;
   font-weight:600;
   position:relative;
   padding-bottom:10px;
@@ -245,7 +265,7 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   transition: opacity .28s ease, transform .28s ease, box-shadow .24s ease, background .24s ease;
 }
 
-/* shown/unique state after timer (CTA color definido por investigación de colorimetría) */
+/* shown/unique state after timer (CTA color saturado) */
 #btnCotizar.show-cotizar {
   background: var(--cta-color);
   transform: translateY(-6px); /* "flotando" */
@@ -281,52 +301,62 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   transform: translateY(-8px) scale(1.01);
 }
 
-/* ---- Confetti wrapper por encima de modales ---- */
-#confettiWrap {
-  pointer-events: none;
-  position: fixed;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  overflow: hidden;
-  z-index: 6000; /* mayor que modales */
-}
-.confetti, #confettiWrap > div { pointer-events: none !important; }
+/* =========================
+   NAV BUTTON ACTIVE BEHAVIOR
+   - Inicio & Seguimiento (cuando están activos) toman azul grisáceo
+   - Cotizar cuando SU SECCIÓN está activa toma naranja claro
+   ========================= */
 
-/* Intro overlay / FLIP */
-#introOverlay {
-  position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
-  background: var(--color-bg);
-  z-index: 7000;
-  pointer-events:auto;
-  opacity:1;
-  transition: opacity .6s ease;
+/* Inicio & Seguimiento: color cuando no tengan la clase .inactive */
+nav button#btnInicio:not(.inactive),
+nav button#btnSeguimiento:not(.inactive) {
+  background: var(--section-active-color) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.22) !important;
+  transition: transform .12s ease, box-shadow .18s ease, background .18s ease;
 }
-#introOverlay.hide { opacity:0; pointer-events:none; } /* fade out */
-#introInner { text-align:center; transform-origin:center; transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s; }
-#introLogo { width:110px; height:110px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 12px; opacity:0; transform: translateY(6px) scale(.98); transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s; }
-/* 1) intro title color = same as main header title color */
-#introTitle { font-family:'Poppins',sans-serif; font-size:1.6rem; color:var(--color-accent); opacity:0; transform: translateY(6px); transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s; }
-#introOverlay.show #introLogo, #introOverlay.show #introTitle { opacity:1; transform: translateY(0) scale(1); }
-
-/* result fade-in after spinner */
-.result-fade {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity .45s ease, transform .45s ease;
-}
-.result-fade.visible { opacity:1; transform: translateY(0); }
-
-/* mini spinner inside resultado box
-   spinner color uses var(--color-accent) to match title
-*/
-.mini-spinner {
-  display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;
-}
-.mini-spinner .spinner-small {
-  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--color-accent);animation:spin 1s linear infinite;
+/* pressed / active visual feedback */
+nav button#btnInicio:not(.inactive):active,
+nav button#btnSeguimiento:not(.inactive):active {
+  filter: brightness(0.92);
+  transform: translateY(-1px) scale(.998);
 }
 
-/* keep existing rules intact */
+/* Mantener inactivos con nav-inactive */
+nav button.inactive { background: var(--nav-inactive) !important; }
+
+/* COTIZAR: cuando su sección está activa (btn no .inactive) -> naranja claro + borde blanco delgado en todos los bordes */
+nav button#btnCotizar:not(.inactive) {
+  background: var(--cta-active-light) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+  border-left: 2px solid rgba(255,255,255,0.75);
+  border-right: 2px solid rgba(255,255,255,0.75);
+  border-top: 2px solid rgba(255,255,255,0.75);    /* agregado */
+  border-bottom: 2px solid rgba(255,255,255,0.75); /* agregado */
+  transition: background .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+nav button#btnCotizar:not(.inactive):active {
+  transform: translateY(-2px) scale(.998);
+  background: var(--cta-color-active) !important;
+}
+
+/* When timer applies the signature .show-cotizar, that style ( --cta-color ) dominates and border becomes more opaque */
+#btnCotizar.show-cotizar {
+  background: var(--cta-color) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 16px 40px rgba(255,107,74,0.20) !important;
+  border-left: 2px solid rgba(255,255,255,0.92) !important;
+  border-right: 2px solid rgba(255,255,255,0.92) !important;
+  border-top: 2px solid rgba(255,255,255,0.92) !important;    /* agregado */
+  border-bottom: 2px solid rgba(255,255,255,0.92) !important; /* agregado */
+}
+
+/* small hover niceties */
+nav button#btnCotizar:hover { transform: translateY(-4px); }
+
+/* Center seguimiento title if present */
+#seguimientoTitle { text-align:center; margin-bottom:0.6rem; }
 
 /* prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
@@ -334,57 +364,76 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
   #introOverlay { transition: none; }
 }
 
-/* ---------------------------
-   OVERRIDES: colores de nav
-   - secciones activas usarán el mismo background que inactivo
-   - pero con sombra más pronunciada para "ponerse" visualmente
-   --------------------------- */
-
-/* Aseguramos que los botones inactivos usen la variable central (añadimos más sombra) */
-nav button.inactive {
-  background: var(--nav-inactive) !important;
-  color: #fff !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.16) !important;
+/* --- FIX Intro overlay: tamaño y contención --- */
+#introOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  z-index: 7000;
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity .6s ease;
+  padding: 1rem;                 /* evita que el contenido pegue a los bordes en móviles */
 }
 
-/* Botón de la sección cuando está activo: usamos EL MISMO color grisado que inactivo + sombra elevada */
-nav button:not(.inactive):not(#btnCotizar) {
-  background: var(--nav-inactive) !important; /* igual que inactivo */
-  color: #fff !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.26) !important; /* sombra más visible */
-  transition: background .18s ease, transform .12s ease, box-shadow .18s ease;
-}
-nav button:not(.inactive):not(#btnCotizar):hover {
-  transform: translateY(-2px);
-  filter: brightness(0.98);
+/* Cuando la overlay tiene la clase .show, hacemos visibles logo/title */
+#introOverlay.show #introLogo,
+#introOverlay.show #introTitle {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
-/* Aseguramos que la clase específica de seguimiento también use el grisado (no sobrescriba) */
-nav button#btnSeguimiento.active-highlight {
-  background: var(--nav-inactive) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.26) !important;
-  transition: background .18s ease, transform .12s ease;
-}
-nav button#btnSeguimiento.active-highlight:hover {
-  transform: translateY(-2px);
-}
-
-/* Mantener la excepción: cuando JS añade .show-cotizar, ese estilo sigue ganando */
-#btnCotizar.show-cotizar {
-  background: var(--cta-color) !important;
-  transform: translateY(-6px) !important;
-  box-shadow: 0 16px 40px rgba(255,107,74,0.20) !important;
-}
-
-/* 4) Center seguimiento title */
-#seguimientoTitle {
+#introInner {
   text-align: center;
-  margin-bottom: 0.6rem;
+  transform-origin: center;
+  transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s;
+  width: 100%;
+  max-width: 420px;              /* límite explícito del tamaño del intro */
+  box-sizing: border-box;
+  padding: 8px 12px;
 }
 
-/* end overrides */
+#introLogo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 12px;
+  opacity: 0;
+  transform: translateY(6px) scale(.98);
+  transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s;
+  max-width: 100%;               /* evita overflow en pantallas pequeñas */
+}
+
+#introTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  color: var(--color-accent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s;
+}
+
+  /* Fade-out: cuando se añade .hide el overlay hace transición de opacidad */
+#introOverlay {
+  transition: opacity .6s ease;
+  opacity: 1; /* estado visible por defecto */
+}
+
+/* Cuando queramos ocultarlo */
+#introOverlay.hide {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+
 </style>
+
+
 </head>
 <body>
 
@@ -611,6 +660,7 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
 /* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP)
    Behavior tuned per request:
    - intro overlay will fade out (opacity) and only be removed from the flow after the transition ends
+   - safety clamps added to avoid huge transforms
 */
 (async function runIntroFLIP(){
   try {
@@ -642,9 +692,24 @@ const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deplo
     // measure positions
     const firstLogoRect = logo.getBoundingClientRect();
     const lastLogoRect = targetLogo.getBoundingClientRect();
-    const dx = lastLogoRect.left - firstLogoRect.left;
-    const dy = lastLogoRect.top - firstLogoRect.top;
-    const scale = lastLogoRect.width / firstLogoRect.width;
+
+    // safety: fallback sizes if measurement is invalid
+    const safeFirstW = (firstLogoRect.width > 0) ? firstLogoRect.width : 110;
+    const safeLastW  = (lastLogoRect.width  > 0) ? lastLogoRect.width  : safeFirstW;
+
+    // compute delta and scale
+    let dx = (lastLogoRect.left + lastLogoRect.width / 2) - (firstLogoRect.left + firstLogoRect.width / 2);
+    let dy = (lastLogoRect.top + lastLogoRect.height / 2) - (firstLogoRect.top + firstLogoRect.height / 2);
+    let scale = safeLastW / safeFirstW;
+
+    // Clamp values to avoid extreme transforms
+    // scale between 0.6 and 1.15
+    scale = Math.max(0.6, Math.min(scale, 1.15));
+    // dx/dy limited to half viewport to keep movement reasonable
+    const maxDX = window.innerWidth * 0.5;
+    const maxDY = window.innerHeight * 0.5;
+    dx = Math.max(-maxDX, Math.min(dx, maxDX));
+    dy = Math.max(-maxDY, Math.min(dy, maxDY));
 
     // prepare FLIP transform: translate the introInner towards the target
     const inner = document.getElementById('introInner');
