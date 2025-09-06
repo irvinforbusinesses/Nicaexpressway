@@ -212,7 +212,8 @@ footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8
 }
 #packageLightbox h3 { margin-bottom: 6px; color: var(--color-accent); font-family: 'Poppins', sans-serif; }
 .package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
-.package-info-row .info { flex:1; background: var(--sub-bg); padding:10px;border-radius:8px;border:1px solid rgba(16,24,40,0.04); }
+.package-info-row .info { flex: 1 1 120px; min-width:110px; background: var(--sub-bg); padding:10px;border-radius:8px;border:1px solid rgba(16,24,40,0.04); box-sizing:border-box; }
+.package-info-row .info .small-muted { margin-bottom:6px; display:block; }
 
 /* CTA "Cotizar" initial state and special CTA color applied later */
 #cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
@@ -430,7 +431,12 @@ nav button#btnCotizar:hover { transform: translateY(-4px); }
   pointer-events: none;
 }
 
-
+/* smaller text on tight layout so cards align vertically when necessary */
+@media (max-width:420px) {
+  .package-info-row { gap:8px; }
+  .package-info-row .info { flex: 1 1 45%; min-width: 45%; padding:8px; }
+  .package-info-row .info div { font-size:0.95rem; }
+}
 </style>
 
 
@@ -605,6 +611,8 @@ nav button#btnCotizar:hover { transform: translateY(-4px); }
         <div class="info"><div class="small-muted">Tipo de envío</div><div id="lbTipo">-</div></div>
         <div class="info"><div class="small-muted">Peso aproximado</div><div id="lbPeso">-</div></div>
         <div class="info"><div class="small-muted">Tarifa por libra</div><div id="lbTarifa">-</div></div>
+        <!-- nueva tarjeta Total: ocultada por defecto; se mostrará si peso y tarifa están disponibles -->
+        <div class="info" id="lbTotalCard" style="display:none;"><div class="small-muted">Total</div><div id="lbTotal">-</div></div>
       </div>
     </div>
 
@@ -820,8 +828,13 @@ btnCalcularMain.addEventListener('click', (e)=>{
   const pesoEl = document.getElementById('peso');
   const peso = parseFloat(pesoEl.value);
   if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); pesoEl.blur(); return; }
+
+  // determine precio por libra segun tipo (para mostrar en linea separada)
+  let precioPerLb = 0;
+  if(tipo==='aereo'){ precioPerLb = 7.50; } else { precioPerLb = 3.00; }
+
   let precio=0,dias=0;
-  if(tipo==='aereo'){ precio = peso*7.50; dias=5; } else { precio = peso*3.00; dias=15; }
+  if(tipo==='aereo'){ precio = peso*precioPerLb; dias=5; } else { precio = peso*precioPerLb; dias=15; }
 
   // remove focus so mobile keyboard hides
   if (pesoEl) pesoEl.blur();
@@ -839,7 +852,8 @@ btnCalcularMain.addEventListener('click', (e)=>{
 
   // simulate processing: 2000ms spinner then show result with fade
   setTimeout(()=> {
-    resultadoDiv.innerHTML = `<div class="result-fade" id="resultadoInner"><div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div></div>`;
+    // ahora incluimos explicitamente la linea "(Precio por libra: $X USD)" entre Precio estimado y Llegada estimada
+    resultadoDiv.innerHTML = `<div class="result-fade" id="resultadoInner"><div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">(Precio por libra: $${precioPerLb.toFixed(2)} USD)</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div></div>`;
     const inner = document.getElementById('resultadoInner');
     if (inner) requestAnimationFrame(()=> inner.classList.add('visible'));
   }, 2000);
@@ -986,6 +1000,15 @@ async function fetchPackageFromAPI({ codigo, nombre, telefono }){
   return null;
 }
 
+/* helper: parse number robustly from strings like "$7.50", "7.5", "3.00 USD" */
+function parseNumberFromString(val){
+  if(val === null || val === undefined) return null;
+  if(typeof val === 'number') return isFinite(val) ? Number(val) : null;
+  const s = String(val).replace(/[^0-9\.,-]/g,'').replace(',','.');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : null;
+}
+
 /* render single paquete */
 function renderPackageResult({ paquete, historial }){
   multiResults.style.display = 'none';
@@ -1092,6 +1115,8 @@ const lbWhen = document.getElementById('lbWhen');
 const lbTipo = document.getElementById('lbTipo');
 const lbPeso = document.getElementById('lbPeso');
 const lbTarifa = document.getElementById('lbTarifa');
+const lbTotalCard = document.getElementById('lbTotalCard');
+const lbTotal = document.getElementById('lbTotal');
 const lbTimeline = document.getElementById('lbTimeline');
 const lbLoading = document.getElementById('lbLoading');
 
@@ -1102,8 +1127,28 @@ async function openPackageLightbox(paquete){
   lbTitle.textContent = `Pedido ${paquete.id ? '#' + paquete.id : (paquete.codigo_seguimiento ? paquete.codigo_seguimiento : '')}`;
   lbWhen.textContent = 'Pedido hecho - (cargando...)';
   lbTipo.textContent = (paquete.tipo_envio_id ? (paquete.tipo_envio_id === 1 ? 'Aéreo' : paquete.tipo_envio_id === 2 ? 'Marítimo' : paquete.tipo) : (paquete.tipo || 'No disponible'));
-  lbPeso.textContent = paquete.peso_libras ?? 'No disponible';
-  lbTarifa.textContent = paquete.tarifa_usu ?? paquete.tarifa_usd ?? paquete.tarifa ?? 'No disponible';
+
+  // Mostrar peso con "libras" si es numérico
+  const pesoNum = parseNumberFromString(paquete.peso_libras ?? paquete.peso ?? paquete.peso_lb);
+  if (pesoNum !== null) {
+    // mantener 2 decimales para consistencia
+    lbPeso.textContent = `${Number(pesoNum).toFixed(2)} libras`;
+  } else {
+    lbPeso.textContent = 'No disponible';
+  }
+
+  // Mostrar tarifa formateada con USD si es numérica
+  const tarifaNum = parseNumberFromString(paquete.tarifa_usu ?? paquete.tarifa_usd ?? paquete.tarifa);
+  if (tarifaNum !== null) {
+    lbTarifa.textContent = `$${Number(tarifaNum).toFixed(2)} USD`;
+  } else {
+    lbTarifa.textContent = 'No disponible';
+  }
+
+  // Ocultar total por defecto, luego lo calculamos solo si ambos valores están disponibles
+  if (lbTotalCard) lbTotalCard.style.display = 'none';
+  lbTotal.textContent = '-';
+
   lbTimeline.innerHTML = '';
   lbLoading.style.display = 'flex';
 
@@ -1135,6 +1180,20 @@ async function openPackageLightbox(paquete){
     buildTimelineFromHistorialElement(historial, lbTimeline);
   } else {
     lbTimeline.innerHTML = '<div class="small-muted">Historial no disponible.</div>';
+  }
+
+  // Calcular total SI y SOLO SI pesoNum y tarifaNum son válidos (numéricos)
+  if (pesoNum !== null && tarifaNum !== null) {
+    const totalCalc = Number(pesoNum) * Number(tarifaNum);
+    if (isFinite(totalCalc)) {
+      if (lbTotal) lbTotal.textContent = `$${totalCalc.toFixed(2)} USD`;
+      if (lbTotalCard) lbTotalCard.style.display = '';
+    } else {
+      if (lbTotalCard) lbTotalCard.style.display = 'none';
+    }
+  } else {
+    // al menos uno no está disponible -> ocultar tarjeta Total
+    if (lbTotalCard) lbTotalCard.style.display = 'none';
   }
 
   setTimeout(()=> { if (lbCloseBtn) lbCloseBtn.focus(); }, 80);
