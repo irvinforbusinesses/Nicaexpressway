@@ -1,4 +1,3 @@
-// server.js (archivo completo, listo para pegar)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -46,6 +45,63 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
  */
 
 // -------------------- HELPERS --------------------
+
+// Devuelve fecha en formato YYYY-MM-DD en la zona horaria solicitada (ej. 'America/New_York')
+function getDateInTimeZone(tz = 'America/New_York') {
+  try {
+    // 'en-CA' produce formato YYYY-MM-DD
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+  } catch (e) {
+    // fallback a UTC date si Intl no está disponible por alguna razón
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
+// Normaliza texto: lower-case + remover diacríticos (acentos)
+function normalizeTextSafe(val) {
+  if (val === null || val === undefined) return '';
+  try {
+    return String(val).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  } catch (e) {
+    return String(val).toLowerCase();
+  }
+}
+
+// Intenta convertir varios campos posibles en tipo_envio_id (1=aereo, 2=maritimo)
+// Acepta: tipo_envio_id numérico, 'aereo', 'aéreo', 'maritimo', 'marítimo', 'aer', 'mar'
+function parseTipoEnvioIdFromReq(req) {
+  // 1) si vienen id explícito
+  const candidateId = req.body.tipo_envio_id ?? req.body.tipoEnvioId ?? req.body.tipo_envio;
+  if (candidateId !== undefined && candidateId !== null) {
+    const parsed = Number(candidateId);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  // 2) chequear varias claves con texto
+  const rawCandidates = [
+    req.body.tipo,
+    req.body.tipoEnvio,
+    req.body.tipo_envio,
+    req.body.tipoEnvioSolicitar,
+    req.body.tipoSolicitar,
+    req.body.tipo_envio_id
+  ];
+
+  for (const raw of rawCandidates) {
+    if (!raw) continue;
+    const norm = normalizeTextSafe(raw);
+    if (norm.includes('aer') || norm.includes('aire') || norm === 'aereo') return 1;
+    if (norm.includes('mar')) return 2;
+  }
+
+  // 3) si viene 'aereo' con tilde u otro spelling
+  const fallback = normalizeTextSafe(req.body.tipo || req.body.tipoEnvio || '');
+  if (fallback.includes('aer')) return 1;
+  if (fallback.includes('mar')) return 2;
+
+  return null;
+}
+
 async function ensureHistorialRow(codigo) {
   try {
     const { data, error } = await supabase
@@ -224,13 +280,21 @@ app.delete('/recordatorios/:id', async (req, res) => {
 // POST /paquetes -> crea paquete; si viene codigo_seguimiento inserta fila en historial
 app.post('/paquetes', async (req, res) => {
   try {
-    const nombre_cliente = req.body.nombre_cliente ?? req.body.cliente ?? req.body.nombre ?? null;
+    const nombre_cliente = req.body.nombre_cliente ?? req.body.nombre ?? req.body.cliente ?? null;
     const codigo_seguimiento = req.body.codigo_seguimiento ?? req.body.codigo ?? null;
     const telefono = req.body.telefono ?? req.body.phone ?? null;
-    const tipo_envio_id = req.body.tipo_envio_id ?? (req.body.tipo === 'aereo' ? 1 : req.body.tipo === 'maritimo' ? 2 : req.body.tipo) ?? null;
-    const peso_libras = req.body.peso_libras ?? req.body.peso ?? null;
+
+    // nuevo: tipo_envio_id más tolerante
+    const tipo_envio_id = parseTipoEnvioIdFromReq(req);
+
+    const peso_libras = req.body.peso_libras ?? req.body.peso ?? req.body.peso_lb ?? null;
     const tarifa_usd = req.body.tarifa_usd ?? req.body.tarifa ?? null;
-    const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
+
+    // fecha_ingreso: si el cliente no la provee, la fijamos con hora de Miami (America/New_York)
+    const fecha_ingreso = req.body.fecha_ingreso ?? getDateInTimeZone('America/New_York');
+
+    // fecha_estado: si no viene la fijamos igual a fecha_ingreso (para mantener compatibilidad UI)
+    const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? fecha_ingreso;
 
     const insertObj = {
       nombre_cliente,
@@ -239,7 +303,8 @@ app.post('/paquetes', async (req, res) => {
       tipo_envio_id,
       peso_libras,
       tarifa_usd,
-      fecha_estado
+      fecha_estado,
+      fecha_ingreso
     };
 
     const { data, error } = await supabase
@@ -360,6 +425,7 @@ app.get('/historial', async (req, res) => {
     const { codigo } = req.query;
     if (!codigo) return res.status(400).json({ error: 'codigo query required' });
 
+    // traer historial
     const { data, error } = await supabase
       .from('historial')
       .select('*')
@@ -372,6 +438,26 @@ app.get('/historial', async (req, res) => {
       return res.status(400).json({ error: error.message || error });
     }
     if (!data) return res.status(404).json({ error: 'Historial no encontrado' });
+
+    // intentar traer fecha_ingreso desde paquetes con el mismo codigo
+    try {
+      const pRes = await supabase
+        .from('paquetes')
+        .select('fecha_ingreso')
+        .eq('codigo_seguimiento', codigo)
+        .limit(1)
+        .maybeSingle();
+      if (!pRes.error && pRes.data && pRes.data.fecha_ingreso) {
+        // añadir fecha_ingreso al objeto historial devuelto
+        data.fecha_ingreso = pRes.data.fecha_ingreso;
+        // sobrescribir fecha1 para que el front (lightbox) muestre la fecha de ingreso
+        data.fecha1 = pRes.data.fecha_ingreso;
+      }
+    } catch (e) {
+      console.warn('No se pudo recuperar fecha_ingreso para historial:', e);
+      // no fatal
+    }
+
     return res.json(data);
   } catch (err) {
     console.error('GET /historial error:', err);
