@@ -1263,7 +1263,7 @@ function renderManejoPage(){
     const div = document.createElement('div');
     div.className = 'manejo-item';
     // Use fecha_estado as "fecha de ingreso" preview (backend does not have generic 'fecha' column)
-    const fechaIngreso = p.fecha_estado || 'No disponible';
+    const fechaIngreso = p.fecha_ingreso || 'No disponible';
     const tipo = tipoTextFromId(p.tipo_envio_id ?? p.tipo_envio ?? null);
     const nombre = p.nombre_cliente || p.nombre || '-';
     const codigo = p.codigo_seguimiento || '';
@@ -1441,17 +1441,7 @@ async function openManejoLightbox({ codigo, id }){
     const telefono = paquete?.telefono || '-';
     const tipo = tipoTextFromId(paquete?.tipo_envio_id ?? paquete?.tipo_envio ?? null);
     // compute "fecha de primer estado": look for fecha1..fecha4 in historial (first non-null)
-    let fechaPrimer = null;
-    if (historial) {
-      for (let i=1;i<=4;i++){
-        const f = historial[`fecha${i}`];
-        if (f && String(f).trim()!=='') { fechaPrimer = f; break; }
-      }
-    }
-    if (!fechaPrimer) {
-      // fallback to paquete.fecha_estado if exists
-      fechaPrimer = paquete?.fecha_ingreso || null;
-    }
+  let fechaPrimer = paquete?.fecha_ingreso ?? null;
 
     // Fill UI
     lmNombre.textContent = nombre;
