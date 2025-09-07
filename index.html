@@ -1233,16 +1233,16 @@ function mapStateSubtext(raw){
 }
 function formatDate(d){
   try {
-    const dt = new Date(d);
-    if (isNaN(dt)) {
-      if(typeof d==='string' && d.includes('-')){
-        const [y,m,day] = d.split('-');
-        return `${day}/${m}/${y}`;
-      }
-      return d;
+    // si viene como 'YYYY-MM-DD' lo parseamos como fecha LOCAL para evitar interpretación UTC
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const [y, m, day] = d.split('-').map(x => Number(x));
+      const local = new Date(y, m - 1, day); // nota: Date(year, monthIndex, day) -> local time
+      return local.toLocaleDateString('es-ES');
     }
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
     return dt.toLocaleDateString('es-ES');
-  } catch(e){
+  } catch (e) {
     return d;
   }
 }
