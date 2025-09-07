@@ -1210,7 +1210,7 @@ if(lbCloseBtn) lbCloseBtn.addEventListener('click', closePackageLightbox);
 
 /* Utils used across file */
 function mapStateLabel(raw){
-  if(!raw) return 'Estado desconocido';
+  if(!raw) return 'Estamos esperando tu paquete';
   const r = raw.toString().toLowerCase();
   switch(r){
     case 'recibido': return 'Recibido';
