@@ -1168,7 +1168,7 @@ if (formActualizar) formActualizar.addEventListener('submit', async (e) => {
   if (estado) updateObj.estado = estado;
   if (peso !== null) updateObj.peso_libras = peso;
   if (tarifa !== null) updateObj.tarifa_usd = tarifa;
-  if (fecha) updateObj.fecha_estado = fecha;
+  if (fecha) updateObj.fecha = fecha;
 
   if (Object.keys(updateObj).length === 0) return showResult('Aviso', 'Ingresa al menos un campo para actualizar.');
 
@@ -1584,7 +1584,7 @@ if (lmUpdateForm) {
     const updateObj = {};
     if (pesoVal !== null) updateObj.peso_libras = pesoVal;
     if (tarifaVal !== null) updateObj.tarifa_usd = tarifaVal;
-    if (fechaVal) updateObj.fecha_estado = fechaVal;
+    if (fechaVal) updateObj.fecha = fechaVal;
     if (estadoVal) updateObj.estado = estadoVal;
 
     // send PUT to backend using codigo (assumes codigo_seguimiento)
