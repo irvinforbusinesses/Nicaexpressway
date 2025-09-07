@@ -1050,7 +1050,7 @@ function renderMultiplePackages(paquetes){
   paquetes.forEach(p => {
     const card = document.createElement('div');
     card.className = 'multi-card';
-    const previewDate = p.fecha_estado ? formatDate(p.fecha_estado) : 'No disponible';
+    const previewDate = p.fecha_ingreso ? formatDate(p.fecha_ingreso) : '--';
     const left = document.createElement('div');
     left.className = 'left';
     left.innerHTML = `<div class="title">Pedido del ${previewDate}</div><div class="subtitle">${escapeHtml(p.nombre_cliente ?? p.nombre ?? '-')}</div>`;
