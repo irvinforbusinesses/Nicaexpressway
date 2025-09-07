@@ -440,24 +440,28 @@ app.get('/historial', async (req, res) => {
     if (!data) return res.status(404).json({ error: 'Historial no encontrado' });
 
     // intentar traer fecha_ingreso desde paquetes con el mismo codigo
-    try {
-      const pRes = await supabase
-        .from('paquetes')
-        .select('fecha_ingreso')
-        .eq('codigo_seguimiento', codigo)
-        .limit(1)
-        .maybeSingle();
-      if (!pRes.error && pRes.data && pRes.data.fecha_ingreso) {
-        // añadir fecha_ingreso al objeto historial devuelto
-        data.fecha_ingreso = pRes.data.fecha_ingreso;
-        // sobrescribir fecha1 para que el front (lightbox) muestre la fecha de ingreso
-        data.fecha1 = pRes.data.fecha_ingreso;
-      }
-    } catch (e) {
-      console.warn('No se pudo recuperar fecha_ingreso para historial:', e);
-      // no fatal
-    }
+  try {
+  const pRes = await supabase
+    .from('paquetes')
+    .select('fecha_ingreso')
+    .eq('codigo_seguimiento', codigo)
+    .limit(1)
+    .maybeSingle();
 
+  if (!pRes.error && pRes.data) {
+    // anexar fecha_ingreso al objeto historial devuelto como campo separado
+    data.fecha_ingreso = pRes.data.fecha_ingreso || null;
+
+    // Sólo sobrescribimos fecha1 si historial.fecha1 está vacío/null/''.
+    // Esto evita borrar intencionadamente un valor real de fecha1.
+    if (!data.fecha1 || String(data.fecha1).trim() === '') {
+      data.fecha1 = pRes.data.fecha_ingreso || null;
+    }
+  }
+} catch (e) {
+  console.warn('No se pudo recuperar fecha_ingreso para historial:', e);
+  // no fatal, devolvemos historial sin la fecha_ingreso adicional
+}
     return res.json(data);
   } catch (err) {
     console.error('GET /historial error:', err);
