@@ -294,7 +294,7 @@ app.post('/paquetes', async (req, res) => {
     const fecha_ingreso = req.body.fecha_ingreso ?? getDateInTimeZone('America/New_York');
 
     // fecha_estado: si no viene la fijamos igual a fecha_ingreso (para mantener compatibilidad UI)
-    const fecha_estado = req.body.fecha_estado ?? req.body.fecha ?? fecha_ingreso;
+    const fecha_estado = req.body.fecha_ingreso ?? req.body.fecha ?? fecha_ingreso;
 
     const insertObj = {
       nombre_cliente,
@@ -303,7 +303,6 @@ app.post('/paquetes', async (req, res) => {
       tipo_envio_id,
       peso_libras,
       tarifa_usd,
-      fecha_estado,
       fecha_ingreso
     };
 
