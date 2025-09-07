@@ -367,48 +367,72 @@ app.get('/paquetes/:id', async (req, res) => {
 });
 
 // PUT /paquetes/:codigo_seguimiento -> actualiza peso, tarifa, fecha, estado
+// PUT /paquetes/:codigo_seguimiento -> actualiza peso, tarifa; maneja estado vía historial (NO actualiza paquetes.fecha_estado)
 app.put('/paquetes/:codigo_seguimiento', async (req, res) => {
   try {
     const { codigo_seguimiento } = req.params;
-    const peso_libras = (req.body.peso_libras !== undefined) ? req.body.peso_libras : (req.body.peso !== undefined ? req.body.peso : undefined);
-    const tarifa_usd = (req.body.tarifa_usd !== undefined) ? req.body.tarifa_usd : (req.body.tarifa !== undefined ? req.body.tarifa : undefined);
-    const fecha_estado = (req.body.fecha_estado !== undefined) ? req.body.fecha_estado : (req.body.fecha !== undefined ? req.body.fecha : undefined);
+
+    // permitir varios nombres de campo tolerantes
+    const peso_libras = (req.body.peso_libras !== undefined) ? req.body.peso_libras
+                        : (req.body.peso !== undefined ? req.body.peso : undefined);
+    const tarifa_usd = (req.body.tarifa_usd !== undefined) ? req.body.tarifa_usd
+                        : (req.body.tarifa !== undefined ? req.body.tarifa : undefined);
+
+    // estado y fecha para el HISTORIAL (no para paquetes)
     const estado = req.body.estado ?? null;
     const fecha_para_estado = req.body.fecha_estado ?? req.body.fecha ?? null;
 
     const updateObj = {};
     if (peso_libras !== undefined) updateObj.peso_libras = peso_libras;
     if (tarifa_usd !== undefined) updateObj.tarifa_usd = tarifa_usd;
-    if (fecha_estado !== undefined) updateObj.fecha_estado = fecha_estado;
+    // IMPORTANT: NO actualizamos paquetes.fecha_estado aquí, la tabla ya no la tiene
 
     if (Object.keys(updateObj).length === 0 && !estado) {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
     }
 
-    const { data, error } = await supabase
-      .from('paquetes')
-      .update(updateObj)
-      .eq('codigo_seguimiento', codigo_seguimiento)
-      .select();
-
-    if (error) {
-      console.error('Supabase put paquetes error:', error);
-      return res.status(400).json({ error: error.message || error });
+    // Actualizar solo columnas seguras en 'paquetes'
+    let data = null;
+    if (Object.keys(updateObj).length > 0) {
+      const dbRes = await supabase
+        .from('paquetes')
+        .update(updateObj)
+        .eq('codigo_seguimiento', codigo_seguimiento)
+        .select();
+      if (dbRes.error) {
+        console.error('Supabase put paquetes error:', dbRes.error);
+        return res.status(400).json({ error: dbRes.error.message || dbRes.error });
+      }
+      data = dbRes.data;
+      if (!data || data.length === 0) {
+        return res.status(404).json({ error: 'No se encontró paquete con ese código de seguimiento' });
+      }
+    } else {
+      // si no actualizamos paquetes, comprobamos existencia (opcional)
+      const check = await supabase.from('paquetes').select('id').eq('codigo_seguimiento', codigo_seguimiento).limit(1).maybeSingle();
+      if (!check || !check.data) {
+        return res.status(404).json({ error: 'No se encontró paquete con ese código de seguimiento' });
+      }
     }
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'No se encontró paquete con ese código de seguimiento' });
-    }
 
+    // Si enviaron estado -> lo empujamos al historial (tabla 'historial')
     if (estado) {
-      try { await pushEstadoToHistorial(codigo_seguimiento, estado, fecha_para_estado); } catch (e) { console.error(e); }
+      try {
+        await pushEstadoToHistorial(codigo_seguimiento, estado, fecha_para_estado);
+      } catch (e) {
+        console.error('pushEstadoToHistorial error:', e);
+        // no hacemos fallar la respuesta principal por un fallo en historial
+      }
     }
 
-    return res.json(data);
+    if (data) return res.json(data);
+    return res.json({ success: true });
   } catch (err) {
     console.error('PUT /paquetes/:codigo_seguimiento error:', err);
     return res.status(500).json({ error: 'server error' });
   }
 });
+
 
 // PATCH /paquetes/:identifier (compatibilidad -> llama a PUT handler)
 app.patch('/paquetes/:identifier', async (req, res, next) => {
