@@ -1450,7 +1450,7 @@ async function openManejoLightbox({ codigo, id }){
     }
     if (!fechaPrimer) {
       // fallback to paquete.fecha_estado if exists
-      fechaPrimer = paquete?.fecha_estado || null;
+      fechaPrimer = paquete?.fecha_ingreso || null;
     }
 
     // Fill UI
