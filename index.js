@@ -447,17 +447,15 @@ app.get('/historial', async (req, res) => {
     .eq('codigo_seguimiento', codigo)
     .limit(1)
     .maybeSingle();
-
-  if (!pRes.error && pRes.data) {
-    // anexar fecha_ingreso al objeto historial devuelto como campo separado
+      if (!pRes.error && pRes.data) {
+  // añadir fecha_ingreso al objeto historial devuelto (campo separado)
     data.fecha_ingreso = pRes.data.fecha_ingreso || null;
-
-    // Sólo sobrescribimos fecha1 si historial.fecha1 está vacío/null/''.
-    // Esto evita borrar intencionadamente un valor real de fecha1.
+  // sólo sobrescribimos fecha1 si historial.fecha1 está vacío/null/''
     if (!data.fecha1 || String(data.fecha1).trim() === '') {
-      data.fecha1 = pRes.data.fecha_ingreso || null;
+    data.fecha1 = pRes.data.fecha_ingreso || null;
     }
-  }
+ }
+
 } catch (e) {
   console.warn('No se pudo recuperar fecha_ingreso para historial:', e);
   // no fatal, devolvemos historial sin la fecha_ingreso adicional
