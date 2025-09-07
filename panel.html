@@ -1055,9 +1055,25 @@ async function openRecordLightbox(id) {
     lbRecordTitulo.textContent = currentRecordatorio.titulo || 'Recordatorio';
     lbRecordDesc.textContent = currentRecordatorio.descripcion || '';
     lbRecordFecha.textContent = `Fecha: ${currentRecordatorio.fecha_limite || ''}`;
-    // check if due today for lightbox blink
-    const todayMiami = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const recDate = new Date(currentRecordatorio.fecha_limite).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    // check if due today for lightbox blink// Normalizar ambas fechas a formato YYYY-MM-DD en la zona de Miami y comparar lexicográficamente
+
+// 1) hoy en Miami en formato YYYY-MM-DD
+const todayMiami = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+// 2) fecha límite normalizada a YYYY-MM-DD en la zona de Miami
+let recDate;
+if (typeof currentRecordatorio.fecha_limite === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(currentRecordatorio.fecha_limite)) {
+  // ya viene como YYYY-MM-DD -> úsala tal cual
+  recDate = currentRecordatorio.fecha_limite;
+} else {
+  // soporta ISO datetime u otros formatos -> convertir a fecha en zona Miami y devolver YYYY-MM-DD
+  recDate = new Date(currentRecordatorio.fecha_limite).toLocaleDateString('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+// 3) condición: parpadear desde la fecha límite en adelante
+// (usar comparación lexicográfica porque el formato es YYYY-MM-DD)
+const shouldBlink = (todayMiami >= recDate);
+
     if (recDate === todayMiami) {
       lightboxRecordatorio.querySelector('.lightbox-content').classList.add('lightbox-due-today');
     } else {
@@ -1314,19 +1330,19 @@ let currentManejoPaquete = null;
 
 // Helper: format date (dd/mm/yyyy)
 function formatDateShort(d){
-  try{
-    const dt = new Date(d);
-    if (isNaN(dt)) {
-      if (typeof d === 'string' && d.includes('-')) {
-        const [y,m,day] = d.split('-');
-        return `${day}/${m}/${y}`;
-      }
-      return d;
+  try {
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const [y, m, day] = d.split('-').map(x => Number(x));
+      const local = new Date(y, m - 1, day);
+      return local.toLocaleDateString('es-ES');
     }
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
     return dt.toLocaleDateString('es-ES');
-  }catch(e){ return d; }
+  } catch (e) {
+    return d;
+  }
 }
-
 // map state
 function mapStateLabel(raw){
   if(!raw) return 'Estado desconocido';
