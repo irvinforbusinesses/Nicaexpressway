@@ -1169,11 +1169,11 @@ async function openPackageLightbox(paquete){
 
   lbLoading.style.display = 'none';
   if(historial && historial.fecha1){
-    lbWhen.textContent = `Pedido hecho el ${formatDate(historial.fecha1)}`;
+    lbWhen.textContent = `Pedido hecho el ${formatDate(paquete.fecha_ingreso)}`;
 } else if (paquete && paquete.fecha_ingreso) {
   lbWhen.textContent = `Pedido hecho el ${formatDate(paquete.fecha_ingreso)}`;
   } else {
-    lbWhen.textContent = 'Pedido hecho el No disponible';
+    lbWhen.textContent = 'Pedido hecho el ----';
   }
 
   if(historial){
