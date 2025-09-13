@@ -2,22 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 const app = express();
 app.use(express.json());
-// Seguridad HTTP básica y limitador de peticiones
-app.use(helmet());
-
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minuto
-  max: 60,             // max 60 peticiones por IP por minuto (ajusta si necesita)
-  standardHeaders: true,
-  legacyHeaders: false
-});
-app.use(limiter);
-
 
 // -------------------- CORS (RESTRINGIDO y consistente) --------------------
 const allowedOrigins = new Set([
@@ -28,33 +15,54 @@ const allowedOrigins = new Set([
   'https://irvinforbusinesses.github.io'
 ]);
 
+// Opcional: clave para permitir llamadas server->server (curl, cron jobs, integraciones)
+const SERVER_API_KEY = process.env.SERVER_API_KEY || null;
+
 /**
- * Política: **solo** aceptar requests que lleguen desde un Origin presente en allowedOrigins.
- * - Si no existe header Origin -> se rechaza (403). Esto evita que curl/POSTMAN/servers sin Origin consuman la API.
- * - Si Origin NO está en la lista -> 403.
- * - Si Origin está en la lista -> devolver Access-Control-Allow-Origin con el origin exacto.
- * - Preflight (OPTIONS) responde 204 para orígenes permitidos.
+ * Middleware CORS estricto:
+ * - Permite sólo orígenes listados.
+ * - Asegura que Access-Control-Allow-Origin esté presente en TODAS las respuestas para orígenes permitidos.
+ * - Si no hay Origin (ej. curl desde servidor) se rechaza salvo que envíen X-API-KEY válida.
  */
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (!origin) {
-    // RECHAZAMOS TODO sin Origin para cumplir tu requisito: "nadie más, ni consolas"
-    return res.status(403).json({ error: 'Requests without Origin are not allowed' });
-  }
-  if (!allowedOrigins.has(origin)) {
-    if (req.method === 'OPTIONS') return res.status(403).send('CORS denied');
-    return res.status(403).json({ error: 'CORS denied' });
+
+  // Caso 1: petición desde navegador con Origin
+  if (origin) {
+    if (allowedOrigins.has(origin)) {
+      // Responder con el Origin exacto (no '*') para máxima seguridad
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+      // Si usas credenciales (cookies/auth) deja en true; si no, puedes quitarlo o poner false
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+      if (req.method === 'OPTIONS') return res.sendStatus(204);
+      return next();
+    } else {
+      // Origin no autorizado -> denegar
+      if (req.method === 'OPTIONS') return res.status(403).send('CORS denied');
+      return res.status(403).json({ error: 'CORS denied' });
+    }
   }
 
-  // Origin permitido: devolver headers CORS de forma consistente
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Caso 2: sin Origin (llamada desde servidor o curl)
+  // Si quieres bloquear absolutamente todo lo que no tenga Origin, descomenta lo siguiente:
+  // return res.status(403).json({ error: 'Server-to-server calls not allowed' });
 
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  return next();
+  // Alternativa segura: exigir X-API-KEY para llamadas server->server
+  if (SERVER_API_KEY) {
+    const key = req.headers['x-api-key'] || req.query.api_key;
+    if (key && key === SERVER_API_KEY) {
+      // Allow server request (no CORS headers needed, es server->server)
+      return next();
+    }
+    return res.status(401).json({ error: 'Missing or invalid API key for server-to-server access' });
+  }
+
+  // Si no hay SERVER_API_KEY configurada y no hay Origin, rechazamos por defecto
+  return res.status(403).json({ error: 'Requests from unknown origins are not allowed' });
 });
 
 
