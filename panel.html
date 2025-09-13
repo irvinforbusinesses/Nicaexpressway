@@ -1222,6 +1222,12 @@ async function cargarManejo() {
     const res = await fetch(`${API_BASE}/paquetes`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manejoData = await res.json();
+    // ordenar manejoData por fecha_ingreso descendente (más recientes primero)
+manejoData.sort((a, b) => {
+  const ta = a && a.fecha_ingreso ? new Date(a.fecha_ingreso).getTime() : 0;
+  const tb = b && b.fecha_ingreso ? new Date(b.fecha_ingreso).getTime() : 0;
+  return tb - ta;
+});
     currentManejoPage = 1;
     renderManejoPage();
   } catch(err){
