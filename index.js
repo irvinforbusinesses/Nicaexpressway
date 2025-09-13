@@ -6,27 +6,65 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(express.json());
 
-// -------------------- CORS --------------------
-const allowedOrigins = [
+// -------------------- CORS (RESTRINGIDO y consistente) --------------------
+const allowedOrigins = new Set([
   'https://htmleditor.in',
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'https://nicaexpressway.onrender.com',
   'https://irvinforbusinesses.github.io'
-];
+]);
 
-// Para pruebas puedes temporalmente usar origin: '*' pero no recomendado en prod
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(null, false);
-  },
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-app.options('*', cors());
+// Opcional: clave para permitir llamadas server->server (curl, cron jobs, integraciones)
+const SERVER_API_KEY = process.env.SERVER_API_KEY || null;
+
+/**
+ * Middleware CORS estricto:
+ * - Permite sólo orígenes listados.
+ * - Asegura que Access-Control-Allow-Origin esté presente en TODAS las respuestas para orígenes permitidos.
+ * - Si no hay Origin (ej. curl desde servidor) se rechaza salvo que envíen X-API-KEY válida.
+ */
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Caso 1: petición desde navegador con Origin
+  if (origin) {
+    if (allowedOrigins.has(origin)) {
+      // Responder con el Origin exacto (no '*') para máxima seguridad
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+      // Si usas credenciales (cookies/auth) deja en true; si no, puedes quitarlo o poner false
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+      if (req.method === 'OPTIONS') return res.sendStatus(204);
+      return next();
+    } else {
+      // Origin no autorizado -> denegar
+      if (req.method === 'OPTIONS') return res.status(403).send('CORS denied');
+      return res.status(403).json({ error: 'CORS denied' });
+    }
+  }
+
+  // Caso 2: sin Origin (llamada desde servidor o curl)
+  // Si quieres bloquear absolutamente todo lo que no tenga Origin, descomenta lo siguiente:
+  // return res.status(403).json({ error: 'Server-to-server calls not allowed' });
+
+  // Alternativa segura: exigir X-API-KEY para llamadas server->server
+  if (SERVER_API_KEY) {
+    const key = req.headers['x-api-key'] || req.query.api_key;
+    if (key && key === SERVER_API_KEY) {
+      // Allow server request (no CORS headers needed, es server->server)
+      return next();
+    }
+    return res.status(401).json({ error: 'Missing or invalid API key for server-to-server access' });
+  }
+
+  // Si no hay SERVER_API_KEY configurada y no hay Origin, rechazamos por defecto
+  return res.status(403).json({ error: 'Requests from unknown origins are not allowed' });
+});
+
 
 // -------------------- Supabase client --------------------
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
