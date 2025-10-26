@@ -1047,12 +1047,6 @@ function renderMultiplePackages(paquetes){
   if(noResult) noResult.style.display='none';
 
   multiResults.innerHTML = '';
-  // ordenar por fecha_ingreso descendente (más recientes primero)
-paquetes.sort((a, b) => {
-  const ta = a && a.fecha_ingreso ? new Date(a.fecha_ingreso).getTime() : 0;
-  const tb = b && b.fecha_ingreso ? new Date(b.fecha_ingreso).getTime() : 0;
-  return tb - ta;
-});
   paquetes.forEach(p => {
     const card = document.createElement('div');
     card.className = 'multi-card';
