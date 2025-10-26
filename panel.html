@@ -477,6 +477,27 @@ button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbo
   transform: scale(1.05);
   transition: transform 0.2s ease;
 }
+  /* --- Embedded scroll y ajustes de popups responsive --- */
+.embedded-scroll {
+  max-height: 48vh;
+  overflow-y: auto;
+  padding-right: 8px;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+}
+
+/* Ajustes específicos para móviles */
+@media (max-width:420px) {
+  .embedded-scroll { max-height: 40vh; }
+  .pop-result .panel { max-width: 92%; width: 92%; padding: 12px; }
+  .pop-result .title { font-size: 1.05rem; }
+}
+
+/* pequeño ajuste al botón del popup para que destaque en mobile */
+.pop-result .btn-close { font-weight: 700; }
+
+/* Fin de ajustes */
+
 </style>
 </head>
 <body>
@@ -835,16 +856,18 @@ function showModalByElement(el){
   if (firstInput) setTimeout(()=>firstInput.focus(), 50);
 }
 
-function hideModalByElement(el){
+function hideModalByElement(el) {
   if (!el) return;
+  // quitar la clase visible para que CSS haga la transición de opacidad
   el.classList.remove('modal-visible');
-  el.style.display = 'none';
   el.setAttribute('aria-hidden', 'true');
   if (appWrapper) setInert(appWrapper, false);
-  // blur any active element inside
-  if (document.activeElement && el.contains(document.activeElement)) document.activeElement.blur();
+  // esperar la transición (300ms) y luego remover del layout
+  setTimeout(() => {
+    try { el.style.display = 'none'; } catch (e) {}
+    if (document.activeElement && el.contains(document.activeElement)) document.activeElement.blur();
+  }, 320);
 }
-
 // showResult: reusable pop
 function showResult(title, msg){
   const pop = $('popResult');
@@ -859,20 +882,42 @@ function showResult(title, msg){
 if ($('popResultClose')) $('popResultClose').addEventListener('click', ()=>hideModalByElement($('popResult')));
 
 // spinner
-function showSpinner(msg='Cargando...'){
+// spinner (mejorado: inicia temporizador y hace fade-out en hide)
+function showSpinner(msg = 'Cargando...') {
   const spin = $('spinnerOverlay');
   if (!spin) return;
   $('spinnerMsg').textContent = msg;
   spin.style.display = 'flex';
   spin.classList.add('modal-visible');
+  // iniciar temporizador de demora en operaciones DB (1 minuto por defecto)
+  startDbDelayTimer();
 }
-function hideSpinner(){
+function hideSpinner() {
   const spin = $('spinnerOverlay');
   if (spin) {
     spin.classList.remove('modal-visible');
-    spin.style.display = 'none';
+    // esperar la transición de opacidad antes de quitar del layout
+    setTimeout(() => { try { spin.style.display = 'none'; } catch (e) {} }, 320);
+  }
+  // cancelar temporizador en cuanto termine la operación
+  clearDbDelayTimer();
+}
+  // ---------- temporizador para detectar demoras en la DB ----------
+let dbDelayTimer = null;
+function startDbDelayTimer(timeout = 60000) {
+  clearDbDelayTimer();
+  dbDelayTimer = setTimeout(() => {
+    // muestra un popup amigable si la DB/recurso tarda demasiado
+    showResult('Aviso', 'Hay un retraso en los servidores ajeno a la página, intenta más tarde');
+  }, timeout);
+}
+function clearDbDelayTimer() {
+  if (dbDelayTimer) {
+    clearTimeout(dbDelayTimer);
+    dbDelayTimer = null;
   }
 }
+// ---------------------------------------------------------------
 
 // getNumberOrNull: small util
 function getNumberOrNull(id){
@@ -950,6 +995,8 @@ const loadingRecordatorios = $('loadingRecordatorios');
 async function cargarRecord() {
   loadingRecordatorios.style.display = 'block';
   listaRecordatorios.style.display = 'none';
+  // iniciar temporizador: si la DB no responde en 60s avisar al usuario
+startDbDelayTimer();
   try {
     const res = await fetch(`${API_BASE}/recordatorios`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -979,9 +1026,22 @@ async function cargarRecord() {
         listaRecordatorios.appendChild(div);
       });
     }
+    // Si hay muchos recordatorios, aplicar scroll embebido
+if (recordatorios.length > 5) {
+  listaRecordatorios.classList.add('embedded-scroll');
+} else {
+  listaRecordatorios.classList.remove('embedded-scroll');
+}
+// Si hay demasiados recordatorios, avisar al usuario para limpiar la DB
+if (recordatorios.length > 10) {
+  showResult('Aviso', 'Hay demasiados recordatorios, revisa qué recordatorios no necesitas y elimínalos, para mantener la base de datos lo más optimizada posible');
+}
+// operación completada: cancelar temporizador de demora
+clearDbDelayTimer();
     loadingRecordatorios.style.display = 'none';
     listaRecordatorios.style.display = 'block';
   } catch (err) {
+    clearDbDelayTimer();
     console.error('Error cargando recordatorios:', err);
     listaRecordatorios.innerHTML = '<p>No se pudieron cargar los recordatorios.</p>';
     loadingRecordatorios.style.display = 'none';
@@ -1229,6 +1289,7 @@ function tipoTextFromId(id) {
 async function cargarManejo() {
   listaManejo.innerHTML = '<p>Cargando paquetes...</p>';
   try {
+    startDbDelayTimer();
     const res = await fetch(`${API_BASE}/paquetes`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manejoData = await res.json();
@@ -1238,9 +1299,12 @@ manejoData.sort((a, b) => {
   const tb = b && b.fecha_ingreso ? new Date(b.fecha_ingreso).getTime() : 0;
   return tb - ta;
 });
+    // datos recibidos: cancelar temporizador de demora
+clearDbDelayTimer();
     currentManejoPage = 1;
     renderManejoPage();
   } catch(err){
+    clearDbDelayTimer();
     console.warn('Fallo al cargar paquetes desde API:', err);
     listaManejo.innerHTML = '<p>No se pudo cargar paquetes. Intenta más tarde.</p>';
     manejoData = [];
@@ -1261,6 +1325,12 @@ function filterManejoData(query){
 function renderManejoPage(){
   const q = manejoSearch.value || '';
   const filtered = filterManejoData(q);
+  // asegurar orden: más recientes primero por fecha_ingreso
+filtered.sort((a, b) => {
+  const ta = a && a.fecha_ingreso ? new Date(a.fecha_ingreso).getTime() : 0;
+  const tb = b && b.fecha_ingreso ? new Date(b.fecha_ingreso).getTime() : 0;
+  return tb - ta;
+});
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (currentManejoPage > totalPages) currentManejoPage = totalPages;
@@ -1299,6 +1369,12 @@ function renderManejoPage(){
   });
 
   // pagination
+  // Embedded scroll: cuando hay más de 5 resultados, convertir la lista en un contenedor scrolleable
+if (total > 5) {
+  listaManejo.classList.add('embedded-scroll');
+} else {
+  listaManejo.classList.remove('embedded-scroll');
+}
   if (total > PAGE_SIZE) {
     manejoPagination.style.display = 'flex';
     pageInfo.textContent = `Página ${currentManejoPage} de ${totalPages} — ${total} resultados`;
@@ -1421,7 +1497,8 @@ async function openManejoLightbox({ codigo, id }){
     const cb = lightboxManejo.querySelector('.close-lightbox-manejo');
     if (cb) setTimeout(()=>cb.focus(), 50);
   }
-
+// iniciar temporizador de demora en servidores (1 min)
+startDbDelayTimer();
   // fetch package info: prefer codigo query if available
   try {
     let paquete = null;
@@ -1513,11 +1590,15 @@ async function openManejoLightbox({ codigo, id }){
     }
 
     // show content
+    // operación completada: cancelar temporizador de demora
+clearDbDelayTimer();
     lmLoading.style.display = 'none';
     lmContent.style.display = 'block';
     lmSubtitle.textContent = paquete?.codigo_seguimiento ? `Código: ${paquete.codigo_seguimiento}` : '';
 
   } catch(err){
+    // fallback / error: cancelar temporizador para no dejarlo colgado
+clearDbDelayTimer();
     console.error('openManejoLightbox error', err);
     lmLoading.style.display = 'none';
     lmContent.style.display = 'block';
