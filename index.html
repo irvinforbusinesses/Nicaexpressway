@@ -1568,5 +1568,41 @@ if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', (e)=>{
 /* End SOLICITAR logic */
 
 </script>
+  <script>
+/* EXTERNAL SHELL: easy toggle.
+   To disable later: set USE_EXTERNAL=false OR remove this <script> block.
+*/
+(function(){
+  const USE_EXTERNAL = true; // <-- Cambia a false para desactivar
+  if(!USE_EXTERNAL) return;
+  const externalUrl = 'https://irvinforbusinesses.github.io/plantillacatalogo/';
+  const cacheBuster = '?_=' + Date.now();
+  const iframe = document.createElement('iframe');
+  iframe.id = 'externalShellFrame';
+  iframe.src = externalUrl + cacheBuster;
+  iframe.style.position = 'fixed';
+  iframe.style.inset = '0';
+  iframe.style.border = '0';
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.zIndex = '9999';
+  iframe.style.background = 'white';
+  iframe.style.boxSizing = 'border-box';
+  iframe.setAttribute('aria-hidden','false');
+  iframe.setAttribute('title','External shell');
+  const hideOriginal = () => {
+    document.querySelectorAll('body > *:not(#externalShellFrame)').forEach(el=>{
+      el.dataset._origDisplay = el.style.display || '';
+      el.style.display = 'none';
+    });
+  };
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.appendChild(iframe);
+    hideOriginal();
+    window.addEventListener('pageshow', (ev)=>{ if(ev.persisted) iframe.src = externalUrl + '?_=' + Date.now(); });
+  });
+})();
+</script>
+
 </body>
 </html>
