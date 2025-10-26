@@ -535,8 +535,8 @@ button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbo
 
   <!-- Nuevo campo opcional de código de seguimiento -->
   <div class="form-group">
-    <label for="codigo">Código de seguimiento (opcional, max 10 dígitos)</label>
-    <input type="text" id="codigo" name="codigo" maxlength="10" pattern="\d{0,10}" placeholder="Solo números">
+    <label for="codigo">Código de seguimiento (opcional)</label>
+   <input type="text" id="codigo" name="codigo" pattern="^\S+$" placeholder="Sin espacios">
   </div>
 
   <div class="form-group">
