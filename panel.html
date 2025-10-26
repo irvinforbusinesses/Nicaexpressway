@@ -1072,7 +1072,7 @@ if (formRecord) formRecord.addEventListener('submit', async (e) => {
   } catch (err) {
     hideSpinner();
     console.error('Error agregando recordatorio:', err);
-    showResult('Error', 'No se pudo agregar el recordatorio.');
+    showResult('Error', 'No se pudo agregar el recordatorio, intenta más tarde.');
   }
 });
 
@@ -1105,7 +1105,7 @@ if (btnConfirmEliminar) btnConfirmEliminar.addEventListener('click', async () =>
     } catch (err) {
       hideSpinner();
       console.error('Error eliminando recordatorio:', err);
-      showResult('Error', 'No se pudo eliminar el recordatorio.');
+      showResult('Error', 'No se pudo eliminar el recordatorio, intenta más tarde.');
     }
   }
 });
