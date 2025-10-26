@@ -1071,8 +1071,8 @@ if (formRecord) formRecord.addEventListener('submit', async (e) => {
     cargarRecord();
   } catch (err) {
     hideSpinner();
-    console.error('Error agregando recordatorio, intenta más tarde:', err);
-    showResult('Error', 'No se pudo agregar el recordatorio, intenta más tarde.');
+    console.error('Error agregando recordatorio:', err);
+    showResult('Error', 'No se pudo agregar el recordatorio.');
   }
 });
 
