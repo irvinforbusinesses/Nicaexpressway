@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Panel del Operador — Manejo de Pedidos</title>
+<title> Manejo de Pedidos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <!-- FAVICONS: pegar dentro de <head> -->
+<link rel="icon" type="image/png" sizes="16x16" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="icon" type="image/png" sizes="32x32" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="apple-touch-icon" sizes="180x180" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<meta name="theme-color" content="#E8F0F5">
+  <!-- Open Graph / Social preview (poner dentro de <head>) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Nica ExpressWay" />
+<meta property="og:description" content="Gestión de envíos - Nica ExpressWay" />
+<meta property="og:image" content="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" />
 <style>
 :root {
   --color-bg: #E8F0F5;
@@ -474,9 +484,9 @@ button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbo
 <div id="app" tabindex="-1"><!-- wrapper para inert/blur si hiciera falta -->
 
 <header>
-<h1>Panel del Operador</h1>
+<h1>Gestión de Envíos</h1>
 <nav>
-  <button id="btnInicio">Inicio</button>
+  <button id="btnInicio">Recordatorios</button>
   <!-- legacy btnPedidos hidden via CSS; a new button below -->
   <button id="btnManejo" class="inactive">Manejo de pedidos</button>
   <button id="btnAgregar" class="inactive">Agregar Paquete</button>
@@ -487,7 +497,7 @@ button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbo
 
 <!-- Inicio: Recordatorios -->
 <section id="inicio" class="active section-fade">
-<h2>Inicio</h2>
+<h2>Recordatorios</h2>
 <div id="loadingRecordatorios" style="display: block;">Cargando recordatorios, espera...</div>
 <div id="listaRecordatorios" style="display: none;">
   <p>No hay recordatorios por el momento.</p>
@@ -579,8 +589,8 @@ Esta plataforma es de prueba, dog. Acción no disponible por el momento.
 
   <!-- Código se mantiene (la sección "Actualizar" puede pedir código) -->
  <div class="form-group">
-    <label for="codigoSeg">Código de seguimiento (obligatorio, max 10 dígitos)</label>
-    <input type="text" id="codigoSeg" name="codigoSeg" maxlength="10" pattern="\d{1,10}" placeholder="Solo números" required>
+    <label for="codigoSeg">Código de seguimiento (obligatorio)</label>
+   <input type="text" id="codigoSeg" name="codigoSeg" placeholder="Ingresa el código" required>
   </div>
 
   <div class="form-group">
