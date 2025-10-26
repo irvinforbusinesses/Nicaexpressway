@@ -536,19 +536,32 @@ button:hover, a:hover, .btnEliminar:hover, .close-lightbox:hover, .close-lightbo
   <!-- Nuevo campo opcional de código de seguimiento -->
   <div class="form-group">
     <label for="codigo">Código de seguimiento (opcional, max 10 dígitos)</label>
-    <input type="text" id="codigo" name="codigo" maxlength="10" pattern="\d{0,10}" placeholder="Solo números">
+   <input type="text" id="codigo" name="codigo" pattern="^\S+$" placeholder="Sin espacios">
   </div>
 
-  <div class="form-group">
-    <label for="telefonoDigits">Teléfono</label>
-    <div class="tooltip">Selecciona (505) o (1) y luego ingresa de 8 a 10 dígitos</div>
-    <div class="phone-row">
-      <select id="telCode" name="telCode" required>
-        <option value="(505)">(505)</option>
-        <option value="(1)">(1)</option>
-      </select>
-      <input type="tel" id="telefonoDigits" name="telefonoDigits" placeholder="Ej: 12345678"
-             inputmode="numeric" pattern="[0-9]{8,10}" title="Ingresa solo números (8 a 10 dígitos)" required>
+ <div class="form-group">
+  <label for="telefonoDigits">Teléfono</label>
+  <div class="tooltip">Selecciona (505) o (1) y luego ingresa solo dígitos (sin espacios)</div>
+  <div class="phone-row">
+    <select id="telCode" name="telCode" required>
+      <option value="(505)">(505)</option>
+      <option value="(1)">(1)</option>
+    </select>
+    <input type="tel" id="telefonoDigits" name="telefonoDigits" 
+           placeholder="Ej: 12345678"
+           inputmode="numeric" 
+           pattern="^\d+$"
+           title="Ingresa solo números (sin espacios)" 
+           required>
+  </div>
+</div>
+
+<!-- Campo de código de seguimiento (ya no obligatorio y sin espacios) -->
+<div class="form-group">
+  <label for="codigo">Código de seguimiento (opcional, sin espacios)</label>
+  <input type="text" id="codigo" name="codigo" pattern="^\S+$" placeholder="Sin espacios">
+</div>
+
     </div>
   </div>
 
