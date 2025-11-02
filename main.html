@@ -444,10 +444,49 @@ nav button#btnCotizar:hover { transform: translateY(-4px); }
 .landing-top { text-align:center; padding: 0.6rem 0 0.8rem; }
 .landing-subtitle { font-family: 'Poppins',sans-serif; color:var(--color-accent); font-weight:700; margin-bottom:.6rem; }
 
-/* Logos carousel (single central image that fades) */
-.logos-carousel { height:72px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; margin:0 auto 0.6rem; }
-.logos-carousel img { max-height:56px; opacity:0; transform: translateY(6px); transition:opacity .3s ease, transform .3s ease; filter: drop-shadow(0 6px 12px rgba(47,82,143,0.08)); }
-.logos-carousel img.active { opacity:1; transform: translateY(0); }
+/* Logos carousel (single central image that fades) *//* Logos carousel — ocupa más ancho y las imágenes llenan el área */
+.logos-carousel {
+  /* 200vw hace que sea el doble del ancho de la ventana y visible centrado */
+  width: 200vw;
+  max-width: none !important;   /* evita que un padre limite el tamaño */
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;            /* permitimos que se vea fuera si es necesario */
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);  /* centra visualmente el ancho mayor */
+  margin: 0 auto 0.6rem;
+  box-sizing: border-box;
+}
+
+/* Si tus imágenes están dentro de cada .slide (recomendado) */
+.logos-carousel .slide {
+  flex: 0 0 100%;   /* cada "slide" ocupa 100% del contenedor visible del carousel */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Imagen para que ocupe TODO el espacio disponible (se estira o encoge) */
+.logos-carousel img {
+  display: block;     /* quita espacios en línea inesperados */
+  width: 100%;
+  height: 100%;
+  object-fit: fill;   /* se estira/encoge para rellenar sin mantener proporción */
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .3s ease, transform .3s ease;
+  filter: drop-shadow(0 6px 12px rgba(47,82,143,0.08));
+  max-width: none !important;  /* evita límites anteriores */
+  max-height: none !important;
+}
+
+.logos-carousel img.active {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 /* Services carousel: horizontal track, cards visually large for mobile */
 .services-wrapper { overflow:hidden; width:100%; margin-top:.5rem; }
