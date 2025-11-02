@@ -1,0 +1,1915 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nica ExpressWay</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <!-- FAVICONS: pegar dentro de <head> -->
+<link rel="icon" type="image/png" sizes="16x16" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="icon" type="image/png" sizes="32x32" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<link rel="apple-touch-icon" sizes="180x180" href="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true">
+<meta name="theme-color" content="#E8F0F5">
+  <!-- Open Graph / Social preview (poner dentro de <head>) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Nica ExpressWay" />
+<meta property="og:description" content="Gestiona tus envíos desde USA a Nicaragua: cotiza, solicita y rastrea tu paquete de forma sencilla." />
+<meta property="og:image" content="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" />
+<style>
+:root{
+  --color-bg:#E8F0F5;
+  --color-accent:#2F528F; /* header / títulos */
+  --lapis:#06B6D4; /* color auxiliar */
+  --text:#1A1A1A;
+
+  /* CTA / naranja */
+  --cta-color: #FF6B4A;        /* saturado (estilo único cuando .show-cotizar) */
+  --cta-color-active: #FF7A35; /* tono presionado */
+  --cta-active-light: #FFD8B0; /* naranja claro cuando la sección Cotizar está activa (no .inactive) */
+
+  /* nav / secciones */
+  --nav-inactive: #a0b6e0;        /* tono gris-azulado inactivo */
+  --section-active-color: #6B7A90; /* azul grisáceo para botones activos (Inicio/Seguimiento) */
+
+  /* Sub-containers (ahora igual que search overlay: un gris muy suave) */
+  --sub-bg: #f3f7fb; /* <-- cambiado: coincide con "Buscando tu paquete, espera..." */
+}
+
+/* Reset */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--color-bg);
+  color:var(--text);
+  padding:1rem;
+  max-width:500px;
+  margin:auto;
+  padding-bottom:120px;
+}
+header{text-align:center;margin-bottom:1.5rem}
+h1{font-family:'Poppins',sans-serif;font-size:1.8rem;color:var(--color-accent)}
+nav{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
+nav button{flex:1;background:var(--color-accent);color:#fff;border:none;padding:.75rem;font-weight:700;border-radius:8px;cursor:pointer}
+
+/* Inactivo: matchea la variable central y añade sombra ligera */
+nav button.inactive{
+  background:var(--nav-inactive);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+  color:#fff;
+}
+
+/* sections */
+section{
+  background:#FFFFFF;
+  padding:1.5rem;
+  border-radius:12px;
+  margin-top:1rem;
+  display:none;
+  opacity:0;
+  transform:translateY(12px);
+  animation: fadeIn 0.72s forwards; /* duración doblada */
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
+}
+section.active{display:block}
+@keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
+
+/* Inicio linktree - small tweaks */
+#inicio{text-align:center;padding:3rem 4rem}
+#inicio img{width:100px;height:100px;border-radius:50%;display:block;margin:0 auto 1rem;object-fit:cover;box-shadow:0 6px 18px rgba(47,82,143,0.18)}
+.linktree-buttons{display:flex;flex-direction:column;gap:1rem}
+.link-btn{display:flex;justify-content:center;align-items:center;background:var(--color-accent);color:#fff;text-decoration:none;padding:.96rem 6rem;border-radius:999px;font-weight:700;font-size:1rem;max-width:220px;margin:0.3rem auto;box-shadow:0 2px 6px rgba(0,0,0,0.12);transition:transform .12s}
+.link-btn:hover{transform:translateY(-3px);background:#1f3a66}
+
+/* Form basics */
+label{display:block;margin:1rem 0 .5rem;font-weight:600}
+select,input,textarea{width:100%;padding:.75rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
+input::placeholder { color:#9aa3ad; }
+textarea { resize: vertical; }
+button.calc-btn{margin-top:1rem;background:var(--color-accent);color:white;border:none;padding:.75rem;font-size:1rem;border-radius:8px;width:100%;font-weight:bold;cursor:pointer}
+.resultado{margin-top:1rem;font-size:1.05rem;font-weight:600}
+footer { color: #888; text-align: center; padding: 0.8rem 0.5rem; font-size: 0.8rem; margin-top: 1.5rem; }
+
+/* Seguimiento form layout */
+.row{display:flex;gap:.5rem}
+.col{flex:1}
+
+/* small flag+phone */
+.phone-row{display:flex;gap:.5rem}
+.phone-row select{width:35%;padding:.6rem;border-radius:8px}
+.phone-row input{flex:1}
+
+/* === SUB-CONTAINERS (RESULTADOS) - ahora usan el mismo color que el overlay de búsqueda === */
+.package-box{
+  margin-top:1rem;
+  padding:1rem;
+  border-radius:10px;
+  background: var(--sub-bg); /* ahora coincide con el "Buscando tu paquete" (#f3f7fb) */
+  border:1px solid rgba(16,24,40,0.04);
+}
+.package-title{font-weight:700;margin-bottom:.5rem;color:var(--color-accent)}
+.details-row{display:flex;justify-content:space-between;gap:.5rem;margin-top:.4rem;font-size:.95rem}
+.details-row div{flex:1;text-align:left}
+
+/* mini-spinner / resultado spinner: usar mismo fondo para consistencia */
+.mini-spinner {
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:8px;background:var(--sub-bg);border:1px solid rgba(16,24,40,0.04);
+}
+.mini-spinner .spinner-small {
+  width:28px;height:28px;border-radius:50%;border:3px solid rgba(47,82,143,0.12);border-top-color:var(--color-accent);animation:spin 1s linear infinite;
+}
+
+/* timeline */
+.timeline{position:relative;padding-left:24px;border-left:2px solid rgba(47,82,143,0.08);margin-bottom:.5rem}
+.timeline-item{position:relative;padding:8px 12px;margin-bottom:.5rem}
+.timeline-item::before{content:"";position:absolute;left:-11px;top:8px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--color-accent)}
+.timeline-item .state{font-weight:700}
+.timeline-item .subtext{font-size:.9rem;color:#555;margin-top:.25rem}
+.timeline-item .fecha{font-size:.85rem;color:#666;margin-top:.25rem}
+
+/* blinking mini section for listo_recoger */
+.blink {
+  animation: blinkAnim 0.9s step-start 0s infinite;
+  box-shadow:0 0 0 4px rgba(47,82,143,0.06) inset;
+  border-radius:8px;
+}
+@keyframes blinkAnim {
+  50% { opacity: 0.25; transform: translateY(-1px); }
+}
+
+/* confetti container (z-index aumentado para quedar por encima de modals) */
+#confettiWrap{pointer-events:none;position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:6000}
+
+/* small utility */
+.small-muted{font-size:.9rem;color:#666;margin-top:.25rem}
+.center{text-align:center}
+
+/* responsive tweaks */
+@media (max-width:420px){ .link-btn{max-width:100%} .phone-row select{width:40%} }
+
+/* waiting / spinners */
+#waitingPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
+#waitingPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
+.waiting-circle { width:76px; height:76px; border-radius:999px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; background: rgba(47,82,143,0.06); }
+/* spinner uses color of title (var(--color-accent)) */
+.spinner { width:36px; height:36px; border-radius:50%; border:4px solid rgba(47,82,143,0.18); border-top-color: var(--color-accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* confirm pop (kept) */
+#confirmPop { position: fixed; left:50%; top:50%; transform: translate(-50%,-50%) scale(.98); background: #fff; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:3000; width:88%; max-width:360px; display:none; opacity:0; transition: opacity .28s ease, transform .28s ease; text-align:center; }
+#confirmPop.show { display:block; opacity:1; transform: translate(-50%,-50%) scale(1); }
+.check-icon { width:72px;height:72px;border-radius:999px;margin:0 auto 0.6rem;display:flex;align-items:center;justify-content:center;background:rgba(47,82,143,0.08); }
+.check-icon svg { display:block; }
+
+.lightbox-loading { padding:10px 14px; border-radius:10px; background:var(--sub-bg); box-shadow:0 8px 24px rgba(0,0,0,0.12); display:flex;align-items:center;gap:12px; justify-content:center; }
+
+/* multi-cards */
+.multi-list { margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; }
+.multi-card {
+  background: #fbfcfe;
+  border: 1px solid #eef3f8;
+  padding: 0.8rem;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.multi-card:hover { transform: translateY(-3px); box-shadow:0 8px 18px rgba(31,58,102,0.06); }
+.multi-card .left { display:flex; flex-direction:column; gap:6px; }
+.multi-card .title { font-weight:700; color:var(--color-accent); }
+.multi-card .subtitle { font-size:0.9rem; color:#666; }
+.multi-card .right { font-weight:700; color:var(--color-accent); font-size:0.95rem; }
+
+/* lightbox */
+#packageLightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  padding: 1rem;
+}
+#packageLightbox {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.16);
+  max-height: 86vh;
+  overflow-y: auto;
+  position: relative;
+}
+#packageLightbox .close-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #fff; border: 1px solid #e6e9ef;
+  width: 38px; height:38px; border-radius:50%; font-size:18px; cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+#packageLightbox h3 { margin-bottom: 6px; color: var(--color-accent); font-family: 'Poppins', sans-serif; }
+.package-info-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
+.package-info-row .info { flex: 1 1 120px; min-width:110px; background: var(--sub-bg); padding:10px;border-radius:8px;border:1px solid rgba(16,24,40,0.04); box-sizing:border-box; }
+.package-info-row .info .small-muted { margin-bottom:6px; display:block; }
+
+/* CTA "Cotizar" initial state and special CTA color applied later */
+#cotizarCtaWrap { display:flex; justify-content:center; margin-top:12px; }
+.wa-cta {
+  display:inline-flex; align-items:center; justify-content:center;
+  background: var(--color-accent); color:#fff; padding:12px 18px; border-radius:999px;
+  text-decoration:none; font-weight:700; font-size:1rem; box-shadow:0 6px 18px rgba(31,58,102,0.14); opacity:0; transform: translateY(6px);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.wa-cta.visible { opacity:1; transform: translateY(0); }
+@keyframes floatLoop { 0%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} 100%{ transform: translateY(0);} }
+.wa-cta.float { animation: floatLoop 3s ease-in-out infinite; }
+
+/* subtitle footer */
+.subtitle-footer {
+  text-align:center;
+  color:#888;
+  font-size:0.85rem;
+  margin:8px 0 12px;
+  font-family: 'Poppins',sans-serif;
+  font-weight:600;
+  position:relative;
+  padding-bottom:10px;
+}
+.subtitle-footer::after{
+  content:"";
+  display:block;
+  height:1px;
+  width:70%;
+  margin:8px auto 0;
+  background:#e6e9ef;
+  border-radius:2px;
+}
+
+.modal-close-btn { margin-top:12px; background:#888;color:#fff;border:none;padding:.6rem .8rem;border-radius:8px; cursor:pointer; }
+
+.hidden{ display:none !important; }
+
+/* ---- CTA principal (botón "Cotizar" en nav) ---- */
+/* Starts equal to other inactives */
+#btnCotizar {
+  background: var(--nav-inactive); /* arranca igual que inactivos */
+  color: #fff;
+  opacity: 1;
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16); /* coincide con inactive shadow */
+  border-radius: 10px;
+  position: relative;
+  z-index: 5;
+  transition: opacity .28s ease, transform .28s ease, box-shadow .24s ease, background .24s ease;
+}
+
+/* shown/unique state after timer (CTA color saturado) */
+#btnCotizar.show-cotizar {
+  background: var(--cta-color);
+  transform: translateY(-6px); /* "flotando" */
+  box-shadow: 0 16px 40px rgba(255,107,74,0.20), 0 8px 20px rgba(255,107,74,0.10);
+}
+#btnCotizar.show-cotizar::after{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  z-index:-1;
+  border-radius:12px;
+  background: linear-gradient(90deg, rgba(255,107,74,0.14), rgba(255,107,74,0.06));
+  box-shadow: 0 0 26px 6px rgba(255,107,74,0.12);
+  animation: glowBorder 2.6s linear infinite;
+  opacity:0.95;
+  pointer-events:none;
+}
+
+/* Hover / active tone for the CTA (slightly different orange to indicate press) */
+#btnCotizar.show-cotizar:hover,
+#btnCotizar.show-cotizar:focus {
+  background: var(--cta-color-active);
+  box-shadow: 0 20px 48px rgba(255,122,53,0.22), 0 10px 26px rgba(255,122,53,0.10);
+}
+#btnCotizar.show-cotizar:active {
+  transform: translateY(-4px) scale(.998);
+  background: color-mix(in srgb, var(--cta-color-active) 85%, black 10%); /* sutilmente más oscuro al presionar */
+  box-shadow: 0 14px 34px rgba(255,122,53,0.20);
+}
+
+/* Hover ligero adicional (UX) */
+#btnCotizar:hover {
+  transform: translateY(-8px) scale(1.01);
+}
+
+/* =========================
+   NAV BUTTON ACTIVE BEHAVIOR
+   - Inicio & Seguimiento (cuando están activos) toman azul grisáceo
+   - Cotizar cuando SU SECCIÓN está activa toma naranja claro
+   ========================= */
+
+/* Inicio & Seguimiento: color cuando no tengan la clase .inactive */
+nav button#btnInicio:not(.inactive),
+nav button#btnSeguimiento:not(.inactive) {
+  background: var(--section-active-color) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.22) !important;
+  transition: transform .12s ease, box-shadow .18s ease, background .18s ease;
+}
+/* pressed / active visual feedback */
+nav button#btnInicio:not(.inactive):active,
+nav button#btnSeguimiento:not(.inactive):active {
+  filter: brightness(0.92);
+  transform: translateY(-1px) scale(.998);
+}
+
+/* Mantener inactivos con nav-inactive */
+nav button.inactive { background: var(--nav-inactive) !important; }
+
+/* COTIZAR: cuando su sección está activa (btn no .inactive) -> naranja claro + borde blanco delgado en todos los bordes */
+nav button#btnCotizar:not(.inactive) {
+  background: var(--cta-active-light) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+  border-left: 2px solid rgba(255,255,255,0.75);
+  border-right: 2px solid rgba(255,255,255,0.75);
+  border-top: 2px solid rgba(255,255,255,0.75);    /* agregado */
+  border-bottom: 2px solid rgba(255,255,255,0.75); /* agregado */
+  transition: background .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+nav button#btnCotizar:not(.inactive):active {
+  transform: translateY(-2px) scale(.998);
+  background: var(--cta-color-active) !important;
+}
+
+/* When timer applies the signature .show-cotizar, that style ( --cta-color ) dominates and border becomes more opaque */
+#btnCotizar.show-cotizar {
+  background: var(--cta-color) !important;
+  transform: translateY(-6px) !important;
+  box-shadow: 0 16px 40px rgba(255,107,74,0.20) !important;
+  border-left: 2px solid rgba(255,255,255,0.92) !important;
+  border-right: 2px solid rgba(255,255,255,0.92) !important;
+  border-top: 2px solid rgba(255,255,255,0.92) !important;    /* agregado */
+  border-bottom: 2px solid rgba(255,255,255,0.92) !important; /* agregado */
+}
+
+/* small hover niceties */
+nav button#btnCotizar:hover { transform: translateY(-4px); }
+
+/* Center seguimiento title if present */
+#seguimientoTitle { text-align:center; margin-bottom:0.6rem; }
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  #introOverlay { transition: none; }
+}
+
+/* --- FIX Intro overlay: tamaño y contención --- */
+#introOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  z-index: 7000;
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity .6s ease;
+  padding: 1rem;                 /* evita que el contenido pegue a los bordes en móviles */
+}
+
+/* Cuando la overlay tiene la clase .show, hacemos visibles logo/title */
+#introOverlay.show #introLogo,
+#introOverlay.show #introTitle {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#introInner {
+  text-align: center;
+  transform-origin: center;
+  transition: transform .8s cubic-bezier(.2,.9,.2,1), opacity .6s;
+  width: 100%;
+  max-width: 420px;              /* límite explícito del tamaño del intro */
+  box-sizing: border-box;
+  padding: 8px 12px;
+}
+
+#introLogo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 12px;
+  opacity: 0;
+  transform: translateY(6px) scale(.98);
+  transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .5s;
+  max-width: 100%;               /* evita overflow en pantallas pequeñas */
+}
+
+#introTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  color: var(--color-accent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: transform .6s .06s cubic-bezier(.2,.9,.2,1), opacity .5s .06s;
+}
+
+  /* Fade-out: cuando se añade .hide el overlay hace transición de opacidad */
+#introOverlay {
+  transition: opacity .6s ease;
+  opacity: 1; /* estado visible por defecto */
+}
+
+/* Cuando queramos ocultarlo */
+#introOverlay.hide {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* smaller text on tight layout so cards align vertically when necessary */
+@media (max-width:420px) {
+  .package-info-row { gap:8px; }
+  .package-info-row .info { flex: 1 1 45%; min-width: 45%; padding:8px; }
+  .package-info-row .info div { font-size:0.95rem; }
+}
+  /* --- INICIO: estilos específicos para Landing dentro de #inicio --- */
+/* contenedor principal de la nueva landing (no rompe el layout actual) */
+#inicioLanding { display:flex;flex-direction:column;gap:1rem; align-items:stretch; }
+
+.landing-top { text-align:center; padding: 0.6rem 0 0.8rem; }
+.landing-subtitle { font-family: 'Poppins',sans-serif; color:var(--color-accent); font-weight:700; margin-bottom:.6rem; }
+
+/* Logos carousel (single central image that fades) */
+.logos-carousel { height:72px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; margin:0 auto 0.6rem; }
+.logos-carousel img { max-height:56px; opacity:0; transform: translateY(6px); transition:opacity .3s ease, transform .3s ease; filter: drop-shadow(0 6px 12px rgba(47,82,143,0.08)); }
+.logos-carousel img.active { opacity:1; transform: translateY(0); }
+
+/* Services carousel: horizontal track, cards visually large for mobile */
+.services-wrapper { overflow:hidden; width:100%; margin-top:.5rem; }
+.services-track { display:flex; gap:0.9rem; transition: transform .6s cubic-bezier(.2,.9,.2,1); will-change: transform; padding:6px 2px; }
+.service-card {
+  min-width:84%;
+  flex:0 0 84%;
+  background:#fbfcfe;
+  border-radius:12px;
+  padding:12px;
+  border:1px solid #eef3f8;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow: 0 8px 18px rgba(31,58,102,0.04);
+}
+.service-left{ flex:1; }
+.service-left .card-title{ font-weight:700; color:var(--color-accent); margin-bottom:6px; font-size:1.05rem; }
+.service-left .card-desc{ color:#444; font-size:0.95rem; margin-bottom:8px; }
+.service-left .card-price{ color:var(--color-accent); font-weight:800; margin-left:6px; display:inline-block; }
+
+/* icon area (right), large but with margin so text breathes */
+.service-right{ width:42%; display:flex; align-items:center; justify-content:center; }
+.service-right img{ max-width:88%; max-height:76px; opacity:0.98; }
+
+/* dots indicator centered below cards */
+.services-dots{ display:flex; gap:8px; justify-content:center; margin-top:.6rem; }
+.services-dots button{ width:8px;height:8px;border-radius:999px;border:none;background:#d8e6f6; cursor:pointer; padding:0; }
+.services-dots button.active{ background:var(--color-accent); transform:scale(1.05); }
+
+/* bottom fade hint to indicate continuation (semi-transparent graffiti feel) */
+.inicio-bottom-fade {
+  height:48px;
+  margin-top:8px;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(232,240,245,0.95) 60%, rgba(232,240,245,1) 100%);
+  border-radius: 0 0 12px 12px;
+  position:relative;
+}
+/* subtle grafitti stroke (very faint) */
+.inicio-graffiti {
+  position:absolute; left:8px; right:8px; bottom:8px; height:6px; border-radius:6px;
+  background: linear-gradient(90deg, rgba(47,82,143,0.05), rgba(255,107,74,0.03));
+  opacity:.85;
+}
+
+/* reveal animations for when intro ends */
+.inicio-appearing { opacity:0; transform:translateY(8px); transition:opacity .4s ease, transform .4s ease; }
+.inicio-appearing.visible { opacity:1; transform:none; }
+
+/* preserve responsive behavior */
+@media (min-width:520px) {
+  .service-card{ min-width:46%; flex:0 0 46%; padding:16px; }
+  .service-right{ width:36%; }
+}
+</style>
+
+
+</head>
+<body>
+
+<!-- Intro FLIP overlay (aparece al abrir y anima al header) -->
+<div id="introOverlay" aria-hidden="true">
+  <div id="introInner">
+    <img id="introLogo" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway" />
+    <div id="introTitle">Nica ExpressWay</div>
+  </div>
+</div>
+
+<header>
+  <h1>Nica ExpressWay</h1>
+  <nav>
+    <button id="btnInicio">Inicio</button>
+    <button id="btnCotizar" class="inactive">Cotizar</button>
+    <button id="btnSolicitar" class="inactive" style="display:none;" title="Oculto por solicitud del cliente (no borrado)">Solicitar</button>
+    <button id="btnSeguimiento" class="inactive">Seguimiento</button>
+  </nav>
+</header>
+
+<!-- INICIO -->
+<!-- INICIO -->
+<section id="inicio" class="active">
+  <div id="inicioLanding">
+    <!-- TOP: logos rotativos -->
+    <div class="landing-top inicio-appearing" id="landingTop">
+      <h2 class="landing-subtitle" id="landingSubtitle">Nos encargamos de tus encomiendas hechas en:</h2>
+      <div class="logos-carousel" id="logosCarousel" aria-hidden="false">
+        <!-- las imágenes se actualizarán por JS; dejo un img por accesibilidad -->
+        <img src="https://cdn.simpleicons.org/shein/2F528F" alt="Shein logo" class="logo-slide active" />
+      </div>
+    </div>
+
+    <!-- SERVICES: carrusel de tarjetas -->
+    <div class="landing-services inicio-appearing" id="landingServices">
+      <h3 class="landing-subtitle" id="servicesTitle">Te las hacemos llegar vía:</h3>
+      <div class="services-wrapper" aria-roledescription="carousel">
+        <div class="services-track" id="servicesTrack">
+          <!-- Aérea -->
+          <div class="service-card" data-card="0" role="group" aria-label="Aérea">
+            <div class="service-left">
+              <div class="card-title">Aérea</div>
+              <div class="card-desc">Te llevamos paquetes ligeros y urgentes en 4-7 días a tan sólo <span class="card-price">3.5 USD</span></div>
+            </div>
+            <div class="service-right">
+              <img src="https://cdn.simpleicons.org/airplane/2F528F" alt="Aéreo icon">
+            </div>
+          </div>
+
+          <!-- Marítima -->
+          <div class="service-card" data-card="1" role="group" aria-label="Marítima">
+            <div class="service-left">
+              <div class="card-title">Marítima</div>
+              <div class="card-desc">Te llevamos tus paquetes grandes de forma económica entre 7 a 15 días por <span class="card-price">USD 5</span></div>
+            </div>
+            <div class="service-right">
+              <img src="https://cdn.simpleicons.org/shoal/2F528F" alt="Marítima icon">
+            </div>
+          </div>
+
+          <!-- Tarifas Especiales -->
+          <div class="service-card" data-card="2" role="group" aria-label="Tarifas Especiales">
+            <div class="service-left">
+              <div class="card-title">Tarifas Especiales</div>
+              <div class="card-desc">Maximizamos tus ganancias en tu negocio con tarifas especiales.</div>
+              <div style="margin-top:6px;font-weight:700;color:var(--color-accent);">Solicita información! <br/>
+                <a id="waSpecialLink" href="https://wa.me/50577079035?text=Hola,%20Nicaexpressway,%20me%20gustaría%20información%20acerca%20de%20las%20tarifas%20especiales." target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:4px;text-decoration:none;color:var(--color-accent);font-weight:800;">Contactarnos con un click aquí</a>
+              </div>
+            </div>
+            <div class="service-right">
+              <img src="https://cdn.simpleicons.org/savings/2F528F" alt="Ahorros icon">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- dots -->
+      <div class="services-dots" id="servicesDots" role="tablist" aria-hidden="false"></div>
+    </div>
+
+    <!-- Zona original (logo + botones) queda abajo, aparece con scroll -->
+    <div id="inicioOriginal" class="inicio-appearing" style="padding-top:0.6rem;">
+      <img id="logoMain" src="https://github.com/Irvyandl/VirtualAssistance/blob/main/assets/visuals/logo.jpg?raw=true" alt="Logo Nica Expressway">
+      <p style="margin-bottom:1.25rem;">Conéctate con nosotros y mantente al día con nuestras ofertas y anuncios!</p>
+      <div class="linktree-buttons" id="linktreeOriginal">
+        <a class="link-btn" href="https://www.instagram.com/nicaexpressway/" target="_blank">Instagram</a>
+        <a class="link-btn" href="https://www.facebook.com/profile.php?id=61577870368716" target="_blank">Facebook</a>
+        <a class="link-btn" href="https://wa.me/50577079035" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- fade / graffiti hint al final -->
+    <div class="inicio-bottom-fade" aria-hidden="true">
+      <div class="inicio-graffiti" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<!-- COTIZAR -->
+<section id="cotizar">
+  <h2>Cotiza tus pedidos.</h2>
+
+  <div style="max-width:420px;margin:0 auto;">
+    <label for="tipoEnvio">Selecciona el tipo de envío:</label>
+    <select id="tipoEnvio">
+      <option value="aereo">Aéreo</option>
+      <option value="maritimo">Marítimo</option>
+    </select>
+
+    <label for="peso">Peso aproximado (libras):</label>
+    <input type="number" id="peso" placeholder="Ej: 5" inputmode="numeric" />
+
+    <button class="calc-btn" id="btnCalcularMain">Calcular</button>
+
+    <div id="resultado" class="package-box" style="text-align:center;margin-top:12px;display:none"></div>
+  </div>
+
+  <!-- CTA: aparecerá después del cálculo exitoso -->
+  <div id="cotizarCtaWrap" style="display:flex;justify-content:center;">
+    <!-- inserted by JS -->
+  </div>
+</section>
+
+<!-- SOLICITAR (se deja la sección intacta pero el botón nav está oculto) -->
+<section id="solicitar">
+  <h2>Solicita tu pedido</h2>
+
+  <label for="nombreSolicitar">Nombre</label>
+  <input type="text" id="nombreSolicitar" placeholder="Ej: Lester Gamez">
+
+  <label for="telCodeSolicitar">Teléfono</label>
+  <div class="phone-row">
+    <select id="telCodeSolicitar">
+      <option value="+505">Nicaragua (+505)</option>
+      <option value="+1">USA (+1)</option>
+    </select>
+    <input type="tel" id="telefonoSolicitar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
+  </div>
+
+  <label for="plataformaSolicitar">Plataforma / Agencia</label>
+  <input type="text" id="plataformaSolicitar" placeholder="Ej: Shein">
+
+  <label for="descripcionSolicitar">Descripción (opcional)</label>
+  <textarea id="descripcionSolicitar" rows="2" placeholder="Ej: Ropa, perfumes, etc"></textarea>
+
+  <label for="tipoEnvioSolicitar">Tipo de envío</label>
+  <select id="tipoEnvioSolicitar">
+    <option value="aereo">Aéreo</option>
+    <option value="maritimo">Marítimo</option>
+  </select>
+
+  <label for="pesoSolicitar">Peso aproximado (libras)</label>
+  <input type="number" id="pesoSolicitar" placeholder="Ej: 2.0" step="0.1" min="0">
+
+  <button id="btnCalcularSolicitar" class="calc-btn">Solicitar</button>
+  <button id="btnConfirmarSolicitar" class="calc-btn" style="display:none;background:#1f3a66;">Confirmar solicitud</button>
+
+  <!-- Recibo -->
+  <div id="reciboSolicitar" aria-live="polite">
+    <div class="line"><div>Precio por libra de envío</div><div id="rcPrecioLibra">-</div></div>
+    <div class="line"><div>Libras totales</div><div id="rcLibras">-</div></div>
+    <div class="line"><div><strong>Total</strong></div><div id="rcTotal"><strong>-</strong></div></div>
+    <div class="estimado" id="rcEstimado"></div>
+  </div>
+
+</section>
+
+<!-- SEGUIMIENTO (actualizado y reordenado según pedido) -->
+<section id="seguimiento">
+  <h2 id="seguimientoTitle">Maneja tus pedidos</h2>
+
+  <div class="subtitle-footer">Busca por tu nombre o teléfono.</div>
+
+  <label for="nombreBuscar">Nombre y Apellido</label>
+  <input type="text" id="nombreBuscar" placeholder="Ej: Lester Gamez">
+
+  <label for="telefonoBuscar">Teléfono (8-10 dígitos)</label>
+  <div class="phone-row" style="margin-bottom:0.5rem;">
+    <select id="telCodeBuscar">
+      <option value="(505)">Nicaragua (505)</option>
+      <option value="(1)">USA (1)</option>
+    </select>
+    <input type="tel" id="telefonoBuscar" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]{8,10}">
+  </div>
+
+  <div class="subtitle-footer" style="margin-top:8px;">O busca un paquete en específico con su código </div>
+
+  <label for="codigo">Tu código de seguimiento</label>
+  <input type="text" id="codigo" placeholder="Ej: ABC123">
+
+  <div class="row" style="gap:.6rem;margin-top:.6rem;">
+    <div class="col"><button id="btnBuscar" class="calc-btn">Buscar</button></div>
+    <div class="col"><button id="btnLimpiar" class="calc-btn" style="background:#888;">Limpiar</button></div>
+  </div>
+
+  <div id="searchOverlay" style="display:none;margin-top:1rem;padding:.9rem;border-radius:8px;background:#f3f7fb;text-align:center;">
+    <strong>Buscando tu paquete, espera...</strong>
+  </div>
+
+  <div id="multiResults" class="multi-list" style="display:none;"></div>
+
+  <div id="resultContainer" class="package-box" style="display:none;">
+    <div id="timeline" class="timeline"></div>
+
+    <div id="packageDetails" class="details-row" style="margin-top:1rem">
+      <div>
+        <div class="small-muted">Tipo de envío</div>
+        <div id="detalleTipo">-</div>
+      </div>
+      <div>
+        <div class="small-muted">Peso (lbs)</div>
+        <div id="detallePeso">-</div>
+      </div>
+      <div>
+        <div class="small-muted">Tarifa por libra (USD)</div>
+        <div id="detalleTarifa">USD-</div>
+      </div>
+    </div>
+
+    <div style="margin-top:.8rem" id="detalleTotal"><strong>Total:</strong> -</div>
+  </div>
+
+  <div id="noResult" class="small-muted center" style="margin-top:1rem; display:none;">Aquí se mostrará el estado de tu envío.</div>
+</section>
+
+<!-- Lightbox overlay for package detail -->
+<div id="packageLightboxOverlay" aria-hidden="true">
+  <div id="packageLightbox" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+    <button class="close-btn" id="lbClose" aria-label="Cerrar ventana">×</button>
+    <h3 id="lbTitle">Pedido</h3>
+
+    <div id="lbHeader" style="margin-top:6px;">
+      <div id="lbWhen" style="font-weight:700;color:var(--color-accent);">Pedido hecho el -</div>
+      <div class="package-info-row" style="margin-top:8px;">
+        <div class="info"><div class="small-muted">Tipo de envío</div><div id="lbTipo">-</div></div>
+        <div class="info"><div class="small-muted">Peso aproximado</div><div id="lbPeso">-</div></div>
+        <div class="info"><div class="small-muted">Tarifa por libra</div><div id="lbTarifa">-</div></div>
+        <!-- nueva tarjeta Total: ocultada por defecto; se mostrará si peso y tarifa están disponibles -->
+        <div class="info" id="lbTotalCard" style="display:none;"><div class="small-muted">Total</div><div id="lbTotal">-</div></div>
+      </div>
+    </div>
+
+    <div id="lbLoading" style="display:none;margin-top:12px;justify-content:center;">
+      <div class="lightbox-loading"><div class="spinner" style="width:28px;height:28px;border-width:3px;border-top-color:var(--color-accent);"></div><div style="font-weight:700;color:var(--color-accent);margin-left:8px;">Cargando historial...</div></div>
+    </div>
+
+    <div id="lbTimeline" class="timeline" style="margin-top:12px;"></div>
+
+    <div style="text-align:center;margin-top:10px;">
+      <button id="lbCloseBtn" class="modal-close-btn">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- waiting popup (solicitando) -->
+<div id="waitingPop" role="status" aria-live="polite">
+  <div class="waiting-circle" aria-hidden="true">
+    <div class="spinner" aria-hidden="true"></div>
+  </div>
+  <div style="font-weight:700;color:var(--color-accent);margin-bottom:6px;">Solicitando tu pedido</div>
+  <div style="color:#444;margin-bottom:8px;">Estamos procesando tu solicitud, por favor espera...</div>
+  <div class="error" id="waitingError" style="display:none;"></div>
+</div>
+
+<!-- confirm popup -->
+<div id="confirmPop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="check-icon" aria-hidden="true">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="none"/>
+      <path d="M9 12.5l2 2 4-4" stroke="#2F528F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <h3 style="color:var(--color-accent);margin-bottom:6px;">Tu solicitud ha sido enviada</h3>
+  <p style="color:#444;margin-bottom:10px;">Te contactaremos por WhatsApp para confirmar el estado de tu solicitud en los próximos minutos.</p>
+  <button id="btnCerrarConfirm" class="calc-btn" style="background:var(--color-accent);">Cerrar</button>
+</div>
+
+<!-- confetti wrapper -->
+<div id="confettiWrap" aria-hidden="true"></div>
+
+<footer>
+  <p>&copy; 2025. Irvin Prado. Ascende Superius - Busca cosas superiores.</p>
+</footer>
+
+<!-- canvas-confetti CDN (necesario antes del script principal) -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<script>
+/* CONFIG */
+const API_BASE = 'https://nicaexpressway.onrender.com'; // <- adapta si tu deploy usa otra URL
+
+/* Intro FLIP sequence: show centered logo/title, then animate them into the header (FLIP)
+   Behavior tuned per request:
+   - intro overlay will fade out (opacity) and only be removed from the flow after the transition ends
+   - safety clamps added to avoid huge transforms
+*/
+(async function runIntroFLIP(){
+  try {
+    const intro = document.getElementById('introOverlay');
+    if(!intro) return;
+    intro.style.display = 'flex';
+    // show intro (logo + title fade-in)
+    intro.classList.add('show');
+
+    // visible time before FLIP starts (~2000ms)
+    await new Promise(r=>setTimeout(r, 2000));
+
+    const logo = document.getElementById('introLogo');
+    const title = document.getElementById('introTitle');
+    const targetLogo = document.getElementById('logoMain'); // header / inicio logo
+    const targetTitle = document.querySelector('header h1');
+
+    if(!logo || !targetLogo || !title || !targetTitle) {
+      // fallback: fade out gracefully
+      intro.classList.add('hide');
+      setTimeout(()=>{ intro.style.display='none'; intro.classList.remove('show','hide'); }, 700);
+      return;
+    }
+
+    // hide target items momentarily so FLIP doesn't overlap visually
+    targetLogo.style.visibility = 'hidden';
+    targetTitle.style.visibility = 'hidden';
+
+    // measure positions
+    const firstLogoRect = logo.getBoundingClientRect();
+    const lastLogoRect = targetLogo.getBoundingClientRect();
+
+    // safety: fallback sizes if measurement is invalid
+    const safeFirstW = (firstLogoRect.width > 0) ? firstLogoRect.width : 110;
+    const safeLastW  = (lastLogoRect.width  > 0) ? lastLogoRect.width  : safeFirstW;
+
+    // compute delta and scale
+    let dx = (lastLogoRect.left + lastLogoRect.width / 2) - (firstLogoRect.left + firstLogoRect.width / 2);
+    let dy = (lastLogoRect.top + lastLogoRect.height / 2) - (firstLogoRect.top + firstLogoRect.height / 2);
+    let scale = safeLastW / safeFirstW;
+
+    // Clamp values to avoid extreme transforms
+    // scale between 0.6 and 1.15
+    scale = Math.max(0.6, Math.min(scale, 1.15));
+    // dx/dy limited to half viewport to keep movement reasonable
+    const maxDX = window.innerWidth * 0.5;
+    const maxDY = window.innerHeight * 0.5;
+    dx = Math.max(-maxDX, Math.min(dx, maxDX));
+    dy = Math.max(-maxDY, Math.min(dy, maxDY));
+
+    // prepare FLIP transform: translate the introInner towards the target
+    const inner = document.getElementById('introInner');
+    inner.style.transition = 'transform 1s cubic-bezier(.2,.9,.2,1), opacity .6s';
+    inner.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    inner.style.opacity = '0';
+
+    // after animation completes hide overlay with fade (so background disappears smoothly)
+    setTimeout(()=>{
+      // fade out overlay
+      intro.classList.add('hide');
+      // reveal target elements
+      targetLogo.style.visibility = '';
+      targetTitle.style.visibility = '';
+      // remove overlay entirely after the opacity transition completes
+      setTimeout(()=>{ intro.style.display='none'; intro.classList.remove('show','hide'); inner.style.transform=''; inner.style.opacity=''; }, 700);
+    }, 1000);
+
+  } catch (e) {
+    console.warn('Intro FLIP failed', e);
+    const intro = document.getElementById('introOverlay');
+    if(intro) { intro.classList.remove('show'); intro.style.display='none'; }
+  }
+})();
+
+/* UI refs */
+const btnInicio = document.getElementById('btnInicio');
+const btnCotizar = document.getElementById('btnCotizar');
+const btnSolicitar = document.getElementById('btnSolicitar'); // oculto en nav
+const btnSeguimiento = document.getElementById('btnSeguimiento');
+
+const secciones = {
+  inicio: document.getElementById('inicio'),
+  cotizar: document.getElementById('cotizar'),
+  solicitar: document.getElementById('solicitar'),
+  seguimiento: document.getElementById('seguimiento')
+};
+
+/* Navigation with seguimiento highlight using lapis color */
+function resetNavStyles(){
+  [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{
+    if(!b) return;
+    b.classList.remove('active-highlight');
+    b.style.background = '';
+  });
+}
+function mostrarSeccion(nombre){
+  for(let s in secciones) {
+    if(secciones[s]) secciones[s].classList.remove('active');
+  }
+  if(secciones[nombre]) secciones[nombre].classList.add('active');
+
+  [btnInicio,btnCotizar,btnSolicitar,btnSeguimiento].forEach(b=>{ if(b) b.classList.add('inactive'); });
+  if(nombre==='inicio' && btnInicio) { btnInicio.classList.remove('inactive'); }
+  if(nombre==='cotizar' && btnCotizar) { btnCotizar.classList.remove('inactive'); }
+  if(nombre==='solicitar' && btnSolicitar) { btnSolicitar.classList.remove('inactive'); }
+  if(nombre==='seguimiento' && btnSeguimiento) {
+    btnSeguimiento.classList.remove('inactive');
+    btnSeguimiento.classList.add('active-highlight');
+  } else {
+    if(btnSeguimiento) btnSeguimiento.classList.remove('active-highlight');
+  }
+}
+if(btnInicio) btnInicio.addEventListener('click',()=>mostrarSeccion('inicio'));
+if(btnCotizar) btnCotizar.addEventListener('click',()=>mostrarSeccion('cotizar'));
+if(btnSolicitar) btnSolicitar.addEventListener('click',()=>mostrarSeccion('solicitar'));
+if(btnSeguimiento) btnSeguimiento.addEventListener('click',()=>mostrarSeccion('seguimiento'));
+
+/* Reveal logic for btnCotizar:
+   - button visible from start styled like others
+   - after timeout we add .show-cotizar to activate the unique CTA coral color
+*/
+(function revealCotizarCTA(){
+  try {
+    setTimeout(()=> {
+      if (btnCotizar) btnCotizar.classList.add('show-cotizar');
+    }, 10000);
+  } catch(e){}
+})();
+
+/* CALCULAR in Cotizar */
+const btnCalcularMain = document.getElementById('btnCalcularMain');
+const resultadoDiv = document.getElementById('resultado');
+const cotizarCtaWrap = document.getElementById('cotizarCtaWrap');
+
+function crearWaButton(){
+  const waHref = 'https://wa.me/50577079035?text=' + encodeURIComponent('Hola, Nica ExpressWay, me gustaria hacer un pedido.');
+  const a = document.createElement('a');
+  a.className = 'wa-cta';
+  a.href = waHref;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.innerText = 'Click aquí para realizar tu pedido!';
+  return a;
+}
+let waBtnTimeout = null;
+
+function resetCotizarForm(){
+  const tipoEl = document.getElementById('tipoEnvio');
+  const pesoEl = document.getElementById('peso');
+  if(tipoEl) tipoEl.value = 'aereo';
+  if(pesoEl) pesoEl.value = '';
+}
+
+btnCalcularMain.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const tipo = document.getElementById('tipoEnvio').value;
+  const pesoEl = document.getElementById('peso');
+  const peso = parseFloat(pesoEl.value);
+  if(isNaN(peso)||peso<=0){ alert('Por favor, ingresa un peso válido.'); pesoEl.blur(); return; }
+
+  // determine precio por libra segun tipo (para mostrar en linea separada)
+  let precioPerLb = 0;
+  if(tipo==='aereo'){ precioPerLb = 7.50; } else { precioPerLb = 3.00; }
+
+  let precio=0,dias=0;
+  if(tipo==='aereo'){ precio = peso*precioPerLb; dias=5; } else { precio = peso*precioPerLb; dias=15; }
+
+  // remove focus so mobile keyboard hides
+  if (pesoEl) pesoEl.blur();
+
+  // show resultado container immediately with spinner
+  resultadoDiv.style.display = 'block';
+  resultadoDiv.innerHTML = `
+    <div class="mini-spinner" aria-hidden="true">
+      <div class="spinner-small" role="img" aria-hidden="true"></div>
+      <div style="font-weight:700;color:var(--color-accent)">Calculando precio...</div>
+    </div>
+  `;
+  // remove any previous wa CTA
+  cotizarCtaWrap.innerHTML = '';
+
+  // simulate processing: 2000ms spinner then show result with fade
+  setTimeout(()=> {
+    // ahora incluimos explicitamente la linea "(Precio por libra: $X USD)" entre Precio estimado y Llegada estimada
+    resultadoDiv.innerHTML = `<div class="result-fade" id="resultadoInner"><div style="font-weight:700">Precio estimado: $${precio.toFixed(2)} USD</div><div style="margin-top:6px">(Precio por libra: $${precioPerLb.toFixed(2)} USD)</div><div style="margin-top:6px">Llegada estimada: ${dias} días</div></div>`;
+    const inner = document.getElementById('resultadoInner');
+    if (inner) requestAnimationFrame(()=> inner.classList.add('visible'));
+  }, 2000);
+
+  // reset form
+  resetCotizarForm();
+
+  // show WA CTA after 2s with fade-in + float animation
+  if(waBtnTimeout) clearTimeout(waBtnTimeout);
+  waBtnTimeout = setTimeout(()=>{
+    const btn = crearWaButton();
+    cotizarCtaWrap.appendChild(btn);
+    setTimeout(()=> { btn.classList.add('visible'); btn.classList.add('float'); }, 50);
+  }, 8000);
+});
+
+/* ================================
+   SEGUIMIENTO: búsqueda condicional
+   ================================ */
+const btnBuscar = document.getElementById('btnBuscar');
+const btnLimpiar = document.getElementById('btnLimpiar');
+const overlay = document.getElementById('searchOverlay');
+const resultContainer = document.getElementById('resultContainer');
+const noResult = document.getElementById('noResult');
+const timelineEl = document.getElementById('timeline');
+const detalleTipo = document.getElementById('detalleTipo');
+const detallePeso = document.getElementById('detallePeso');
+const detalleTarifa = document.getElementById('detalleTarifa');
+const detalleTotal = document.getElementById('detalleTotal');
+const multiResults = document.getElementById('multiResults');
+
+if(btnBuscar) btnBuscar.addEventListener('click', onBuscar);
+if(btnLimpiar) btnLimpiar.addEventListener('click', onLimpiar);
+
+function onLimpiar(){
+  const c = document.getElementById('codigo');
+  const n = document.getElementById('nombreBuscar');
+  const t = document.getElementById('telefonoBuscar');
+  const cc = document.getElementById('telCodeBuscar');
+  if(c) c.value='';
+  if(n) n.value='';
+  if(t) t.value='';
+  if(cc) cc.value='(505)';
+  hideResult();
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
+}
+
+/* gather params */
+function gatherSearchParams(){
+  const codigo = (document.getElementById('codigo').value||'').trim() || null;
+  const nombre = (document.getElementById('nombreBuscar').value||'').trim() || null;
+  const country = document.getElementById('telCodeBuscar').value;
+  const telefonoDigits = (document.getElementById('telefonoBuscar').value||'').trim() || null;
+  const telefono = telefonoDigits ? `${country}${telefonoDigits}` : null;
+  return { codigo, nombre, telefono };
+}
+
+/* validation */
+function validateSearch(params){
+  if(!(params.codigo || params.nombre || params.telefono)){
+    alert('Ingresa al menos el código, o el nombre, o el teléfono para buscar.');
+    return false;
+  }
+  if(params.codigo && (params.nombre || params.telefono)){
+    alert('Por favor busca por **código** O por **nombre/telefono**. No mezcles ambos.');
+    return false;
+  }
+  return true;
+}
+
+/* main handler */
+async function onBuscar(){
+  const params = gatherSearchParams();
+  if(!validateSearch(params)) return;
+
+  // blur focused inputs so keyboard hides on mobile
+  (document.activeElement instanceof HTMLElement) && document.activeElement.blur();
+
+  // show overlay/loader
+  if(overlay) overlay.style.display = 'block';
+  hideResult();
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
+
+  try {
+    const res = await fetchPackageFromAPI(params);
+
+    if(!res){
+      if(overlay) overlay.style.display = 'none';
+      if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'No se encontró paquete con los detalles otorgados, verifica la información.'; }
+      return;
+    }
+
+    if(res.paquetes && Array.isArray(res.paquetes)){
+      renderMultiplePackages(res.paquetes);
+      if(overlay) overlay.style.display = 'none';
+      return;
+    }
+
+    renderPackageResult(res);
+    if(overlay) overlay.style.display = 'none';
+  } catch (err) {
+    console.error('Error búsqueda:', err);
+    if(overlay) overlay.style.display = 'none';
+    if(noResult){ noResult.style.display = 'block'; noResult.textContent = 'Ocurrió un error buscando el paquete. Refresca la página y re-intenta.'; }
+  }
+}
+
+/* fetch unified: */
+async function fetchPackageFromAPI({ codigo, nombre, telefono }){
+  codigo = codigo ? String(codigo).trim() : null;
+  nombre = nombre ? String(nombre).trim() : null;
+  telefono = telefono ? String(telefono).trim() : null;
+
+  if (codigo) {
+    const resP = await fetch(`${API_BASE}/paquetes?codigo=${encodeURIComponent(codigo)}`);
+    if (!resP.ok) { console.warn('paquetes fetch fallo', resP.status); return null; }
+    const arr = await resP.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const paquete = arr[0];
+
+    let historial = null;
+    try {
+      const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+      if (resH.ok) historial = await resH.json();
+    } catch(err){ console.warn('historial fetch failed', err); historial = null; }
+
+    return { paquete, historial };
+  }
+
+  if (nombre || telefono) {
+    const res = await fetch(`${API_BASE}/paquetes/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, telefono })
+    });
+    if (!res.ok) { console.warn('search endpoint fallo', res.status); return null; }
+    const arr = await res.json();
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    return { paquetes: arr };
+  }
+
+  return null;
+}
+
+/* helper: parse number robustly from strings like "$7.50", "7.5", "3.00 USD" */
+function parseNumberFromString(val){
+  if(val === null || val === undefined) return null;
+  if(typeof val === 'number') return isFinite(val) ? Number(val) : null;
+  const s = String(val).replace(/[^0-9\.,-]/g,'').replace(',','.');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : null;
+}
+
+/* render single paquete */
+function renderPackageResult({ paquete, historial }){
+  multiResults.style.display = 'none';
+  multiResults.innerHTML = '';
+
+  timelineEl.innerHTML = '';
+  detalleTipo.textContent = 'Datos aún no disponibles';
+  detallePeso.textContent = 'Datos aún no disponibles';
+  detalleTarifa.textContent = 'Datos aún no disponibles';
+  detalleTotal.innerHTML = '<strong>Total:</strong> Datos aún no disponibles';
+  if(noResult) noResult.style.display='none';
+  if(resultContainer) resultContainer.style.display='block';
+
+  const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
+  detalleTipo.textContent = tipoMap[paquete?.tipo_envio_id] ?? (paquete?.tipo || 'Datos aún no disponibles');
+
+  detallePeso.textContent = paquete?.peso_libras  ?? 'Datos aún no disponibles';
+  detalleTarifa.textContent = paquete?.tarifa_usd ?? 'Datos aún no disponibles';
+
+  if (paquete?.peso_libras != null && paquete?.tarifa_usd != null){
+    const total = Number(paquete.peso_libras) * Number(paquete.tarifa_usd);
+    detalleTotal.innerHTML = `<strong>Total:</strong> $${isFinite(total) ? total.toFixed(2) : '0.00'} USD`;
+  }
+
+  timelineEl.innerHTML = '';
+  if (!historial) {
+    timelineEl.innerHTML = '<div class="small-muted">Historial no disponible (abre el detalle para cargar historial completo).</div>';
+  } else {
+    buildTimelineFromHistorialElement(historial, timelineEl);
+  }
+}
+
+/* render multiple packages (list) */
+function renderMultiplePackages(paquetes){
+  if(resultContainer) resultContainer.style.display = 'none';
+  if(noResult) noResult.style.display='none';
+
+  multiResults.innerHTML = '';
+  paquetes.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'multi-card';
+    const previewDate = p.fecha_ingreso ? formatDate(p.fecha_ingreso) : '--';
+    const left = document.createElement('div');
+    left.className = 'left';
+    left.innerHTML = `<div class="title">Pedido del ${previewDate}</div><div class="subtitle">${escapeHtml(p.nombre_cliente ?? p.nombre ?? '-')}</div>`;
+    const right = document.createElement('div');
+    right.className = 'right';
+    const tipoMap = { 1: 'Aéreo', 2: 'Marítimo' };
+    right.innerText = tipoMap[p.tipo_envio_id] ?? (p.tipo || '-');
+    card.appendChild(left);
+    card.appendChild(right);
+
+    card.dataset.paquete = JSON.stringify(p);
+    card.addEventListener('click', async ()=>{
+      const paqueteObj = JSON.parse(card.dataset.paquete);
+      openPackageLightbox(paqueteObj);
+    });
+
+    multiResults.appendChild(card);
+  });
+
+  multiResults.style.display = 'flex';
+}
+
+/* Build timeline helper used by single result and lightbox after fetching historial
+   5 & 6) When 'listo_recoger' detected, trigger confetti and pass the element to perceive direction
+*/
+function buildTimelineFromHistorialElement(historial, containerEl){
+  containerEl.innerHTML = '';
+  const items = [];
+  for (let i=1;i<=4;i++){
+    const s = historial[`estado${i}`];
+    const f = historial[`fecha${i}`];
+    if ((s && String(s).trim()!=='') || (f && String(f).trim()!=='')){
+      items.push({ estado: s || null, fecha: f || null, index: i });
+    }
+  }
+  if (items.length===0){
+    containerEl.innerHTML = '<div class="small-muted">No hay eventos en el historial.</div>';
+  } else {
+    items.forEach(it => {
+      const div = document.createElement('div');
+      div.className = 'timeline-item';
+      const label = mapStateLabel(it.estado);
+      div.innerHTML = `<div class="state">${label}</div>
+                       <div class="subtext">${mapStateSubtext(it.estado) || ''}</div>
+                       <div class="fecha">${it.fecha ? 'El ' + formatDate(it.fecha) : ''}</div>`;
+      if (it.estado && String(it.estado).toLowerCase()==='listo_recoger'){
+        div.classList.add('blink');
+        // confetti when ready to pick — pass element so confetti "origin" is perceptible
+        triggerConfetti(div);
+      }
+      containerEl.appendChild(div);
+    });
+  }
+}
+
+/* LIGHTBOX: open -> fetch historial */
+const packageLightboxOverlay = document.getElementById('packageLightboxOverlay');
+const lbClose = document.getElementById('lbClose');
+const lbCloseBtn = document.getElementById('lbCloseBtn');
+const lbTitle = document.getElementById('lbTitle');
+const lbWhen = document.getElementById('lbWhen');
+const lbTipo = document.getElementById('lbTipo');
+const lbPeso = document.getElementById('lbPeso');
+const lbTarifa = document.getElementById('lbTarifa');
+const lbTotalCard = document.getElementById('lbTotalCard');
+const lbTotal = document.getElementById('lbTotal');
+const lbTimeline = document.getElementById('lbTimeline');
+const lbLoading = document.getElementById('lbLoading');
+
+async function openPackageLightbox(paquete){
+  if(!paquete) return;
+  packageLightboxOverlay.style.display = 'flex';
+  packageLightboxOverlay.setAttribute('aria-hidden','false');
+  lbTitle.textContent = `Pedido ${paquete.id ? '#' + paquete.id : (paquete.codigo_seguimiento ? paquete.codigo_seguimiento : '')}`;
+  lbWhen.textContent = 'Pedido hecho - (cargando...)';
+  lbTipo.textContent = (paquete.tipo_envio_id ? (paquete.tipo_envio_id === 1 ? 'Aéreo' : paquete.tipo_envio_id === 2 ? 'Marítimo' : paquete.tipo) : (paquete.tipo || 'No disponible'));
+
+  // Mostrar peso con "libras" si es numérico
+  const pesoNum = parseNumberFromString(paquete.peso_libras ?? paquete.peso ?? paquete.peso_lb);
+  if (pesoNum !== null) {
+    // mantener 2 decimales para consistencia
+    lbPeso.textContent = `${Number(pesoNum).toFixed(2)} libras`;
+  } else {
+    lbPeso.textContent = 'No disponible';
+  }
+
+  // Mostrar tarifa formateada con USD si es numérica
+  const tarifaNum = parseNumberFromString(paquete.tarifa_usu ?? paquete.tarifa_usd ?? paquete.tarifa);
+  if (tarifaNum !== null) {
+    lbTarifa.textContent = `$${Number(tarifaNum).toFixed(2)} USD`;
+  } else {
+    lbTarifa.textContent = 'No disponible';
+  }
+
+  // Ocultar total por defecto, luego lo calculamos solo si ambos valores están disponibles
+  if (lbTotalCard) lbTotalCard.style.display = 'none';
+  lbTotal.textContent = '-';
+
+  lbTimeline.innerHTML = '';
+  lbLoading.style.display = 'flex';
+
+  let historial = null;
+  try {
+    if(paquete.codigo_seguimiento){
+      const resH = await fetch(`${API_BASE}/historial?codigo=${encodeURIComponent(paquete.codigo_seguimiento)}`);
+      if(resH.ok){
+        historial = await resH.json();
+      } else {
+        historial = null;
+      }
+    }
+  } catch(e){
+    console.warn('historial fetch failed in lightbox', e);
+    historial = null;
+  }
+
+  lbLoading.style.display = 'none';
+  if(historial && historial.fecha1){
+    lbWhen.textContent = `Pedido hecho el ${formatDate(paquete.fecha_ingreso)}`;
+} else if (paquete && paquete.fecha_ingreso) {
+  lbWhen.textContent = `Pedido hecho el ${formatDate(paquete.fecha_ingreso)}`;
+  } else {
+    lbWhen.textContent = 'Pedido hecho el ----';
+  }
+
+  if(historial){
+    buildTimelineFromHistorialElement(historial, lbTimeline);
+  } else {
+    lbTimeline.innerHTML = '<div class="small-muted">Historial no disponible.</div>';
+  }
+
+  // Calcular total SI y SOLO SI pesoNum y tarifaNum son válidos (numéricos)
+  if (pesoNum !== null && tarifaNum !== null) {
+    const totalCalc = Number(pesoNum) * Number(tarifaNum);
+    if (isFinite(totalCalc)) {
+      if (lbTotal) lbTotal.textContent = `$${totalCalc.toFixed(2)} USD`;
+      if (lbTotalCard) lbTotalCard.style.display = '';
+    } else {
+      if (lbTotalCard) lbTotalCard.style.display = 'none';
+    }
+  } else {
+    // al menos uno no está disponible -> ocultar tarjeta Total
+    if (lbTotalCard) lbTotalCard.style.display = 'none';
+  }
+
+  setTimeout(()=> { if (lbCloseBtn) lbCloseBtn.focus(); }, 80);
+}
+
+function closePackageLightbox(){
+  packageLightboxOverlay.style.display = 'none';
+  packageLightboxOverlay.setAttribute('aria-hidden','true');
+  lbTimeline.innerHTML = '';
+}
+
+if(lbClose) lbClose.addEventListener('click', closePackageLightbox);
+if(lbCloseBtn) lbCloseBtn.addEventListener('click', closePackageLightbox);
+
+/* Utils used across file */
+function mapStateLabel(raw){
+  if(!raw) return 'Estamos esperando tu paquete';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Recibido';
+    case 'en_transito': return 'En tránsito';
+    case 'en_aduana': return 'En aduana';
+    case 'listo_recoger': return 'Listo Para Recoger';
+    default: return capitalize(r.replace(/_/g,' '));
+  }
+}
+function mapStateSubtext(raw){
+  if(!raw) return '';
+  const r = raw.toString().toLowerCase();
+  switch(r){
+    case 'recibido': return 'Tu paquete fue recibido por Nica ExpressWay en Estados Unidos';
+    case 'en_transito': return 'Tu paquete está camino a Nicaragua';
+    case 'en_aduana': return 'Tu paquete está en aduanas, será recibido por nuestra agencia pronto';
+    case 'listo_recoger': return 'Tu paquete ya listo para retirar!';
+    default: return '';
+  }
+}
+function formatDate(d){
+  try {
+    // si viene como 'YYYY-MM-DD' lo parseamos como fecha LOCAL para evitar interpretación UTC
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const [y, m, day] = d.split('-').map(x => Number(x));
+      const local = new Date(y, m - 1, day); // nota: Date(year, monthIndex, day) -> local time
+      return local.toLocaleDateString('es-ES');
+    }
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('es-ES');
+  } catch (e) {
+    return d;
+  }
+}
+function capitalize(s){ return s && s.length ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* =========================
+   CONFETTI (mejorada)
+   - ráfagas direccionales
+   - acepta un elemento origen para que el usuario perciba el lado del disparo
+   - parámetros adaptados a mobile/desktop
+   - secuencia en ráfagas (para no saturar)
+   ========================= */
+let confettiClearTimeout = null;
+
+function triggerConfettiOnce(opts = {}) {
+  const defaults = {
+    particleCount: 260,
+    spread: 110,
+    ticks: 520,
+    gravity: 0.32,
+    startVelocity: 30,
+    decay: 0.9,
+    drift: 0.4,
+    scalar: 1,
+    origin: { y: 0.08 },
+    colors: ['#1f3a66','#2F528F','#79A7E4'],
+    shapes: ['square','circle'],
+    zIndex: 6001
+  };
+  const cfg = Object.assign({}, defaults, opts);
+
+  // cap particleCount to a reasonable max to avoid browser stalls
+  const maxAllowed = (window.innerWidth <= 420) ? 320 : 700;
+  cfg.particleCount = Math.min(cfg.particleCount, maxAllowed);
+
+  if (typeof confetti === 'function') {
+    // shoot in 3 small bursts (spaced) for visual richness and perf
+    const shootBurst = (override) => {
+      confetti(Object.assign({}, cfg, override));
+    };
+
+    // Primary burst (center-wide)
+    shootBurst({
+      particleCount: Math.floor(cfg.particleCount * 0.45),
+      spread: cfg.spread + 30,
+      origin: cfg.origin,
+      ticks: cfg.ticks,
+      gravity: cfg.gravity,
+      startVelocity: cfg.startVelocity,
+      decay: cfg.decay,
+      drift: cfg.drift,
+      scalar: cfg.scalar,
+      shapes: cfg.shapes,
+      colors: cfg.colors
+    });
+
+    // Secondary directional bursts (left and right), delayed slightly so user perceives direction
+    setTimeout(() => {
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.28),
+        angle: 60,
+        spread: Math.max(40, cfg.spread - 20),
+        origin: { x: 0.12, y: cfg.origin.y },
+        ticks: Math.floor(cfg.ticks * 0.95),
+        gravity: cfg.gravity * 0.98,
+        drift: cfg.drift * 1.2
+      });
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.28),
+        angle: 120,
+        spread: Math.max(40, cfg.spread - 20),
+        origin: { x: 0.88, y: cfg.origin.y },
+        ticks: Math.floor(cfg.ticks * 0.95),
+        gravity: cfg.gravity * 0.98,
+        drift: -cfg.drift * 1.2
+      });
+    }, 180);
+
+    // small finishing shimmer in center
+    setTimeout(() => {
+      shootBurst({
+        particleCount: Math.floor(cfg.particleCount * 0.12),
+        spread: 40,
+        origin: { x: 0.5, y: cfg.origin.y + 0.02 },
+        startVelocity: Math.max(10, cfg.startVelocity * 0.6),
+        ticks: Math.floor(cfg.ticks * 0.8),
+        gravity: cfg.gravity * 0.9
+      });
+    }, 360);
+  } else {
+    console.warn('canvas-confetti not loaded');
+  }
+
+  if (confettiClearTimeout) clearTimeout(confettiClearTimeout);
+  // clear canvas after enough time for particles to fall off-screen
+  confettiClearTimeout = setTimeout(() => {
+    const wrap = document.getElementById('confettiWrap');
+    if (wrap) wrap.innerHTML = '';
+  }, 9000);
+}
+
+/* helper that chooses parameters based on screen and element origin
+   if el is provided, the burst will emphasize the side where el is located
+*/
+function triggerConfetti(el) {
+  // if el is an Event or undefined, handle gracefully
+  let side = 'center';
+  try {
+    if (el && el.getBoundingClientRect) {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      side = (cx < window.innerWidth / 2) ? 'left' : 'right';
+    }
+  } catch(e){
+    side = 'center';
+  }
+
+  if (window.innerWidth <= 420) {
+    // mobile
+    if (side === 'left') {
+      triggerConfettiOnce({ particleCount: 220, origin: { y: 0.06 }, gravity: 0.34 });
+    } else if (side === 'right') {
+      triggerConfettiOnce({ particleCount: 220, origin: { y: 0.06 }, gravity: 0.34 });
+    } else {
+      triggerConfettiOnce({ particleCount: 200, origin: { y: 0.06 }, gravity: 0.34 });
+    }
+  } else {
+    // desktop
+    if (side === 'left') {
+      triggerConfettiOnce({ particleCount: 420, origin: { y: 0.04 } });
+    } else if (side === 'right') {
+      triggerConfettiOnce({ particleCount: 420, origin: { y: 0.04 } });
+    } else {
+      triggerConfettiOnce({ particleCount: 360, origin: { y: 0.04 } });
+    }
+  }
+}
+
+/* =========================
+   Keydown / Enter handlers that close mobile keyboard
+   - All inputs that used to handle Enter now blur themselves after action
+   ========================= */
+['codigo','telefonoBuscar','nombreBuscar','telefonoSolicitar','peso'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      if(id==='peso'){
+        // simulate click on calcular, then blur the input so keyboard hides
+        btnCalcularMain.click();
+        try { el.blur(); } catch(_) {}
+      } else {
+        onBuscar();
+        try { el.blur(); } catch(_) {}
+      }
+    }
+  });
+});
+
+/* also add explicit "submit-like" handling for mobile keyboards:
+   If user presses 'Done' or uses any IME action, make sure blur occurs.
+*/
+['peso','codigo','nombreBuscar','telefonoBuscar','telefonoSolicitar'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', ()=> {
+    // no-op but keeps element referenced; could be extended
+  });
+  el.addEventListener('blur', ()=> {
+    // ensure no focused element steals focus
+  });
+});
+
+/* Inicial state */
+(function init(){
+  mostrarSeccion('inicio');
+  hideResult();
+})();
+function hideResult(){
+  if(resultContainer) resultContainer.style.display='none';
+  if(noResult) { noResult.style.display='block'; noResult.textContent = 'Aquí se mostrará el estado del envío.'; }
+  if(timelineEl) timelineEl.innerHTML='';
+}
+
+/* SOLICITAR logic unchanged (kept as before) */
+const btnCalcularSolicitar = document.getElementById('btnCalcularSolicitar');
+const btnConfirmarSolicitar = document.getElementById('btnConfirmarSolicitar');
+const reciboSolicitar = document.getElementById('reciboSolicitar');
+const rcPrecioLibra = document.getElementById('rcPrecioLibra');
+const rcLibras = document.getElementById('rcLibras');
+const rcTotal = document.getElementById('rcTotal');
+const rcEstimado = document.getElementById('rcEstimado');
+
+const waitingPop = document.getElementById('waitingPop');
+const waitingError = document.getElementById('waitingError');
+const confirmPop = document.getElementById('confirmPop');
+const btnCerrarConfirm = document.getElementById('btnCerrarConfirm');
+
+function calcularSolicitar(){
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso = parseFloat(document.getElementById('pesoSolicitar').value);
+  if (isNaN(peso) || peso <= 0) {
+    alert('Por favor ingresa un peso válido.');
+    return false;
+  }
+  let precioPorLb = 0;
+  if (tipo === 'aereo') precioPorLb = 7.50;
+  else precioPorLb = 3.00;
+
+  const total = precioPorLb * peso;
+
+  rcPrecioLibra.textContent = `$${precioPorLb.toFixed(2)} USD`;
+  rcLibras.textContent = `${Number(peso).toFixed(2)} lb`;
+  rcTotal.innerHTML = `<strong>$${isFinite(total) ? total.toFixed(2) : '0.00'} USD</strong>`;
+
+  if (tipo === 'maritimo') {
+    rcEstimado.textContent = 'Llegada estimada: 15 días';
+  } else {
+    rcEstimado.textContent = 'Llegada estimada: 7 días';
+  }
+
+  reciboSolicitar.style.display = 'block';
+  btnCalcularSolicitar.style.display = 'none';
+  btnConfirmarSolicitar.style.display = 'block';
+  return true;
+}
+
+if (btnCalcularSolicitar) btnCalcularSolicitar.addEventListener('click', (e)=>{
+  e.preventDefault();
+  calcularSolicitar();
+});
+
+function validarFormularioSolicitar(){
+  const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
+  const telCode = document.getElementById('telCodeSolicitar').value;
+  const telefono = (document.getElementById('telefonoSolicitar').value||'').trim();
+  const plataforma = (document.getElementById('plataformaSolicitar').value||'').trim();
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso = document.getElementById('pesoSolicitar').value;
+
+  if (!nombre) { alert('Ingresa el nombre del cliente.'); return false; }
+  if (!telefono || !/^\d{8,10}$/.test(telefono)) { alert('Ingresa un teléfono válido (8-10 dígitos).'); return false; }
+  if (!plataforma) { alert('Ingresa la plataforma o agencia.'); return false; }
+  if (!tipo) { alert('Selecciona el tipo de envío.'); return false; }
+  if (!peso || isNaN(Number(peso)) || Number(peso) <= 0) { alert('Ingresa un peso válido.'); return false; }
+
+  return true;
+}
+
+function showWaiting(){ waitingError.style.display = 'none'; waitingError.textContent = ''; waitingPop.classList.add('show'); }
+function hideWaiting(){ waitingPop.classList.remove('show'); setTimeout(()=>{ waitingError.style.display='none'; waitingError.textContent=''; }, 350); }
+function showConfirm(){ confirmPop.classList.add('show'); }
+function hideConfirm(){ confirmPop.classList.remove('show'); }
+
+if (btnConfirmarSolicitar) btnConfirmarSolicitar.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  if (!validarFormularioSolicitar()) return;
+  const nombre = (document.getElementById('nombreSolicitar').value||'').trim();
+  const telCode = document.getElementById('telCodeSolicitar').value;
+  const telefono = (document.getElementById('telefonoSolicitar').value||'').trim();
+  const agencia = (document.getElementById('plataformaSolicitar').value||'').trim();
+  const descripcion = (document.getElementById('descripcionSolicitar').value||'').trim() || null;
+  const tipo = document.getElementById('tipoEnvioSolicitar').value;
+  const peso_aprox = Number(document.getElementById('pesoSolicitar').value);
+  const telefonoFull = `${telCode}${telefono}`;
+  const payload = { nombre, telefono: telefonoFull, agencia, descripcion, tipo, peso_aprox };
+
+  showWaiting();
+  btnConfirmarSolicitar.disabled = true;
+
+  try {
+    const resp = await fetch(`${API_BASE}/pedidos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>null);
+      waitingError.style.display = 'block';
+      waitingError.textContent = `Error guardando la solicitud (${resp.status})`;
+      console.error('POST /pedidos failed', resp.status, txt);
+      btnConfirmarSolicitar.disabled = false;
+      return;
+    }
+
+    const data = await resp.json().catch(()=>null);
+    hideWaiting();
+    showConfirm();
+
+    document.getElementById('nombreSolicitar').value = '';
+    document.getElementById('telCodeSolicitar').value = '+505';
+    document.getElementById('telefonoSolicitar').value = '';
+    document.getElementById('plataformaSolicitar').value = '';
+    document.getElementById('descripcionSolicitar').value = '';
+    document.getElementById('tipoEnvioSolicitar').value = 'aereo';
+    document.getElementById('pesoSolicitar').value = '';
+    reciboSolicitar.style.display = 'none';
+    btnConfirmarSolicitar.style.display = 'none';
+    btnConfirmarSolicitar.disabled = false;
+    btnCalcularSolicitar.style.display = 'block';
+  } catch (err) {
+    console.error('Error POST /pedidos', err);
+    waitingError.style.display = 'block';
+    waitingError.textContent = 'Ocurrió un error de red. Intenta nuevamente.';
+    btnConfirmarSolicitar.disabled = false;
+  }
+});
+
+if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', (e)=>{
+  e.preventDefault();
+  hideConfirm();
+});
+
+/* End SOLICITAR logic */
+
+</script>
+  <script>
+/* EXTERNAL SHELL: easy toggle.
+   To disable later: set USE_EXTERNAL=false OR remove this <script> block.
+*/
+(function(){
+  const USE_EXTERNAL = false; // <-- Cambia a false para desactivar
+  if(!USE_EXTERNAL) return;
+  const externalUrl = 'https://irvinforbusinesses.github.io/plantillacatalogo/';
+  const cacheBuster = '?_=' + Date.now();
+  const iframe = document.createElement('iframe');
+  iframe.id = 'externalShellFrame';
+  iframe.src = externalUrl + cacheBuster;
+  iframe.style.position = 'fixed';
+  iframe.style.inset = '0';
+  iframe.style.border = '0';
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.zIndex = '9999';
+  iframe.style.background = 'white';
+  iframe.style.boxSizing = 'border-box';
+  iframe.setAttribute('aria-hidden','false');
+  iframe.setAttribute('title','External shell');
+  const hideOriginal = () => {
+    document.querySelectorAll('body > *:not(#externalShellFrame)').forEach(el=>{
+      el.dataset._origDisplay = el.style.display || '';
+      el.style.display = 'none';
+    });
+  };
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.appendChild(iframe);
+    hideOriginal();
+    window.addEventListener('pageshow', (ev)=>{ if(ev.persisted) iframe.src = externalUrl + '?_=' + Date.now(); });
+  });
+})();
+</script>
+<script>
+/* --- Inicio: comportamiento JS para nueva landing (logos + servicios) --- */
+
+(function(){
+  // logos (usamos Simple Icons CDN; cambia la lista si quieres otros assets)
+  const logos = [
+    'https://cdn.simpleicons.org/shein/2F528F',
+    'https://cdn.simpleicons.org/amazon/2F528F',
+    'https://cdn.simpleicons.org/ebay/2F528F',
+    'https://cdn.simpleicons.org/aliexpress/2F528F',
+    'https://cdn.simpleicons.org/alibaba/2F528F'
+  ];
+  const logoInterval = 1500; // ms
+  const logoFade = 300; // fade duration (matches CSS)
+
+  // services carousel
+  const servicesAutoAdvance = 3000; // cada 3s
+  let logosIdx = 0, logosTimer = null;
+  let servicesIdx = 0, servicesTimer = null;
+
+  function rotateLogos() {
+    const wrap = document.getElementById('logosCarousel');
+    if(!wrap) return;
+    // find current img element (we keep just one img and swap src for perf)
+    let img = wrap.querySelector('img.logo-slide');
+    if(!img){
+      img = document.createElement('img'); img.className='logo-slide';
+      wrap.appendChild(img);
+    }
+    // crossfade
+    img.classList.remove('active');
+    setTimeout(()=> {
+      img.src = logos[logosIdx];
+      img.alt = logos[logosIdx].split('/').slice(-1)[0] + ' logo';
+      // force reflow to restart transition
+      void img.offsetWidth;
+      img.classList.add('active');
+      logosIdx = (logosIdx+1) % logos.length;
+    }, 50);
+  }
+
+  function startLogoLoop(){
+    rotateLogos();
+    if(logosTimer) clearInterval(logosTimer);
+    logosTimer = setInterval(rotateLogos, logoInterval);
+  }
+
+  /* Services carousel control */
+  function setServicesPosition(idx){
+    const track = document.getElementById('servicesTrack');
+    if(!track) return;
+    const cardW = track.children[0] ? track.children[0].getBoundingClientRect().width : track.getBoundingClientRect().width;
+    const gap = 12; // visual gap (approx)
+    const x = (cardW + gap) * idx * -1;
+    track.style.transform = `translateX(${x}px)`;
+    // dots active
+    const dots = document.getElementById('servicesDots');
+    if(dots){
+      [...dots.children].forEach((b,i)=> b.classList.toggle('active', i===idx));
+    }
+    // if special card visible -> change subtitle
+    const servicesTitle = document.getElementById('servicesTitle');
+    if(servicesTitle){
+      if(idx===2){
+        servicesTitle.classList.remove('visible');
+        setTimeout(()=> { servicesTitle.textContent='También te ofrecemos:'; servicesTitle.classList.add('visible'); }, 180);
+      } else {
+        servicesTitle.classList.remove('visible');
+        setTimeout(()=> { servicesTitle.textContent='Te las hacemos llegar vía:'; servicesTitle.classList.add('visible'); }, 180);
+      }
+    }
+  }
+
+  function advanceServices(){
+    const track = document.getElementById('servicesTrack');
+    if(!track) return;
+    const total = track.children.length;
+    servicesIdx = (servicesIdx + 1) % total;
+    setServicesPosition(servicesIdx);
+  }
+
+  function startServicesAuto(){
+    if(servicesTimer) clearInterval(servicesTimer);
+    servicesTimer = setInterval(advanceServices, servicesAutoAdvance);
+  }
+
+  function buildDots(){
+    const track = document.getElementById('servicesTrack');
+    const dots = document.getElementById('servicesDots');
+    if(!track || !dots) return;
+    dots.innerHTML = '';
+    for(let i=0;i<track.children.length;i++){
+      const b = document.createElement('button');
+      b.type='button';
+      b.title = 'Mostrar tarjeta ' + (i+1);
+      b.addEventListener('click', ()=> {
+        servicesIdx = i;
+        setServicesPosition(i);
+        // restart auto
+        startServicesAuto();
+      });
+      dots.appendChild(b);
+    }
+  }
+
+  /* when intro ends: run the sequence of reveals */
+  function waitForIntroAndInit(){
+    const intro = document.getElementById('introOverlay');
+    // if no overlay (or already hidden) init immediately
+    if(!intro || getComputedStyle(intro).display === 'none') { initLandingSequence(); return; }
+    // otherwise observe until hidden or removed
+    const observer = new MutationObserver(()=> {
+      if(!document.body.contains(intro) || getComputedStyle(intro).display === 'none' || intro.classList.contains('hide')){
+        observer.disconnect();
+        setTimeout(initLandingSequence, 260); // small delay so FLIP finishes visually
+      }
+    });
+    observer.observe(document.documentElement || document.body, { childList:true, subtree:true, attributes:true });
+    // backup timeout in case something fails
+    setTimeout(()=> { if(observer) observer.disconnect(); initLandingSequence(); }, 5000);
+  }
+
+  function revealElement(el, delay=0){
+    if(!el) return;
+    setTimeout(()=> el.classList.add('visible'), delay);
+  }
+
+  function initLandingSequence(){
+    // start logos after intro
+    startLogoLoop();
+
+    // build services dots and auto start
+    buildDots();
+    setTimeout(()=> { setServicesPosition(0); startServicesAuto(); }, 600);
+
+    // reveal sequence with timing requested
+    const top = document.getElementById('landingTop');
+    const services = document.getElementById('landingServices');
+    const original = document.getElementById('inicioOriginal');
+
+    // timings: top fades in at 0.5s after intro done
+    revealElement(top, 500);
+    // logos animation shows for 3s (you already have loop)
+    // services appear 3s after logos end -> logos first loop finishes quickly, still we'll show services at ~3500ms
+    revealElement(services, 3500);
+    // original content appears 2s after services appear
+    revealElement(original, 5500);
+
+    // small auto-hint: after 3s perform a small semiscroll to the right to indicate there are more cards
+    setTimeout(()=> {
+      const track = document.getElementById('servicesTrack');
+      if(track){
+        // semi-pan right then back
+        track.style.transition = 'transform .6s cubic-bezier(.2,.9,.2,1)';
+        const tempIdx = Math.min(1, Math.max(0, servicesIdx+1));
+        setServicesPosition(tempIdx);
+        setTimeout(()=> setServicesPosition(servicesIdx), 900);
+      }
+    }, 3000);
+  }
+
+  // small accessibility / keyboard: allow left/right arrows to move services when focus inside
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight'){ advanceServices(); startServicesAuto(); }
+    if(e.key === 'ArrowLeft'){ servicesIdx = Math.max(0, servicesIdx-1); setServicesPosition(servicesIdx); startServicesAuto(); }
+  });
+
+  // init after DOM
+  document.addEventListener('DOMContentLoaded', ()=> {
+    waitForIntroAndInit();
+  });
+
+})();
+</script>
+
+</body>
+</html>
